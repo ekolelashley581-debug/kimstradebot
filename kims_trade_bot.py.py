@@ -1,21 +1,3 @@
-# ============================================
-# FIX FOR RENDER - ADD THIS AT THE TOP!
-# ============================================
-
-import os
-from flask import Flask, request, jsonify, session, send_from_directory
-from flask_cors import CORS
-from functools import wraps
-import sqlite3
-from datetime import datetime, timedelta
-import hashlib
-import json
-
-app = Flask(__name__)  # ← MAKE SURE THIS LINE EXISTS!
-app.secret_key = "Kim_Ultimate_Secret_2024"
-CORS(app, supports_credentials=True)
-
-
 """
 KIM'S TRADE BOT – ULTIMATE PROFESSIONAL EDITION
 Multi-country, multi-language, full payments, admin transfers
@@ -50,7 +32,7 @@ class Config:
     DB_PATH = os.path.join(BASE_DIR, 'database', 'kims_bot.db')
     
     # Admin email (only you)
-    ADMIN_EMAIL = ""  # ← CHANGE TO YOUR EMAIL
+    ADMIN_EMAIL = "mikyjones3225@gmail.com"  # ← ADDED YOUR EMAIL!
     
     # Supported countries with local payment
     COUNTRIES = {
@@ -683,14 +665,18 @@ def mark_support_read():
     return jsonify({'success': True})
 
 # ============================================
-# START SERVER
+# FOR RENDER - COMMENT OUT LOCAL DEVELOPMENT SECTION
 # ============================================
 
+# The following section is for LOCAL DEVELOPMENT only
+# On Render, gunicorn serves the app directly
+
 if __name__ == '__main__':
+    # This code ONLY runs when you execute python directly (not on Render)
     os.makedirs(config.FRONTEND_DIR, exist_ok=True)
     init_db()
     print("="*70)
-    print("🚀 KIM'S TRADE BOT - ULTIMATE PROFESSIONAL EDITION")
+    print("🚀 KIM'S TRADE BOT - LOCAL DEVELOPMENT MODE")
     print("="*70)
     print(f"👤 Admin: {config.ADMIN_EMAIL}")
     print(f"🌍 Countries: {', '.join(config.COUNTRIES.keys())}")
@@ -698,4 +684,4 @@ if __name__ == '__main__':
     print("🌐 http://localhost:5000")
     print("👑 Admin: http://localhost:5000/admin.html")
     print("="*70)
-   
+    app.run(host='0.0.0.0', port=5000, debug=True)
