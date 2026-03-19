@@ -26,13 +26,16 @@ CORS(app, supports_credentials=True)
 # ============================================
 
 class Config:
-    BASE_DIR = r'C:\Users\USER\Desktop\KimsTradeBot'
-    BOT_PATH = r'C:\Users\USER\Desktop\TradingBot\version 2\TradingBot.V2.exe'
+    # Get the directory where this script is located
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    BOT_PATH = r'C:\Users\USER\Desktop\TradingBot\version 2\TradingBot.V2.exe'  # Only works locally
     FRONTEND_DIR = os.path.join(BASE_DIR, 'frontend')
     DB_PATH = os.path.join(BASE_DIR, 'database', 'kims_bot.db')
     
     # Admin email (only you)
-    ADMIN_EMAIL = "mikyjones3225@gmail.com"  # ← ADDED YOUR EMAIL!
+    ADMIN_EMAIL = "mikyjones3225@gmail.com"
+    
+    
     
     # Supported countries with local payment
     COUNTRIES = {
