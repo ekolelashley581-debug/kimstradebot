@@ -1,3 +1,21 @@
+# ============================================
+# FIX FOR RENDER - ADD THIS AT THE TOP!
+# ============================================
+
+import os
+from flask import Flask, request, jsonify, session, send_from_directory
+from flask_cors import CORS
+from functools import wraps
+import sqlite3
+from datetime import datetime, timedelta
+import hashlib
+import json
+
+app = Flask(__name__)  # ← MAKE SURE THIS LINE EXISTS!
+app.secret_key = "Kim_Ultimate_Secret_2024"
+CORS(app, supports_credentials=True)
+
+
 """
 KIM'S TRADE BOT – ULTIMATE PROFESSIONAL EDITION
 Multi-country, multi-language, full payments, admin transfers
@@ -680,4 +698,4 @@ if __name__ == '__main__':
     print("🌐 http://localhost:5000")
     print("👑 Admin: http://localhost:5000/admin.html")
     print("="*70)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+   
