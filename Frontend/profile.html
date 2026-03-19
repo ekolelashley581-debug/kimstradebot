@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile – Kim's Trade Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --darker: #020617;
+        }
+        
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --bg-light: #1e293b;
+            --text: #f8fafc;
+            --text-light: #94a3b8;
+            --border: #334155;
+            --card: #1e293b;
+            --hover: #2d3a4f;
+        }
+        
+        body {
+            background: var(--dark);
+            min-height: 100vh;
+            display: flex;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--darker);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .sidebar-header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .sidebar-header p {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            margin: 4px 8px;
+            border-radius: 12px;
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .nav-item i {
+            width: 24px;
+            font-size: 18px;
+            margin-right: 12px;
+        }
+        
+        .nav-item span { flex: 1; font-size: 14px; font-weight: 500; }
+        
+        .nav-item:hover {
+            background: #334155;
+            color: white;
+        }
+        
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .user-info {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 20px;
+            border-top: 1px solid #334155;
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            margin-right: 12px;
+            color: white;
+        }
+        
+        .user-details h4 { font-size: 14px; margin-bottom: 3px; color: white; }
+        .user-details p { font-size: 11px; color: #94a3b8; }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            background: var(--bg);
+            min-height: 100vh;
+        }
+        
+        .top-header {
+            height: 70px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text);
+        }
+        
+        .content-area {
+            padding: 30px;
+        }
+        
+        /* Profile Card */
+        .profile-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .profile-card {
+            background: var(--card);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        .profile-cover {
+            height: 120px;
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            position: relative;
+        }
+        
+        .profile-avatar {
+            position: absolute;
+            bottom: -50px;
+            left: 40px;
+            width: 100px;
+            height: 100px;
+            background: var(--card);
+            border: 4px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+        }
+        
+        .profile-header {
+            padding: 70px 40px 30px 40px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .profile-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 5px;
+        }
+        
+        .profile-email {
+            color: var(--text-light);
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .profile-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            color: white;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .profile-body {
+            padding: 30px 40px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .info-section {
+            background: var(--bg);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid var(--border);
+        }
+        
+        .info-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-title i {
+            color: var(--primary);
+            font-size: 20px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+        
+        .info-value {
+            color: var(--text);
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .edit-btn {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            color: var(--text);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .edit-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .save-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .save-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .cancel-btn {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            color: var(--text);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        
+        .payment-history {
+            background: var(--card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-top: 30px;
+        }
+        
+        .payment-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .payment-header h3 {
+            color: var(--text);
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .payment-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .payment-table th {
+            text-align: left;
+            padding: 15px 20px;
+            background: var(--bg);
+            color: var(--text-light);
+            font-weight: 500;
+            font-size: 13px;
+        }
+        
+        .payment-table td {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+        }
+        
+        .payment-status {
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .status-success {
+            background: rgba(16,185,129,0.15);
+            color: var(--success);
+        }
+        
+        .edit-form {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .edit-form.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text);
+            font-weight: 500;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 14px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 15px;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .loading-spinner {
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 50px auto;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .back-btn {
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            color: var(--text);
+            border-radius: 12px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+        
+        .back-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>KIM'S TRADE BOT</h1>
+            <p>Professional Trading Platform</p>
+        </div>
+        
+        <div class="nav-item" onclick="window.location.href='/'">
+            <i class="fas fa-home"></i> <span>Dashboard</span>
+        </div>
+        <div class="nav-item active" onclick="window.location.href='/profile.html'">
+            <i class="fas fa-user"></i> <span>My Profile</span>
+        </div>
+        <div class="nav-item" id="adminNav" onclick="window.location.href='/admin.html'" style="display:none;">
+            <i class="fas fa-cog"></i> <span>Admin</span>
+        </div>
+        
+        <div class="user-info" id="userInfo">
+            <div class="user-avatar" id="userAvatar">K</div>
+            <div class="user-details">
+                <h4 id="userName">Loading...</h4>
+                <p id="userTier">Free Trial</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-header">
+            <span class="page-title">My Profile</span>
+            <div class="header-right">
+                <div class="theme-toggle" onclick="toggleTheme()">
+                    <i class="fas fa-moon"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content-area" id="contentArea">
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+    
+    <script>
+        const API = 'http://localhost:5000/api';
+        let userData = null;
+        let isAdmin = false;
+        
+        // ========================================
+        // CHECK LOGIN
+        // ========================================
+        
+        async function checkLogin() {
+            try {
+                let res = await fetch(API + '/check_session');
+                let data = await res.json();
+                
+                if (!data.logged_in) {
+                    window.location.href = '/';
+                    return;
+                }
+                
+                document.getElementById('userName').innerText = data.email.split('@')[0];
+                document.getElementById('userTier').innerText = data.tier === 'free_trial' ? 'FREE TRIAL' : data.tier.toUpperCase();
+                document.getElementById('userAvatar').innerText = data.email.charAt(0).toUpperCase();
+                
+                isAdmin = data.is_admin;
+                if (isAdmin) document.getElementById('adminNav').style.display = 'flex';
+                
+                loadProfile();
+                
+            } catch (error) {
+                window.location.href = '/';
+            }
+        }
+        
+        // ========================================
+        // LOAD PROFILE
+        // ========================================
+        
+        async function loadProfile() {
+            let res = await fetch(API + '/user/profile');
+            let data = await res.json();
+            userData = data;
+            
+            let joinDate = new Date(data.joined).toLocaleDateString();
+            let trialEnd = data.trial_end ? new Date(data.trial_end).toLocaleDateString() : 'N/A';
+            let subEnd = data.subscription_end ? new Date(data.subscription_end).toLocaleDateString() : 'N/A';
+            
+            document.getElementById('contentArea').innerHTML = `
+                <div class="profile-container">
+                    <div class="profile-card">
+                        <div class="profile-cover"></div>
+                        <div class="profile-avatar" id="profileAvatar">${data.email.charAt(0).toUpperCase()}</div>
+                        
+                        <div class="profile-header">
+                            <div class="profile-name">${data.email.split('@')[0]}</div>
+                            <div class="profile-email">${data.email}</div>
+                            <span class="profile-badge" id="profileTier">${data.tier === 'free_trial' ? 'FREE TRIAL' : data.tier.toUpperCase()}</span>
+                        </div>
+                        
+                        <div class="profile-body">
+                            <div class="info-grid">
+                                <div class="info-section">
+                                    <div class="info-title"><i class="fas fa-user-circle"></i> Personal Information</div>
+                                    <div class="info-row">
+                                        <span class="info-label">Phone Number</span>
+                                        <span class="info-value" id="displayPhone">${data.phone || 'Not set'}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Country</span>
+                                        <span class="info-value" id="displayCountry">${data.country || 'CM'}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Language</span>
+                                        <span class="info-value" id="displayLang">${data.lang === 'fr' ? 'Français' : 'English'}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Member Since</span>
+                                        <span class="info-value">${joinDate}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="info-section">
+                                    <div class="info-title"><i class="fas fa-crown"></i> Subscription</div>
+                                    <div class="info-row">
+                                        <span class="info-label">Current Plan</span>
+                                        <span class="info-value">${data.tier === 'free_trial' ? 'Free Trial' : data.tier.toUpperCase()}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Trial Ends</span>
+                                        <span class="info-value">${trialEnd}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Subscription Ends</span>
+                                        <span class="info-value">${subEnd}</span>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Status</span>
+                                        <span class="info-value" style="color:var(--success);">Active</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="display:flex; gap:15px; justify-content:flex-end;">
+                                <button class="edit-btn" onclick="showEditForm()">
+                                    <i class="fas fa-edit"></i> Edit Profile
+                                </button>
+                                ${data.tier === 'free_trial' ? `
+                                    <button class="save-btn" onclick="window.location.href='/?upgrade'">
+                                        <i class="fas fa-crown"></i> Upgrade Now
+                                    </button>
+                                ` : ''}
+                            </div>
+                            
+                            <!-- Edit Form -->
+                            <div id="editForm" class="edit-form">
+                                <h3 style="color:var(--text); margin:30px 0 20px;">Edit Information</h3>
+                                
+                                <div class="form-group">
+                                    <label>Phone Number</label>
+                                    <input type="tel" id="editPhone" value="${data.phone || ''}" placeholder="67XXXXXX">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Language</label>
+                                    <select id="editLang">
+                                        <option value="en" ${data.lang === 'en' ? 'selected' : ''}>English</option>
+                                        <option value="fr" ${data.lang === 'fr' ? 'selected' : ''}>Français</option>
+                                    </select>
+                                </div>
+                                
+                                <div style="display:flex; gap:15px;">
+                                    <button class="save-btn" onclick="saveProfile()">Save Changes</button>
+                                    <button class="cancel-btn" onclick="hideEditForm()">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment History -->
+                    <div class="payment-history">
+                        <div class="payment-header">
+                            <h3><i class="fas fa-history" style="margin-right:10px; color:var(--primary);"></i> Payment History</h3>
+                        </div>
+                        <table class="payment-table" id="paymentTable">
+                            <thead>
+                                <tr><th>Date</th><th>Amount</th><th>Plan</th><th>Status</th></tr>
+                            </thead>
+                            <tbody id="paymentBody">
+                                <tr><td colspan="4" style="text-align:center; color:var(--text-light);">Loading payments...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <button class="back-btn" onclick="window.location.href='/'">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </button>
+                </div>
+            `;
+            
+            loadPayments();
+        }
+        
+        // ========================================
+        // LOAD PAYMENTS
+        // ========================================
+        
+        async function loadPayments() {
+            let res = await fetch(API + '/user/payments');
+            let data = await res.json();
+            
+            let tbody = document.getElementById('paymentBody');
+            
+            if (data.payments && data.payments.length > 0) {
+                tbody.innerHTML = data.payments.map(p => `
+                    <tr>
+                        <td>${new Date(p.date).toLocaleString()}</td>
+                        <td>${p.amount.toLocaleString()} ${p.currency || 'XAF'}</td>
+                        <td><span class="profile-badge" style="background:${p.plan === 'pro' ? 'var(--primary)' : 'gold'}; color:${p.plan === 'pro' ? 'white' : 'black'};">${p.plan.toUpperCase()}</span></td>
+                        <td><span class="payment-status status-success">Completed</span></td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-light);">No payment history yet</td></tr>';
+            }
+        }
+        
+        // ========================================
+        // EDIT PROFILE
+        // ========================================
+        
+        function showEditForm() {
+            document.getElementById('editForm').classList.add('active');
+        }
+        
+        function hideEditForm() {
+            document.getElementById('editForm').classList.remove('active');
+        }
+        
+        async function saveProfile() {
+            let phone = document.getElementById('editPhone').value;
+            let lang = document.getElementById('editLang').value;
+            
+            let res = await fetch(API + '/user/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone, lang })
+            });
+            
+            let data = await res.json();
+            
+            if (data.success) {
+                alert('Profile updated successfully!');
+                location.reload();
+            } else {
+                alert('Update failed');
+            }
+        }
+        
+        // ========================================
+        // UTILITIES
+        // ========================================
+        
+        function toggleTheme() {
+            let html = document.documentElement;
+            let theme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', theme);
+            document.querySelector('.theme-toggle i').className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+        
+        // Initialize
+        checkLogin();
+    </script>
+</body>
+</html>
