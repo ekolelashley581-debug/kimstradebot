@@ -21,6 +21,9 @@ app = Flask(__name__)
 app.secret_key = "Kim_Ultimate_Secret_2024"
 CORS(app, supports_credentials=True)
 
+# Get port from environment variable (Render sets this automatically)
+port = int(os.environ.get('PORT', 5000))
+
 # ============================================
 # CONFIGURATION – CHANGE THESE!
 # ============================================
@@ -674,8 +677,12 @@ def mark_support_read():
 # The following section is for LOCAL DEVELOPMENT only
 # On Render, gunicorn serves the app directly
 
+# ============================================
+# FOR RENDER - FIXED VERSION
+# ============================================
+
 if __name__ == '__main__':
-    # This code ONLY runs when you execute python directly (not on Render)
+    # This code ONLY runs when you execute python directly (local development)
     os.makedirs(config.FRONTEND_DIR, exist_ok=True)
     init_db()
     print("="*70)
@@ -685,6 +692,14 @@ if __name__ == '__main__':
     print(f"🌍 Countries: {', '.join(config.COUNTRIES.keys())}")
     print("="*70)
     print("🌐 http://localhost:5000")
+    print("👑 Admin: http://localhost:5000/admin.html")
+    print("="*70)
+    app.run(host='0.0.0.0', port=port, debug=True)
+else:
+    # This runs on Render - initialize the database
+    print("🚀 Starting on Render - Initializing database...")
+    init_db()
+    print("✅ Database ready!")
     print("👑 Admin: http://localhost:5000/admin.html")
     print("="*70)
     app.run(host='0.0.0.0', port=5000, debug=True)
