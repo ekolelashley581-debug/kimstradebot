@@ -1090,12 +1090,8 @@
     </button>
 </div>
     </div>
-    <!-- Logout Button -->
-<div style="padding: 15px 20px; margin-top: 10px; margin-bottom: 20px;">
-    <button onclick="logout()" style="width:100%; padding:12px; background:#ef4444; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:14px;">
-        <i class="fas fa-sign-out-alt"></i> Logout
-    </button>
-</div>
+   
+
     
     <!-- Main Content -->
     <div class="main-content">
@@ -1977,16 +1973,6 @@ async function logout() {
 @media (max-width: 768px) {
     .top-header i.fa-bars {
         display: block !important;
-    }
-}
-        // Logout function
-async function logout() {
-    try {
-        const response = await fetch('/api/logout', { method: 'POST' });
-        window.location.href = '/';
-    } catch (error) {
-        console.error('Logout error:', error);
-        window.location.href = '/';
     }
 }
 </script>
