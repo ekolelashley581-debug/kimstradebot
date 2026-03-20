@@ -749,6 +749,134 @@ def mark_support_read():
     return jsonify({'success': True})
 
 # ============================================
+# MANUAL PAYMENT SYSTEM (ADD THIS ENTIRE BLOCK)
+# ============================================
+
+@app.route('/api/payment/request-manual', methods=['POST'])
+@login_required
+def payment_request_manual():
+    """Store payment request for admin approval"""
+    data = request.json
+    plan = data.get('plan')
+    amount = data.get('amount')
+    currency = data.get('currency')
+    method = data.get('method')
+    details = data.get('details', {})
+    
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    
+    # Create payment_requests table if not exists
+    c.execute('''CREATE TABLE IF NOT EXISTS payment_requests
+                 (id INTEGER PRIMARY KEY,
+                  user_id INTEGER,
+                  user_email TEXT,
+                  plan TEXT,
+                  amount INTEGER,
+                  currency TEXT,
+                  payment_method TEXT,
+                  payment_details TEXT,
+                  status TEXT DEFAULT 'pending',
+                  created_at TEXT,
+                  approved_at TEXT)''')
+    
+    tid = f"REQ_{session['user_id']}_{int(time.time())}"
+    
+    c.execute('''INSERT INTO payment_requests 
+                 (user_id, user_email, plan, amount, currency, payment_method, payment_details, status, created_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+              (session['user_id'], session['email'], plan, amount, currency, method, 
+               json.dumps(details), 'pending', datetime.now().isoformat()))
+    
+    # Also add to support messages for admin notification
+    admin_msg = f"💰 NEW PAYMENT REQUEST!\nUser: {session['email']}\nPlan: {plan}\nAmount: {amount} {currency}\nMethod: {method}\nDetails: {json.dumps(details)}"
+    c.execute('''INSERT INTO support_messages (user_id, message, status, created_at)
+                 VALUES (?, ?, ?, ?)''',
+              (0, admin_msg, 'unread', datetime.now().isoformat()))
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True, 'message': 'Payment request submitted'})
+
+@app.route('/api/admin/payment-requests', methods=['GET'])
+@admin_required
+def get_payment_requests():
+    """Get all payment requests for admin"""
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    c.execute('''SELECT id, user_email, plan, amount, currency, payment_method, payment_details, status, created_at
+                 FROM payment_requests ORDER BY created_at DESC''')
+    requests = c.fetchall()
+    conn.close()
+    
+    return jsonify({'requests': [{
+        'id': r[0],
+        'user': r[1],
+        'plan': r[2],
+        'amount': r[3],
+        'currency': r[4],
+        'method': r[5],
+        'details': json.loads(r[6]) if r[6] else {},
+        'status': r[7],
+        'created_at': r[8]
+    } for r in requests]})
+
+@app.route('/api/admin/payment-approve', methods=['POST'])
+@admin_required
+def approve_payment():
+    """Approve a payment request and upgrade user"""
+    data = request.json
+    request_id = data.get('request_id')
+    
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    
+    # Get the request details
+    c.execute("SELECT user_id, plan FROM payment_requests WHERE id=?", (request_id,))
+    req = c.fetchone()
+    
+    if req:
+        user_id, plan = req
+        
+        # Update user's tier
+        now = datetime.now()
+        sub_end = now + timedelta(days=30)
+        c.execute("UPDATE users SET tier=?, subscription_start=?, subscription_end=? WHERE id=?",
+                  (plan, now.isoformat(), sub_end.isoformat(), user_id))
+        
+        # Update request status
+        c.execute("UPDATE payment_requests SET status='approved', approved_at=? WHERE id=?", 
+                  (datetime.now().isoformat(), request_id))
+        
+        conn.commit()
+        
+        # Notify user via support messages
+        c.execute('''INSERT INTO support_messages (user_id, message, status, created_at)
+                     VALUES (?, ?, ?, ?)''',
+                  (user_id, f"✅ Your {plan} subscription has been activated! Thank you for your payment.", 
+                   'unread', datetime.now().isoformat()))
+        conn.commit()
+    
+    conn.close()
+    return jsonify({'success': True})
+
+@app.route('/api/admin/payment-reject', methods=['POST'])
+@admin_required
+def reject_payment():
+    """Reject a payment request"""
+    data = request.json
+    request_id = data.get('request_id')
+    
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    c.execute("UPDATE payment_requests SET status='rejected' WHERE id=?", (request_id,))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True})
+
+# ============================================
 # FOR RENDER - COMMENT OUT LOCAL DEVELOPMENT SECTION
 # ============================================
 
