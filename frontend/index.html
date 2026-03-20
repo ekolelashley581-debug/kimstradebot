@@ -1198,4 +1198,779 @@
         </div>
     </div>
     
-    <script src="https://s3.tradingview.com/tv.js"></
+    <script src="https://s3.tradingview.com/tv.js"></script>
+    <script>
+        // ========================================
+        // YOUR ORIGINAL JAVASCRIPT (PRESERVED)
+        // ========================================
+        const API = '/api';
+        let user = null;
+        let tier = 'free';
+        let isAdmin = false;
+        let currentLang = 'en';
+        let currentChartWidget = null; // added to manage chart instance for fullscreen
+        
+        // Translations (your full object)
+        const translations = {
+            en: {
+                dashboard: 'Dashboard',
+                analysis: 'Market Analysis',
+                charts: 'Live Charts',
+                ai: 'AI News',
+                sources: 'News Sources',
+                profile: 'Profile',
+                privacy: 'Privacy',
+                terms: 'Terms',
+                about: 'About',
+                contact: 'Contact',
+                rights: 'All rights reserved.',
+                support: '💬 Support',
+                send: 'Send',
+                welcomeMsg: '👋 How can we help you today?',
+                login: 'Login',
+                register: 'Register',
+                email: 'Email',
+                password: 'Password',
+                phone: 'Phone Number',
+                country: 'Country',
+                selectCountry: 'Select your country',
+                createAccount: 'Create Account',
+                alreadyHave: 'Already have an account?',
+                noAccount: "Don't have an account?",
+                welcome: 'Welcome to Kim\'s Trade Bot',
+                professional: 'Professional Trading Platform',
+                upgrade: 'Upgrade',
+                premium: 'Premium',
+                pro: 'Pro',
+                buy: 'BUY',
+                sell: 'SELL',
+                wait: 'WAIT',
+                confidence: 'confidence',
+                reasoning: 'reasoning'
+            },
+            fr: {
+                dashboard: 'Tableau de Bord',
+                analysis: 'Analyse de Marché',
+                charts: 'Graphiques',
+                ai: 'IA Actualités',
+                sources: 'Sources',
+                profile: 'Profil',
+                privacy: 'Confidentialité',
+                terms: 'Conditions',
+                about: 'À propos',
+                contact: 'Contact',
+                rights: 'Tous droits réservés.',
+                support: '💬 Support',
+                send: 'Envoyer',
+                welcomeMsg: '👋 Comment pouvons-nous vous aider?',
+                login: 'Connexion',
+                register: 'S\'inscrire',
+                email: 'Email',
+                password: 'Mot de passe',
+                phone: 'Téléphone',
+                country: 'Pays',
+                selectCountry: 'Choisissez votre pays',
+                createAccount: 'Créer un compte',
+                alreadyHave: 'Déjà un compte?',
+                noAccount: 'Pas de compte?',
+                welcome: 'Bienvenue sur Kim\'s Trade Bot',
+                professional: 'Plateforme de Trading Professionnelle',
+                upgrade: 'Améliorer',
+                premium: 'Premium',
+                pro: 'Pro',
+                buy: 'ACHETER',
+                sell: 'VENDRE',
+                wait: 'ATTENDRE',
+                confidence: 'confiance',
+                reasoning: 'raisonnement'
+            }
+        };
+        
+        function t(key) {
+            return translations[currentLang]?.[key] || translations.en[key] || key;
+        }
+        
+        function updateAllText() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.textContent = t(key);
+            });
+        }
+        
+        function changeLanguage(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang;
+            updateAllText();
+            localStorage.setItem('preferredLang', lang);
+            
+            const activeItem = document.querySelector('.nav-item.active');
+            if (activeItem) {
+                const page = activeItem.textContent.trim().toLowerCase().replace(/\s+/g, '');
+                if (page.includes('dashboard')) showDashboard();
+                else if (page.includes('analysis')) showAnalysis();
+                else if (page.includes('charts')) showCharts();
+                else if (page.includes('ai')) showAINews();
+                else if (page.includes('sources')) showSources();
+            }
+        }
+        
+        async function checkLogin() {
+            try {
+                let res = await fetch(API + '/check_session');
+                let data = await res.json();
+                if (data.logged_in) {
+                    user = data.email;
+                    tier = data.tier;
+                    isAdmin = data.is_admin;
+                    currentLang = data.lang || localStorage.getItem('preferredLang') || 'en';
+                    
+                    document.getElementById('langSelector').value = currentLang;
+                    changeLanguage(currentLang);
+                    
+                    document.getElementById('userName').innerText = user.split('@')[0];
+                    document.getElementById('userTier').innerText = tier === 'free_trial' ? 'FREE TRIAL' : tier.toUpperCase();
+                    document.getElementById('headerTier').innerText = tier === 'free_trial' ? 'FREE' : tier.toUpperCase();
+                    document.getElementById('userAvatar').innerText = user.charAt(0).toUpperCase();
+                    
+                    if (isAdmin) document.getElementById('adminNav').style.display = 'flex';
+                    
+                    let isPremium = tier === 'premium' || tier === 'pro';
+                    document.getElementById('aiBadge').style.display = isPremium ? 'inline' : 'none';
+                    
+                    showDashboard();
+                } else {
+                    showLogin();
+                }
+            } catch {
+                showLogin();
+            }
+        }
+        
+        function showLogin() {
+            fetch(API + '/countries')
+                .then(r => r.json())
+                .then(countries => {
+                    let countryOptions = Object.entries(countries).map(([code, info]) => 
+                        `<option value="${code}">${info.flag} ${info.name}</option>`
+                    ).join('');
+                    
+                    document.getElementById('contentArea').innerHTML = `
+                        <div class="auth-container">
+                            <div class="auth-card">
+                                <div class="auth-header">
+                                    <h2>${t('welcome')}</h2>
+                                    <p>${t('professional')}</p>
+                                </div>
+                                
+                                <div class="auth-flags">
+                                    <button class="flag-btn active" onclick="setAuthLang('en')">🇬🇧 English</button>
+                                    <button class="flag-btn" onclick="setAuthLang('fr')">🇫🇷 Français</button>
+                                </div>
+                                
+                                <div class="auth-tabs">
+                                    <div class="auth-tab active" onclick="switchAuthTab('login')">${t('login')}</div>
+                                    <div class="auth-tab" onclick="switchAuthTab('register')">${t('register')}</div>
+                                </div>
+                                
+                                <div id="errorMsg" class="error-message"></div>
+                                
+                                <div id="loginForm" class="auth-form active">
+                                    <div class="form-group">
+                                        <label>${t('email')}</label>
+                                        <div class="input-group">
+                                            <i class="fas fa-envelope"></i>
+                                            <input type="email" id="loginEmail" placeholder="your@email.com">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>${t('password')}</label>
+                                        <div class="input-group">
+                                            <i class="fas fa-lock"></i>
+                                            <input type="password" id="loginPass" placeholder="••••••••">
+                                        </div>
+                                    </div>
+                                    <button class="btn-primary" onclick="login()">${t('login')}</button>
+                                </div>
+                                
+                                <div id="registerForm" class="auth-form">
+                                    <div class="form-group">
+                                        <label>${t('email')}</label>
+                                        <div class="input-group">
+                                            <i class="fas fa-envelope"></i>
+                                            <input type="email" id="regEmail" placeholder="your@email.com">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>${t('password')}</label>
+                                        <div class="input-group">
+                                            <i class="fas fa-lock"></i>
+                                            <input type="password" id="regPass" placeholder="••••••••">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>${t('phone')}</label>
+                                        <div class="input-group">
+                                            <i class="fas fa-phone"></i>
+                                            <input type="tel" id="regPhone" placeholder="67XXXXXX">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>${t('country')}</label>
+                                        <div class="input-group">
+                                            <i class="fas fa-globe"></i>
+                                            <select id="regCountry">
+                                                ${countryOptions}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <button class="btn-primary" onclick="register()">${t('createAccount')}</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+        }
+        
+        function setAuthLang(lang) {
+            document.querySelectorAll('.flag-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            currentLang = lang;
+        }
+        
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            
+            if (tab === 'login') {
+                document.querySelector('.auth-tab').classList.add('active');
+                document.getElementById('loginForm').classList.add('active');
+            } else {
+                document.querySelectorAll('.auth-tab')[1].classList.add('active');
+                document.getElementById('registerForm').classList.add('active');
+            }
+        }
+        
+        async function login() {
+            let email = document.getElementById('loginEmail').value;
+            let pass = document.getElementById('loginPass').value;
+            let res = await fetch(API + '/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: pass })
+            });
+            let data = await res.json();
+            if (data.success) {
+                location.reload();
+            } else {
+                document.getElementById('errorMsg').style.display = 'block';
+                document.getElementById('errorMsg').innerText = data.error || 'Login failed';
+            }
+        }
+        
+        async function register() {
+            let email = document.getElementById('regEmail').value;
+            let pass = document.getElementById('regPass').value;
+            let phone = document.getElementById('regPhone').value;
+            let country = document.getElementById('regCountry').value;
+            
+            let res = await fetch(API + '/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: pass, phone, country, lang: currentLang })
+            });
+            
+            if (res.ok) {
+                alert('Registration successful! Please login.');
+                switchAuthTab('login');
+            } else {
+                let data = await res.json();
+                document.getElementById('errorMsg').style.display = 'block';
+                document.getElementById('errorMsg').innerText = data.error || 'Registration failed';
+            }
+        }
+        
+        function navigate(page) {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById('pageTitle').innerText = page.charAt(0).toUpperCase() + page.slice(1);
+            
+            if (page === 'dashboard') showDashboard();
+            else if (page === 'analysis') showAnalysis();
+            else if (page === 'charts') showCharts();
+            else if (page === 'ai') showAINews();
+            else if (page === 'sources') showSources();
+            else if (page === 'upgrade') showUpgrade();
+        }
+        
+        function showDashboard() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">${t('account') || 'Account Tier'}</span>
+                            <div class="stat-icon"><i class="fas fa-crown"></i></div>
+                        </div>
+                        <div class="stat-value">${tier === 'free_trial' ? 'FREE' : tier.toUpperCase()}</div>
+                        <div class="stat-change">${tier === 'free_trial' ? '7 days trial' : 'Active'}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">${t('analyses') || 'Analyses'}</span>
+                            <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                        </div>
+                        <div class="stat-value">12</div>
+                        <div class="stat-change">+3 today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">${t('accuracy') || 'AI Accuracy'}</span>
+                            <div class="stat-icon"><i class="fas fa-brain"></i></div>
+                        </div>
+                        <div class="stat-value">82%</div>
+                        <div class="stat-change">+5% this week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">${t('sources') || 'News Sources'}</span>
+                            <div class="stat-icon"><i class="fas fa-newspaper"></i></div>
+                        </div>
+                        <div class="stat-value">3</div>
+                        <div class="stat-change">${t('active') || 'Active'}</div>
+                    </div>
+                </div>
+                
+                <div class="two-column">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i> ${t('marketOverview') || 'Market Overview'}</h3>
+                            <button class="btn-secondary" onclick="navigate('analysis')">${t('viewAll') || 'View All'}</button>
+                        </div>
+                        <div class="card-body">
+                            <table class="market-table">
+                                <tr><th>${t('pair') || 'Pair'}</th><th>${t('price') || 'Price'}</th><th>24h</th><th>${t('signal') || 'Signal'}</th></tr>
+                                <tr><td><div class="pair-info"><div class="pair-icon">₿</div>BTC/USD</div></td><td class="price up">$73,452</td><td class="price up">+2.3%</td><td><span class="signal buy">${t('buy')}</span></td></tr>
+                                <tr><td><div class="pair-info"><div class="pair-icon">Ξ</div>ETH/USD</div></td><td class="price up">$3,892</td><td class="price down">-1.2%</td><td><span class="signal wait">${t('wait')}</span></td></tr>
+                                <tr><td><div class="pair-info"><div class="pair-icon">€</div>EUR/USD</div></td><td class="price up">1.0892</td><td class="price up">+0.5%</td><td><span class="signal buy">${t('buy')}</span></td></tr>
+                                <tr><td><div class="pair-info"><div class="pair-icon">£</div>GBP/USD</div></td><td class="price up">1.2654</td><td class="price up">+0.3%</td><td><span class="signal wait">${t('wait')}</span></td></tr>
+                                <tr><td><div class="pair-info"><div class="pair-icon">👑</div>XAU/USD</div></td><td class="price up">$2,345</td><td class="price up">+1.6%</td><td><span class="signal buy">${t('buy')}</span></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-newspaper"></i> ${t('latestNews') || 'Latest News'}</h3>
+                            <button class="btn-secondary" onclick="navigate('sources')">${t('manage') || 'Manage'}</button>
+                        </div>
+                        <div class="card-body news-feed" id="newsFeed">
+                            <div class="news-item"><div class="news-source"><span>CoinDesk</span><span>5m ago</span></div><div class="news-title">Bitcoin ETF inflows reach record</div></div>
+                            <div class="news-item"><div class="news-source"><span>Reuters</span><span>15m ago</span></div><div class="news-title">Fed signals rate cuts in June</div></div>
+                            <div class="news-item"><div class="news-source"><span>Bloomberg</span><span>32m ago</span></div><div class="news-title">Gold hits all-time high</div></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="three-column">
+                    <div class="card" onclick="navigate('analysis')" style="cursor:pointer;">
+                        <div class="card-header"><h3><i class="fas fa-chart-line"></i> ${t('advancedAnalysis') || 'Advanced Analysis'}</h3></div>
+                        <div class="card-body"><p>${t('analysisDesc') || 'Professional market analysis'}</p></div>
+                    </div>
+                    <div class="card" onclick="navigate('ai')" style="cursor:pointer;">
+                        <div class="card-header"><h3><i class="fas fa-robot"></i> AI ${t('news') || 'News'}</h3></div>
+                        <div class="card-body"><p>${t('aiDesc') || 'AI-powered news insights'}</p></div>
+                    </div>
+                    <div class="card" onclick="showUpgrade()" style="cursor:pointer;">
+                        <div class="card-header"><h3><i class="fas fa-crown"></i> ${t('upgrade') || 'Upgrade'}</h3></div>
+                        <div class="card-body"><p>${t('upgradeDesc') || 'Unlock premium features'}</p></div>
+                    </div>
+                </div>
+            `;
+            // Load real news after dashboard loads
+            loadRealNews();
+        }
+        
+        function showAnalysis() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-line"></i> ${t('advancedAnalysis') || 'Advanced Market Analysis'}</h3>
+                        <button class="btn-primary" onclick="runAnalysis()">${t('runAnalysis') || 'Run Analysis'}</button>
+                    </div>
+                    <div class="card-body">
+                        <p style="color:var(--text-light); margin-bottom:20px;">${t('analysisDesc') || 'Professional technical analysis using multiple indicators'}</p>
+                        <div id="analysisResult" class="analysis-result"></div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        async function runAnalysis() {
+            let div = document.getElementById('analysisResult');
+            div.innerHTML = '<div class="loading-spinner"></div>';
+            let res = await fetch(API + '/analyze', { method: 'POST' });
+            let data = await res.json();
+            div.innerHTML = `<pre style="background:#1a1a1a; color:#0f0; padding:20px; border-radius:8px;">${data.result || 'Analysis complete'}</pre>`;
+        }
+        
+        function showCharts() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-bar"></i> ${t('liveCharts') || 'Live Charts'}</h3>
+                        <div class="chart-controls">
+                            <button class="chart-btn active" onclick="loadChart('BTCUSD')">BTC/USD</button>
+                            <button class="chart-btn" onclick="loadChart('ETHUSD')">ETH/USD</button>
+                            <button class="chart-btn" onclick="loadChart('EURUSD')">EUR/USD</button>
+                            <button class="chart-btn" onclick="loadChart('GBPUSD')">GBP/USD</button>
+                            <button class="chart-btn" onclick="loadChart('XAUUSD')">XAU/USD</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="tv_chart" class="chart-container"></div>
+                    </div>
+                </div>
+            `;
+            // Show fullscreen button when chart page is active
+            document.getElementById('fullscreenChartBtn').style.display = 'flex';
+            setTimeout(() => loadChart('BTCUSD'), 100);
+        }
+        
+        function loadChart(symbol) {
+            document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
+            if (event) event.currentTarget.classList.add('active');
+            if (currentChartWidget && currentChartWidget.remove) {
+                currentChartWidget.remove();
+            }
+            currentChartWidget = new TradingView.widget({
+                "container_id": "tv_chart",
+                "width": "100%",
+                "height": "100%",
+                "symbol": symbol,
+                "interval": "60",
+                "timezone": "Etc/UTC",
+                "theme": document.documentElement.getAttribute('data-theme') || 'dark',
+                "style": "1",
+                "locale": currentLang === 'fr' ? 'fr' : 'en',
+                "toolbar_bg": "#f1f3f6",
+                "enable_publishing": false,
+                "hide_side_toolbar": false,
+                "allow_symbol_change": true,
+                "studies": ["RSI@tv-basicstudies", "MACD@tv-basicstudies", "BB@tv-basicstudies"]
+            });
+        }
+        
+        // Fullscreen toggle for chart
+        function toggleChartFullscreen() {
+            const chartContainer = document.getElementById('tv_chart');
+            if (!chartContainer) return;
+            if (!document.fullscreenElement) {
+                chartContainer.requestFullscreen().catch(err => console.log(err));
+                chartContainer.classList.add('fullscreen');
+            } else {
+                document.exitFullscreen();
+                chartContainer.classList.remove('fullscreen');
+            }
+        }
+        
+        function showAINews() {
+            if (tier === 'free_trial') {
+                if (!confirm(t('premiumRequired') || 'AI News is a Premium feature. Upgrade now?')) {
+                    return;
+                }
+                showUpgrade();
+                return;
+            }
+            
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-robot"></i> ${t('aiNews') || 'AI News Analysis'}</h3>
+                        <button class="btn-primary" onclick="getAINews()">${t('analyze') || 'Analyze'}</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="aiResult" class="ai-grid"></div>
+                    </div>
+                </div>
+            `;
+            getAINews();
+        }
+        
+        async function getAINews() {
+            let res = await fetch(API + '/ai-news', { method: 'POST' });
+            let data = await res.json();
+            let html = '';
+            data.pairs.forEach(p => {
+                html += `
+                    <div class="ai-card ${p.color}">
+                        <div class="ai-pair">${p.pair}</div>
+                        <span class="ai-signal ${p.signal.toLowerCase()}">${t(p.signal.toLowerCase()) || p.signal}</span>
+                        <div class="ai-confidence">
+                            <span>${p.confidence}%</span>
+                            <div class="confidence-bar"><div class="confidence-fill" style="width:${p.confidence}%"></div></div>
+                        </div>
+                        <div class="ai-reason">${p.reason}</div>
+                    </div>
+                `;
+            });
+            document.getElementById('aiResult').innerHTML = html;
+        }
+        
+        function showSources() {
+            Promise.all([
+                fetch(API + '/recommended-sources?lang=' + currentLang).then(r => r.json()),
+                fetch(API + '/user/sources').then(r => r.json())
+            ]).then(([recommended, userSources]) => {
+                let html = `
+                    <div class="card" style="margin-bottom:20px;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-plus-circle"></i> ${t('addSource') || 'Add Your Own Source'}</h3>
+                        </div>
+                        <div class="card-body">
+                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                <input id="sourceName" placeholder="${t('sourceName') || 'Source name'}" style="flex:1; padding:12px; background:var(--bg); border:2px solid var(--border); border-radius:8px; color:var(--text);">
+                                <input id="sourceUrl" placeholder="RSS URL" style="flex:2; padding:12px; background:var(--bg); border:2px solid var(--border); border-radius:8px; color:var(--text);">
+                                <button class="btn-primary" onclick="addSource()" style="flex:0 0 auto;">${t('add') || 'Add'}</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-star"></i> ${t('recommendedSources') || 'Recommended Sources'}</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="sources-grid">
+                                ${recommended.map(s => `
+                                    <div class="source-card" onclick="addRecommendedSource('${s.name}', '${s.url}', '${s.category}')">
+                                        <div class="source-icon">${s.icon || '📰'}</div>
+                                        <div class="source-name">${s.name}</div>
+                                        <div class="source-category">${s.category}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                if (userSources.sources && userSources.sources.length > 0) {
+                    html += `
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-check-circle"></i> ${t('yourSources') || 'Your Sources'}</h3>
+                            </div>
+                            <div class="card-body">
+                                ${userSources.sources.map(s => `
+                                    <div style="padding:10px; background:var(--bg); margin:5px 0; border-radius:8px;">
+                                        <strong>${s.name}</strong> - ${s.url}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('contentArea').innerHTML = html;
+            });
+        }
+        
+        async function addSource() {
+            let name = document.getElementById('sourceName').value;
+            let url = document.getElementById('sourceUrl').value;
+            if (!name || !url) return alert('Please fill both fields');
+            
+            await fetch(API + '/user/sources', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, url, category: 'custom' })
+            });
+            alert('Source added!');
+            showSources();
+        }
+        
+        async function addRecommendedSource(name, url, category) {
+            await fetch(API + '/user/sources', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, url, category })
+            });
+            alert(`${name} added to your sources`);
+            showSources();
+        }
+        
+        function showUpgrade() {
+            fetch(API + '/countries')
+                .then(r => r.json())
+                .then(countries => {
+                    const country = countries[currentLang === 'fr' ? 'CM' : 'CM'];
+                    
+                    document.getElementById('contentArea').innerHTML = `
+                        <div class="pricing-grid">
+                            <div class="pricing-card premium">
+                                <div class="popular-badge">${t('mostPopular') || '🔥 MOST POPULAR'}</div>
+                                <div class="pricing-name">${t('premium')}</div>
+                                <div class="pricing-price">${country.premium} <small>${country.currency}</small></div>
+                                <ul class="pricing-features">
+                                    <li><i class="fas fa-check feature-check"></i> ${t('aiNews') || 'AI News Analysis'}</li>
+                                    <li><i class="fas fa-check feature-check"></i> ${t('advancedIndicators') || 'Advanced Indicators'}</li>
+                                    <li><i class="fas fa-check feature-check"></i> 10 ${t('sources') || 'News Sources'}</li>
+                                    <li><i class="fas fa-times feature-times"></i> ${t('apiAccess') || 'API Access'}</li>
+                                </ul>
+                                <button class="btn-primary" onclick="upgrade('premium')" style="background:gold; color:black;">${t('select') || 'Select'}</button>
+                            </div>
+                            
+                            <div class="pricing-card pro">
+                                <div class="pricing-name">${t('pro')}</div>
+                                <div class="pricing-price">${country.pro} <small>${country.currency}</small></div>
+                                <ul class="pricing-features">
+                                    <li><i class="fas fa-check feature-check"></i> ${t('everything') || 'Everything in Premium'}</li>
+                                    <li><i class="fas fa-check feature-check"></i> ${t('unlimitedSources') || 'Unlimited Sources'}</li>
+                                    <li><i class="fas fa-check feature-check"></i> ${t('apiAccess') || 'API Access'}</li>
+                                    <li><i class="fas fa-check feature-check"></i> ${t('prioritySupport') || 'Priority Support'}</li>
+                                </ul>
+                                <button class="btn-primary" onclick="upgrade('pro')">${t('select') || 'Select'}</button>
+                            </div>
+                        </div>
+                        
+                        <div id="paymentSection" class="payment-section" style="display:none;">
+                            <div class="payment-header">
+                                <div class="payment-icon">📱</div>
+                                <div>
+                                    <h3 style="color:var(--text);">${t('mtnPayment') || 'MTN Mobile Money'}</h3>
+                                    <p style="color:var(--text-light);">${t('enterNumber') || 'Enter your MTN number'}</p>
+                                </div>
+                            </div>
+                            <input type="tel" id="paymentPhone" placeholder="67XXXXXX" style="width:100%; padding:15px; margin-bottom:15px; background:var(--bg); border:2px solid var(--border); border-radius:8px; color:var(--text);">
+                            <div style="display:flex; gap:10px;">
+                                <button class="btn-primary" onclick="processPayment()" style="flex:2;">${t('confirm') || 'Confirm Payment'}</button>
+                                <button class="btn-secondary" onclick="document.getElementById('paymentSection').style.display='none'" style="flex:1;">${t('cancel') || 'Cancel'}</button>
+                            </div>
+                        </div>
+                    `;
+                });
+        }
+        
+        let selectedPlan = 'premium';
+        
+        function upgrade(plan) {
+            selectedPlan = plan;
+            document.getElementById('paymentSection').style.display = 'block';
+        }
+        
+        async function processPayment() {
+            let phone = document.getElementById('paymentPhone').value;
+            if (!phone) return alert('Please enter your phone number');
+            
+            let res = await fetch(API + '/payment/request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plan: selectedPlan, phone })
+            });
+            
+            let data = await res.json();
+            if (data.success) {
+                alert('Payment request sent! Check your phone to complete.');
+                setTimeout(() => location.reload(), 3000);
+            } else {
+                alert('Payment failed');
+            }
+        }
+        
+        function toggleChat() {
+            let chat = document.getElementById('chatWindow');
+            chat.style.display = chat.style.display === 'none' ? 'flex' : 'none';
+        }
+        
+        async function sendSupport() {
+            let msg = document.getElementById('chatInput').value;
+            if (!msg) return;
+            
+            let msgs = document.getElementById('chatMessages');
+            msgs.innerHTML += `<div class="message user">${msg}</div>`;
+            document.getElementById('chatInput').value = '';
+            
+            await fetch(API + '/support/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            });
+            
+            setTimeout(() => {
+                msgs.innerHTML += `<div class="message bot">${t('supportResponse') || 'Thanks! We\'ll respond within 24h.'}</div>`;
+                msgs.scrollTop = msgs.scrollHeight;
+            }, 1000);
+        }
+        
+        function toggleTheme() {
+            let html = document.documentElement;
+            let theme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', theme);
+            document.querySelector('.theme-toggle i').className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            
+            if (document.getElementById('tv_chart')) {
+                loadChart('BTCUSD');
+            }
+        }
+        
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('visible');
+        }
+        
+        // Logout function (added)
+        async function logout() {
+            try {
+                await fetch(API + '/logout', { method: 'POST' });
+                window.location.href = '/';
+            } catch (error) {
+                window.location.href = '/';
+            }
+        }
+        
+        // Real news loader (added)
+        async function loadRealNews() {
+            const newsContainer = document.getElementById('newsFeed');
+            if (!newsContainer) return;
+            newsContainer.innerHTML = '<div class="loading-spinner"></div><p style="text-align:center;">Loading news...</p>';
+            try {
+                const response = await fetch('/api/news?category=business');
+                const data = await response.json();
+                if (data.success && data.articles) {
+                    newsContainer.innerHTML = '';
+                    data.articles.forEach(article => {
+                        const newsItem = document.createElement('div');
+                        newsItem.className = 'news-item';
+                        newsItem.style.cursor = 'pointer';
+                        newsItem.onclick = () => window.open(article.url, '_blank');
+                        let timeAgo = 'Just now';
+                        if (article.publishedAt) {
+                            const mins = Math.floor((new Date() - new Date(article.publishedAt)) / 60000);
+                            if (mins < 60) timeAgo = `${mins} min ago`;
+                            else if (mins < 1440) timeAgo = `${Math.floor(mins / 60)} hours ago`;
+                            else timeAgo = `${Math.floor(mins / 1440)} days ago`;
+                        }
+                        newsItem.innerHTML = `
+                            <div class="news-source"><span><strong>${article.source || 'News'}</strong></span><span>${timeAgo}</span></div>
+                            <div class="news-title" style="font-weight:600; margin:8px 0;">${article.title || 'No title'}</div>
+                            <div class="news-description" style="font-size:12px; color:var(--text-light);">${article.description ? article.description.substring(0,120)+'...' : 'Click to read full article'}</div>
+                        `;
+                        newsContainer.appendChild(newsItem);
+                    });
+                } else {
+                    newsContainer.innerHTML = '<p>Could not load news.</p>';
+                }
+            } catch (error) {
+                newsContainer.innerHTML = '<p>Error loading news.</p>';
+            }
+        }
+        
+        // Set initial theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.querySelector('.theme-toggle i').className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        
+        // Auto-refresh news every 5 minutes
+        setInterval(() => { if (document.getElementById('newsFeed')) loadRealNews(); }, 300000);
+        
+        checkLogin();
+    </script>
+</body>
+</html>
