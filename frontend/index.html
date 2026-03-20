@@ -1082,13 +1082,14 @@
                 <p id="userTier">Free Trial</p>
             </div>
         </div>
-    </div>
 
-    <div style="padding: 15px 20px; margin-top: 10px;">
-    <button onclick="logout()" style="width:100%; padding:10px; background:#ef4444; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:500;">
+        <!-- Logout Button -->
+<div style="padding: 15px 20px; margin-top: 10px; margin-bottom: 20px;">
+    <button onclick="logout()" style="width:100%; padding:12px; background:#ef4444; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:14px;">
         <i class="fas fa-sign-out-alt"></i> Logout
     </button>
 </div>
+    </div>
     
     <!-- Main Content -->
     <div class="main-content">
@@ -1964,6 +1965,12 @@ async function logout() {
     } catch (error) {
         console.error('Logout error:', error);
         window.location.href = '/';
+    }
+} 
+        /* Show hamburger menu on mobile */
+@media (max-width: 768px) {
+    .top-header i.fa-bars {
+        display: block !important;
     }
 }
 </script>
