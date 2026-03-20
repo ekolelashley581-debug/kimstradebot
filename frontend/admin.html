@@ -142,6 +142,7 @@
         <div class="admin-nav-item" onclick="loadSection('transfer')"><i class="fas fa-exchange-alt"></i> Transfer Money</div>
         <div class="admin-nav-item" onclick="loadSection('support')"><i class="fas fa-headset"></i> Support</div>
         <div class="admin-nav-item" onclick="window.location.href='/'"><i class="fas fa-arrow-left"></i> Back to Site</div>
+        <div class="admin-nav-item" onclick="loadSection('payment-requests')"><i class="fas fa-credit-card"></i> Payment Requests</div>
     </div>
     <div class="admin-main">
         <div class="admin-header"><h2 id="pageTitle">Overview</h2><div><span id="adminEmail"></span></div></div>
@@ -167,6 +168,7 @@
             else if(section==='ideas') loadIdeas();
             else if(section==='transfer') showTransferForm();
             else if(section==='support') loadSupport();
+            else if(section==='payment-requests') loadPaymentRequests();
         }
         async function loadOverview() {
             document.getElementById('adminContent').innerHTML = '<div class="loading-spinner"></div>';
@@ -216,6 +218,79 @@
             let data=await res.json();
             alert(data.success?'Transfer initiated!':'Transfer failed');
         }
+        async function loadPaymentRequests() {
+    let res = await fetch(API + '/admin/payment-requests');
+    let data = await res.json();
+    
+    const pendingCount = data.requests.filter(r => r.status === 'pending').length;
+    
+    document.getElementById('adminContent').innerHTML = `
+        <div class="admin-card">
+            <div class="card-header">
+                <h3>Payment Requests</h3>
+                <span class="badge" style="background:var(--primary); padding:4px 12px; border-radius:30px;">${pendingCount} pending</span>
+            </div>
+            <div class="card-body">
+                ${data.requests.length === 0 ? '<p>No payment requests yet.</p>' : `
+                <table class="data-table">
+                    <thead>
+                        <tr><th>User</th><th>Plan</th><th>Amount</th><th>Method</th><th>Details</th><th>Time</th><th>Status</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        ${data.requests.map(req => `
+                            <tr>
+                                <td>${req.user}</td>
+                                <td><span class="tier-badge tier-${req.plan}">${req.plan.toUpperCase()}</span></td>
+                                <td>${req.amount} ${req.currency}</td>
+                                <td>${req.method}</td>
+                                <td><small>${JSON.stringify(req.details)}</small></td>
+                                <td>${new Date(req.created_at).toLocaleString()}</td>
+                                <td><span class="status-badge status-${req.status}">${req.status.toUpperCase()}</span></td>
+                                <td>
+                                    ${req.status === 'pending' ? `
+                                        <button class="action-btn upgrade" onclick="approvePayment(${req.id})">Approve</button>
+                                        <button class="action-btn" onclick="rejectPayment(${req.id})" style="background:#ef4444; color:white;">Reject</button>
+                                    ` : req.status === 'approved' ? '✅ Approved' : '❌ Rejected'}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                `}
+            </div>
+        </div>
+    `;
+}
+
+async function approvePayment(requestId) {
+    if(!confirm('Approve this payment? User will be upgraded to the selected plan.')) return;
+    let res = await fetch(API + '/admin/payment-approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ request_id: requestId })
+    });
+    let data = await res.json();
+    if(data.success) {
+        alert('✅ Payment approved! User account upgraded.');
+        loadPaymentRequests();
+    } else {
+        alert('❌ Failed to approve payment.');
+    }
+}
+
+async function rejectPayment(requestId) {
+    if(!confirm('Reject this payment?')) return;
+    let res = await fetch(API + '/admin/payment-reject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ request_id: requestId })
+    });
+    let data = await res.json();
+    if(data.success) {
+        alert('Payment rejected.');
+        loadPaymentRequests();
+    }
+}
         async function loadSupport() {
             let res = await fetch(API+'/support/messages');
             let data = await res.json();
