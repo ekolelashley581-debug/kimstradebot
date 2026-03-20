@@ -1882,5 +1882,73 @@
         // Initialize
         checkLogin();
     </script>
+    <script>
+// Function to load real news from our API
+async function loadRealNews() {
+    try {
+        // Show loading indicator
+        const newsContainer = document.getElementById('newsFeed');
+        if (newsContainer) {
+            newsContainer.innerHTML = '<div class="loading-spinner"></div><p style="text-align:center;">Loading news...</p>';
+        }
+        
+        // Fetch news from our backend
+        const response = await fetch('/api/news?category=business');
+        const data = await response.json();
+        
+        if (data.success && data.articles) {
+            const newsContainer = document.getElementById('newsFeed');
+            newsContainer.innerHTML = '';
+            
+            data.articles.forEach(article => {
+                const newsItem = document.createElement('div');
+                newsItem.className = 'news-item';
+                newsItem.style.cursor = 'pointer';
+                newsItem.onclick = () => window.open(article.url, '_blank');
+                
+                // Format time
+                let timeAgo = 'Just now';
+                if (article.publishedAt) {
+                    const pubDate = new Date(article.publishedAt);
+                    const now = new Date();
+                    const diffMs = now - pubDate;
+                    const diffMins = Math.floor(diffMs / 60000);
+                    if (diffMins < 60) {
+                        timeAgo = `${diffMins} min ago`;
+                    } else if (diffMins < 1440) {
+                        timeAgo = `${Math.floor(diffMins / 60)} hours ago`;
+                    } else {
+                        timeAgo = `${Math.floor(diffMins / 1440)} days ago`;
+                    }
+                }
+                
+                newsItem.innerHTML = `
+                    <div class="news-source">
+                        <span><strong>${article.source || 'News'}</strong></span>
+                        <span>${timeAgo}</span>
+                    </div>
+                    <div class="news-title" style="font-weight:600; margin:8px 0;">${article.title || 'No title'}</div>
+                    <div class="news-description" style="font-size:12px; color:var(--text-light);">
+                        ${article.description ? article.description.substring(0, 120) + '...' : 'Click to read full article'}
+                    </div>
+                `;
+                newsContainer.appendChild(newsItem);
+            });
+        } else {
+            console.error('News API error:', data.error);
+        }
+    } catch (error) {
+        console.error('Error loading news:', error);
+    }
+}
+
+// Load news when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadRealNews();
+    
+    // Also refresh news every 5 minutes
+    setInterval(loadRealNews, 300000);
+});
+</script>
 </body>
 </html>
