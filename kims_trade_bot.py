@@ -18,7 +18,7 @@ import time
 import uuid
 
 app = Flask(__name__)
-app.secret_key = "Kim_Ultimate_Secret_2024"
+app.secret_key = "5ee54608761f4af8a367f550af2c86d9"
 CORS(app, supports_credentials=True)
 
 # Get port from environment variable (Render sets this automatically)
@@ -437,6 +437,84 @@ def user_sources():
     sources = c.fetchall()
     conn.close()
     return jsonify({'sources': [{'name': s[0], 'url': s[1], 'category': s[2]} for s in sources]})
+
+# ============================================
+# REAL-TIME NEWS FROM API
+# ============================================
+
+@app.route('/api/news', methods=['GET'])
+def get_news():
+    """Get real-time news from NewsAPI"""
+    category = request.args.get('category', 'business')
+    lang = request.args.get('lang', 'en')
+    
+    # NewsAPI endpoint
+    url = "https://newsapi.org/v2/top-headlines"
+    
+    params = {
+        'category': category,
+        'language': lang,
+        'apiKey': NEWS_API_KEY,
+        'pageSize': 10
+    }
+    
+    try:
+        response = requests.get(url, params=params)
+        data = response.json()
+        
+        if data.get('status') == 'ok':
+            articles = []
+            for article in data.get('articles', []):
+                articles.append({
+                    'title': article.get('title', ''),
+                    'source': article.get('source', {}).get('name', ''),
+                    'url': article.get('url', ''),
+                    'publishedAt': article.get('publishedAt', ''),
+                    'description': article.get('description', '')
+                })
+            return jsonify({'success': True, 'articles': articles})
+        else:
+            return jsonify({'success': False, 'error': data.get('message', 'API error')})
+    
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/news/search', methods=['POST'])
+def search_news():
+    """Search for news by keyword"""
+    data = request.json
+    query = data.get('query', '')
+    
+    if not query:
+        return jsonify({'success': False, 'error': 'No search query'})
+    
+    url = "https://newsapi.org/v2/everything"
+    params = {
+        'q': query,
+        'apiKey': NEWS_API_KEY,
+        'pageSize': 10
+    }
+    
+    try:
+        response = requests.get(url, params=params)
+        data = response.json()
+        
+        if data.get('status') == 'ok':
+            articles = []
+            for article in data.get('articles', []):
+                articles.append({
+                    'title': article.get('title', ''),
+                    'source': article.get('source', {}).get('name', ''),
+                    'url': article.get('url', ''),
+                    'publishedAt': article.get('publishedAt', ''),
+                    'description': article.get('description', '')
+                })
+            return jsonify({'success': True, 'articles': articles})
+        else:
+            return jsonify({'success': False, 'error': data.get('message', 'API error')})
+    
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 
 # ============================================
 # SUPPORT CHAT
