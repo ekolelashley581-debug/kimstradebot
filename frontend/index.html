@@ -1,0 +1,1886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIM'S TRADE BOT – Professional Trading Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --darker: #020617;
+            --sidebar-width: 280px;
+        }
+        
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --bg-light: #1e293b;
+            --text: #f8fafc;
+            --text-light: #94a3b8;
+            --border: #334155;
+            --card: #1e293b;
+            --hover: #2d3a4f;
+        }
+        
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --bg-light: #ffffff;
+            --text: #0f172a;
+            --text-light: #475569;
+            --border: #e2e8f0;
+            --card: #ffffff;
+            --hover: #f1f5f9;
+        }
+        
+        body {
+            background: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            transition: all 0.3s;
+        }
+        
+        /* SIDEBAR */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--darker);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .sidebar-header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header p {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            margin: 4px 8px;
+            border-radius: 12px;
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .nav-item i {
+            width: 24px;
+            font-size: 18px;
+            margin-right: 12px;
+        }
+        
+        .nav-item span { flex: 1; font-size: 14px; font-weight: 500; }
+        .nav-item .badge {
+            background: var(--primary);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .nav-item:hover { background: #334155; color: white; }
+        .nav-item.active { background: var(--primary); color: white; }
+        
+        .nav-divider {
+            height: 1px;
+            background: #334155;
+            margin: 15px 20px;
+        }
+        
+        .user-info {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 20px;
+            border-top: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            background: var(--darker);
+        }
+        
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            margin-right: 12px;
+            color: white;
+        }
+        
+        .user-details h4 { font-size: 14px; margin-bottom: 3px; color: white; }
+        .user-details p { font-size: 11px; color: #94a3b8; }
+        
+        /* MAIN CONTENT */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            background: var(--bg);
+            min-height: 100vh;
+        }
+        
+        .top-header {
+            height: 70px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text);
+            transition: all 0.3s;
+        }
+        
+        .theme-toggle:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .lang-selector {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--text);
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .tier-badge {
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .content-area {
+            padding: 30px;
+        }
+        
+        /* AUTH PAGES - BEAUTIFUL LOGIN */
+        .auth-container {
+            min-height: calc(100vh - 70px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .auth-card {
+            background: var(--card);
+            border-radius: 30px;
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .auth-header h2 {
+            color: var(--text);
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .auth-header p {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+        
+        .auth-flags {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .flag-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--border);
+            border-radius: 30px;
+            background: var(--bg);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .flag-btn:hover {
+            border-color: var(--primary);
+        }
+        
+        .flag-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .auth-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: var(--bg);
+            padding: 5px;
+            border-radius: 50px;
+        }
+        
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 14px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-light);
+            transition: all 0.3s;
+        }
+        
+        .auth-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .auth-form { display: none; }
+        .auth-form.active { display: block; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text);
+            font-weight: 500;
+        }
+        
+        .input-group {
+            position: relative;
+        }
+        
+        .input-group i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 18px;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 16px 16px 16px 50px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(37,99,235,0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            color: var(--text);
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            background: var(--hover);
+        }
+        
+        .error-message {
+            background: rgba(239,68,68,0.1);
+            color: var(--danger);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        /* STATS GRID - BUSY PROFESSIONAL */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .stat-title {
+            color: var(--text-light);
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 5px;
+        }
+        
+        .stat-change {
+            color: var(--success);
+            font-size: 13px;
+        }
+        
+        /* TWO COLUMN LAYOUT */
+        .two-column {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .three-column {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        /* CARDS */
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-header h3 {
+            color: var(--text);
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .card-header h3 i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+        
+        .card-body {
+            padding: 24px;
+        }
+        
+        /* MARKET TABLE */
+        .market-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .market-table th {
+            text-align: left;
+            padding: 15px 20px;
+            color: var(--text-light);
+            font-weight: 500;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .market-table td {
+            padding: 15px 20px;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .market-table tr:hover td {
+            background: var(--hover);
+        }
+        
+        .pair-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .pair-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+        
+        .price.up { color: var(--success); font-weight: 600; }
+        .price.down { color: var(--danger); font-weight: 600; }
+        
+        .signal {
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .signal.buy {
+            background: rgba(16,185,129,0.15);
+            color: var(--success);
+        }
+        
+        .signal.sell {
+            background: rgba(239,68,68,0.15);
+            color: var(--danger);
+        }
+        
+        .signal.wait {
+            background: rgba(245,158,11,0.15);
+            color: var(--warning);
+        }
+        
+        /* AI ANALYSIS CARDS - PROFESSIONAL */
+        .ai-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .ai-card {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid;
+            transition: all 0.3s;
+        }
+        
+        .ai-card.success { border-left-color: var(--success); }
+        .ai-card.warning { border-left-color: var(--warning); }
+        .ai-card.danger { border-left-color: var(--danger); }
+        
+        .ai-card:hover {
+            transform: translateX(5px);
+        }
+        
+        .ai-pair {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+        
+        .ai-signal {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .ai-signal.buy {
+            background: rgba(16,185,129,0.15);
+            color: var(--success);
+        }
+        
+        .ai-signal.sell {
+            background: rgba(239,68,68,0.15);
+            color: var(--danger);
+        }
+        
+        .ai-signal.wait {
+            background: rgba(245,158,11,0.15);
+            color: var(--warning);
+        }
+        
+        .ai-confidence {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .confidence-bar {
+            flex: 1;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 4px;
+        }
+        
+        .ai-reason {
+            color: var(--text-light);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        /* NEWS SOURCES */
+        .sources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .source-card {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .source-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+        
+        .source-card.selected {
+            border-color: var(--success);
+            background: rgba(16,185,129,0.1);
+        }
+        
+        .source-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .source-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text);
+        }
+        
+        .source-category {
+            font-size: 11px;
+            color: var(--text-light);
+        }
+        
+        /* CHART */
+        .chart-container {
+            height: 500px;
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        .chart-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .chart-btn {
+            padding: 8px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        
+        .chart-btn:hover {
+            background: var(--hover);
+        }
+        
+        .chart-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        /* NEWS FEED */
+        .news-feed {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .news-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .news-item:hover {
+            background: var(--hover);
+        }
+        
+        .news-source {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        .news-title {
+            font-size: 14px;
+            color: var(--text);
+            font-weight: 500;
+        }
+        
+        /* UPGRADE PAGE */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .pricing-card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid transparent;
+            position: relative;
+            transition: all 0.3s;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .pricing-card.premium {
+            border-color: gold;
+        }
+        
+        .pricing-card.pro {
+            border-color: var(--primary);
+        }
+        
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: gold;
+            color: black;
+            padding: 5px 20px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .pricing-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .pricing-price {
+            font-size: 36px;
+            font-weight: 800;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .pricing-price small {
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-light);
+        }
+        
+        .pricing-features {
+            list-style: none;
+            margin: 25px 0;
+        }
+        
+        .pricing-features li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+            color: var(--text);
+        }
+        
+        .pricing-features i {
+            margin-right: 10px;
+        }
+        
+        .feature-check { color: var(--success); }
+        .feature-times { color: var(--danger); }
+        
+        .payment-section {
+            background: linear-gradient(135deg, #ffc10720, #ff8e8e20);
+            border: 2px solid #ffc107;
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+        
+        .payment-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .payment-icon {
+            width: 60px;
+            height: 60px;
+            background: #ffc107;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+        }
+        
+        /* SUPPORT CHAT */
+        .chat-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 9999;
+            transition: all 0.3s;
+        }
+        
+        .chat-button:hover {
+            transform: scale(1.1);
+        }
+        
+        .chat-window {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 350px;
+            height: 500px;
+            background: var(--card);
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            display: none;
+            flex-direction: column;
+            z-index: 9999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .chat-header {
+            padding: 15px;
+            background: var(--primary);
+            color: white;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chat-header span:last-child {
+            cursor: pointer;
+            font-size: 20px;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: var(--bg);
+        }
+        
+        .message {
+            margin-bottom: 10px;
+            padding: 10px 15px;
+            border-radius: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        
+        .message.user {
+            background: var(--primary);
+            color: white;
+            margin-left: auto;
+        }
+        
+        .message.bot {
+            background: var(--card);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid var(--border);
+            background: var(--card);
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            margin-right: 10px;
+        }
+        
+        .chat-input button {
+            padding: 10px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .chat-input button:hover {
+            background: var(--primary-dark);
+        }
+        
+        /* FOOTER */
+        .footer {
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            padding: 40px 30px;
+            margin-top: 40px;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .footer-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+        
+        .footer-copyright {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 13px;
+        }
+        
+        /* LOADING */
+        .loading-spinner {
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .hidden { display: none !important; }
+        
+        /* RESPONSIVE */
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .three-column { grid-template-columns: repeat(2, 1fr); }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); position: fixed; }
+            .main-content { margin-left: 0; }
+            .two-column, .three-column, .pricing-grid { grid-template-columns: 1fr; }
+            .ai-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1>KIM'S TRADE BOT</h1>
+            <p id="sidebar-subtitle">Professional Trading Platform</p>
+        </div>
+        
+        <div class="nav-item active" onclick="navigate('dashboard')">
+            <i class="fas fa-home"></i> <span data-i18n="dashboard">Dashboard</span>
+        </div>
+        <div class="nav-item" onclick="navigate('analysis')">
+            <i class="fas fa-chart-line"></i> <span data-i18n="analysis">Market Analysis</span>
+        </div>
+        <div class="nav-item" onclick="navigate('charts')">
+            <i class="fas fa-chart-bar"></i> <span data-i18n="charts">Live Charts</span>
+        </div>
+        <div class="nav-item" onclick="navigate('ai')">
+            <i class="fas fa-robot"></i> <span data-i18n="ai">AI News</span>
+            <span class="badge" id="aiBadge">PREMIUM</span>
+        </div>
+        <div class="nav-item" onclick="navigate('sources')">
+            <i class="fas fa-newspaper"></i> <span data-i18n="sources">News Sources</span>
+        </div>
+        
+        <div class="nav-divider"></div>
+        
+        <div class="nav-item" onclick="window.location.href='/profile.html'">
+            <i class="fas fa-user"></i> <span data-i18n="profile">Profile</span>
+        </div>
+        <div class="nav-item" id="adminNav" onclick="window.location.href='/admin.html'" style="display:none;">
+            <i class="fas fa-cog"></i> <span>Admin</span>
+        </div>
+        
+        <div class="user-info" id="userInfo">
+            <div class="user-avatar" id="userAvatar">K</div>
+            <div class="user-details">
+                <h4 id="userName">Loading...</h4>
+                <p id="userTier">Free Trial</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-header">
+            <i class="fas fa-bars" style="font-size:24px; cursor:pointer; display:none;" onclick="toggleSidebar()"></i>
+            <span class="page-title" id="pageTitle">Dashboard</span>
+            <div class="header-right">
+                <select class="lang-selector" id="langSelector" onchange="changeLanguage(this.value)">
+                    <option value="en">🇬🇧 English</option>
+                    <option value="fr">🇫🇷 Français</option>
+                </select>
+                <div class="theme-toggle" onclick="toggleTheme()">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <span class="tier-badge" id="headerTier">FREE</span>
+            </div>
+        </div>
+        
+        <div class="content-area" id="contentArea"></div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-links">
+                <a href="/privacy.html" data-i18n="privacy">Privacy</a>
+                <a href="/terms.html" data-i18n="terms">Terms</a>
+                <a href="/about.html" data-i18n="about">About</a>
+                <a href="/contact.html" data-i18n="contact">Contact</a>
+            </div>
+            <div class="footer-copyright">
+                © 2026 KIM'S TRADE BOT. <span data-i18n="rights">All rights reserved.</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Support Chat -->
+    <div class="chat-button" onclick="toggleChat()">
+        <i class="fas fa-comment"></i>
+    </div>
+    
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <span data-i18n="support">💬 Support</span>
+            <span onclick="toggleChat()">✕</span>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot" data-i18n="welcomeMsg">👋 How can we help you today?</div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Type your message...">
+            <button onclick="sendSupport()" data-i18n="send">Send</button>
+        </div>
+    </div>
+    
+    <script src="https://s3.tradingview.com/tv.js"></script>
+    <script>
+        // ========================================
+        // CONFIGURATION
+        // ========================================
+        
+        const API = 'http://localhost:5000/api';
+        let user = null;
+        let tier = 'free';
+        let isAdmin = false;
+        let currentLang = 'en';
+        
+        // Translations
+        const translations = {
+            en: {
+                dashboard: 'Dashboard',
+                analysis: 'Market Analysis',
+                charts: 'Live Charts',
+                ai: 'AI News',
+                sources: 'News Sources',
+                profile: 'Profile',
+                privacy: 'Privacy',
+                terms: 'Terms',
+                about: 'About',
+                contact: 'Contact',
+                rights: 'All rights reserved.',
+                support: '💬 Support',
+                send: 'Send',
+                welcomeMsg: '👋 How can we help you today?',
+                login: 'Login',
+                register: 'Register',
+                email: 'Email',
+                password: 'Password',
+                phone: 'Phone Number',
+                country: 'Country',
+                selectCountry: 'Select your country',
+                createAccount: 'Create Account',
+                alreadyHave: 'Already have an account?',
+                noAccount: "Don't have an account?",
+                welcome: 'Welcome to Kim\'s Trade Bot',
+                professional: 'Professional Trading Platform',
+                upgrade: 'Upgrade',
+                premium: 'Premium',
+                pro: 'Pro',
+                buy: 'BUY',
+                sell: 'SELL',
+                wait: 'WAIT',
+                confidence: 'confidence',
+                reasoning: 'reasoning'
+            },
+            fr: {
+                dashboard: 'Tableau de Bord',
+                analysis: 'Analyse de Marché',
+                charts: 'Graphiques',
+                ai: 'IA Actualités',
+                sources: 'Sources',
+                profile: 'Profil',
+                privacy: 'Confidentialité',
+                terms: 'Conditions',
+                about: 'À propos',
+                contact: 'Contact',
+                rights: 'Tous droits réservés.',
+                support: '💬 Support',
+                send: 'Envoyer',
+                welcomeMsg: '👋 Comment pouvons-nous vous aider?',
+                login: 'Connexion',
+                register: 'S\'inscrire',
+                email: 'Email',
+                password: 'Mot de passe',
+                phone: 'Téléphone',
+                country: 'Pays',
+                selectCountry: 'Choisissez votre pays',
+                createAccount: 'Créer un compte',
+                alreadyHave: 'Déjà un compte?',
+                noAccount: 'Pas de compte?',
+                welcome: 'Bienvenue sur Kim\'s Trade Bot',
+                professional: 'Plateforme de Trading Professionnelle',
+                upgrade: 'Améliorer',
+                premium: 'Premium',
+                pro: 'Pro',
+                buy: 'ACHETER',
+                sell: 'VENDRE',
+                wait: 'ATTENDRE',
+                confidence: 'confiance',
+                reasoning: 'raisonnement'
+            }
+        };
+        
+        // ========================================
+        // LANGUAGE FUNCTIONS
+        // ========================================
+        
+        function t(key) {
+            return translations[currentLang]?.[key] || translations.en[key] || key;
+        }
+        
+        function updateAllText() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.textContent = t(key);
+            });
+        }
+        
+        function changeLanguage(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang;
+            updateAllText();
+            localStorage.setItem('preferredLang', lang);
+            
+            // Refresh current page with new language
+            const activeItem = document.querySelector('.nav-item.active');
+            if (activeItem) {
+                const page = activeItem.textContent.trim().toLowerCase().replace(/\s+/g, '');
+                if (page.includes('dashboard')) showDashboard();
+                else if (page.includes('analysis')) showAnalysis();
+                else if (page.includes('charts')) showCharts();
+                else if (page.includes('ai')) showAINews();
+                else if (page.includes('sources')) showSources();
+            }
+        }
+        
+        // ========================================
+        // AUTHENTICATION
+        // ========================================
+        
+        async function checkLogin() {
+            try {
+                let res = await fetch(API + '/check_session');
+                let data = await res.json();
+                if (data.logged_in) {
+                    user = data.email;
+                    tier = data.tier;
+                    isAdmin = data.is_admin;
+                    currentLang = data.lang || localStorage.getItem('preferredLang') || 'en';
+                    
+                    document.getElementById('langSelector').value = currentLang;
+                    changeLanguage(currentLang);
+                    
+                    document.getElementById('userName').innerText = user.split('@')[0];
+                    document.getElementById('userTier').innerText = tier === 'free_trial' ? 'FREE TRIAL' : tier.toUpperCase();
+                    document.getElementById('headerTier').innerText = tier === 'free_trial' ? 'FREE' : tier.toUpperCase();
+                    document.getElementById('userAvatar').innerText = user.charAt(0).toUpperCase();
+                    
+                    if (isAdmin) document.getElementById('adminNav').style.display = 'flex';
+                    
+                    let isPremium = tier === 'premium' || tier === 'pro';
+                    document.getElementById('aiBadge').style.display = isPremium ? 'inline' : 'none';
+                    
+                    showDashboard();
+                } else {
+                    showLogin();
+                }
+            } catch {
+                showLogin();
+            }
+        }
+        
+        function showLogin() {
+            fetch(API + '/countries')
+                .then(r => r.json())
+                .then(countries => {
+                    let countryOptions = Object.entries(countries).map(([code, info]) => 
+                        `<option value="${code}">${info.flag} ${info.name}</option>`
+                    ).join('');
+                    
+                    document.getElementById('contentArea').innerHTML = `
+                        <div class="auth-container">
+                            <div class="auth-card">
+                                <div class="auth-header">
+                                    <h2>${t('welcome')}</h2>
+                                    <p>${t('professional')}</p>
+                                </div>
+                                
+                                <div class="auth-flags">
+                                    <button class="flag-btn active" onclick="setAuthLang('en')">🇬🇧 English</button>
+                                    <button class="flag-btn" onclick="setAuthLang('fr')">🇫🇷 Français</button>
+                                </div>
+                                
+                                <div class="auth-tabs">
+                                    <div class="auth-tab active" onclick="switchAuthTab('login')">${t('login')}</div>
+                                    <div class="auth-tab" onclick="switchAuthTab('register')">${t('register')}</div>
+                                </div>
+                                
+                                <div id="errorMsg" class="error-message"></div>
+                                
+                                <div id="loginForm" class="auth-form active">
+                                    <div class="form-group">
+                                        <label>${t('email')}</label>
+                                        <div class="input-group">
+                                            <i class="fas fa-envelope"></i>
+                                            <input type="email" id="loginEmail" placeholder="your@email.com">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>${t('password')}</label>
+                                        <div class="input-group">
+                                            <i class="fas fa-lock"></i>
+                                            <input type="password" id="loginPass" placeholder="••••••••">
+                                        </div>
+                                    </div>
+                                    <button class="btn-primary" onclick="login()">${t('login')}</button>
+                                </div>
+                                
+                                <div id="registerForm" class="auth-form">
+                                    <div class="form-group">
+                                        <label>${t('email')}</label>
+                                        <div class="input-group">
+                                            <i class="fas fa-envelope"></i>
+                                            <input type="email" id="regEmail" placeholder="your@email.com">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>${t('password')}</label>
+                                        <div class="input-group">
+                                            <i class="fas fa-lock"></i>
+                                            <input type="password" id="regPass" placeholder="••••••••">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>${t('phone')}</label>
+                                        <div class="input-group">
+                                            <i class="fas fa-phone"></i>
+                                            <input type="tel" id="regPhone" placeholder="67XXXXXX">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>${t('country')}</label>
+                                        <div class="input-group">
+                                            <i class="fas fa-globe"></i>
+                                            <select id="regCountry">
+                                                ${countryOptions}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <button class="btn-primary" onclick="register()">${t('createAccount')}</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+        }
+        
+        function setAuthLang(lang) {
+            document.querySelectorAll('.flag-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            currentLang = lang;
+        }
+        
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            
+            if (tab === 'login') {
+                document.querySelector('.auth-tab').classList.add('active');
+                document.getElementById('loginForm').classList.add('active');
+            } else {
+                document.querySelectorAll('.auth-tab')[1].classList.add('active');
+                document.getElementById('registerForm').classList.add('active');
+            }
+        }
+        
+        async function login() {
+            let email = document.getElementById('loginEmail').value;
+            let pass = document.getElementById('loginPass').value;
+            let res = await fetch(API + '/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: pass })
+            });
+            let data = await res.json();
+            if (data.success) {
+                location.reload();
+            } else {
+                document.getElementById('errorMsg').style.display = 'block';
+                document.getElementById('errorMsg').innerText = data.error || 'Login failed';
+            }
+        }
+        
+        async function register() {
+            let email = document.getElementById('regEmail').value;
+            let pass = document.getElementById('regPass').value;
+            let phone = document.getElementById('regPhone').value;
+            let country = document.getElementById('regCountry').value;
+            
+            let res = await fetch(API + '/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: pass, phone, country, lang: currentLang })
+            });
+            
+            if (res.ok) {
+                alert('Registration successful! Please login.');
+                switchAuthTab('login');
+            } else {
+                let data = await res.json();
+                document.getElementById('errorMsg').style.display = 'block';
+                document.getElementById('errorMsg').innerText = data.error || 'Registration failed';
+            }
+        }
+        
+        // ========================================
+        // NAVIGATION
+        // ========================================
+        
+        function navigate(page) {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById('pageTitle').innerText = page.charAt(0).toUpperCase() + page.slice(1);
+            
+            if (page === 'dashboard') showDashboard();
+            else if (page === 'analysis') showAnalysis();
+            else if (page === 'charts') showCharts();
+            else if (page === 'ai') showAINews();
+            else if (page === 'sources') showSources();
+            else if (page === 'upgrade') showUpgrade();
+        }
+        
+        // ========================================
+        // DASHBOARD
+        // ========================================
+        
+        function showDashboard() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">${t('account') || 'Account Tier'}</span>
+                            <div class="stat-icon"><i class="fas fa-crown"></i></div>
+                        </div>
+                        <div class="stat-value">${tier === 'free_trial' ? 'FREE' : tier.toUpperCase()}</div>
+                        <div class="stat-change">${tier === 'free_trial' ? '7 days trial' : 'Active'}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">${t('analyses') || 'Analyses'}</span>
+                            <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                        </div>
+                        <div class="stat-value">12</div>
+                        <div class="stat-change">+3 today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">${t('accuracy') || 'AI Accuracy'}</span>
+                            <div class="stat-icon"><i class="fas fa-brain"></i></div>
+                        </div>
+                        <div class="stat-value">82%</div>
+                        <div class="stat-change">+5% this week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-title">${t('sources') || 'News Sources'}</span>
+                            <div class="stat-icon"><i class="fas fa-newspaper"></i></div>
+                        </div>
+                        <div class="stat-value">3</div>
+                        <div class="stat-change">${t('active') || 'Active'}</div>
+                    </div>
+                </div>
+                
+                <div class="two-column">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i> ${t('marketOverview') || 'Market Overview'}</h3>
+                            <button class="btn-secondary" onclick="navigate('analysis')">${t('viewAll') || 'View All'}</button>
+                        </div>
+                        <div class="card-body">
+                            <table class="market-table">
+                                <tr><th>${t('pair') || 'Pair'}</th><th>${t('price') || 'Price'}</th><th>24h</th><th>${t('signal') || 'Signal'}</th></tr>
+                                <tr><td><div class="pair-info"><div class="pair-icon">₿</div>BTC/USD</div></td><td class="price up">$73,452</td><td class="price up">+2.3%</td><td><span class="signal buy">${t('buy')}</span></td></tr>
+                                <tr><td><div class="pair-info"><div class="pair-icon">Ξ</div>ETH/USD</div></td><td class="price up">$3,892</td><td class="price down">-1.2%</td><td><span class="signal wait">${t('wait')}</span></td></tr>
+                                <tr><td><div class="pair-info"><div class="pair-icon">€</div>EUR/USD</div></td><td class="price up">1.0892</td><td class="price up">+0.5%</td><td><span class="signal buy">${t('buy')}</span></td></tr>
+                                <tr><td><div class="pair-info"><div class="pair-icon">£</div>GBP/USD</div></td><td class="price up">1.2654</td><td class="price up">+0.3%</td><td><span class="signal wait">${t('wait')}</span></td></tr>
+                                <tr><td><div class="pair-info"><div class="pair-icon">👑</div>XAU/USD</div></td><td class="price up">$2,345</td><td class="price up">+1.6%</td><td><span class="signal buy">${t('buy')}</span></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-newspaper"></i> ${t('latestNews') || 'Latest News'}</h3>
+                            <button class="btn-secondary" onclick="navigate('sources')">${t('manage') || 'Manage'}</button>
+                        </div>
+                        <div class="card-body news-feed" id="newsFeed">
+                            <div class="news-item"><div class="news-source"><span>CoinDesk</span><span>5m ago</span></div><div class="news-title">Bitcoin ETF inflows reach record</div></div>
+                            <div class="news-item"><div class="news-source"><span>Reuters</span><span>15m ago</span></div><div class="news-title">Fed signals rate cuts in June</div></div>
+                            <div class="news-item"><div class="news-source"><span>Bloomberg</span><span>32m ago</span></div><div class="news-title">Gold hits all-time high</div></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="three-column">
+                    <div class="card" onclick="navigate('analysis')" style="cursor:pointer;">
+                        <div class="card-header"><h3><i class="fas fa-chart-line"></i> ${t('advancedAnalysis') || 'Advanced Analysis'}</h3></div>
+                        <div class="card-body"><p>${t('analysisDesc') || 'Professional market analysis'}</p></div>
+                    </div>
+                    <div class="card" onclick="navigate('ai')" style="cursor:pointer;">
+                        <div class="card-header"><h3><i class="fas fa-robot"></i> AI ${t('news') || 'News'}</h3></div>
+                        <div class="card-body"><p>${t('aiDesc') || 'AI-powered news insights'}</p></div>
+                    </div>
+                    <div class="card" onclick="showUpgrade()" style="cursor:pointer;">
+                        <div class="card-header"><h3><i class="fas fa-crown"></i> ${t('upgrade') || 'Upgrade'}</h3></div>
+                        <div class="card-body"><p>${t('upgradeDesc') || 'Unlock premium features'}</p></div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // ========================================
+        // ANALYSIS PAGE
+        // ========================================
+        
+        function showAnalysis() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-line"></i> ${t('advancedAnalysis') || 'Advanced Market Analysis'}</h3>
+                        <button class="btn-primary" onclick="runAnalysis()">${t('runAnalysis') || 'Run Analysis'}</button>
+                    </div>
+                    <div class="card-body">
+                        <p style="color:var(--text-light); margin-bottom:20px;">${t('analysisDesc') || 'Professional technical analysis using multiple indicators'}</p>
+                        <div id="analysisResult" class="analysis-result"></div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        async function runAnalysis() {
+            let div = document.getElementById('analysisResult');
+            div.innerHTML = '<div class="loading-spinner"></div>';
+            let res = await fetch(API + '/analyze', { method: 'POST' });
+            let data = await res.json();
+            div.innerHTML = `<pre style="background:#1a1a1a; color:#0f0; padding:20px; border-radius:8px;">${data.result || 'Analysis complete'}</pre>`;
+        }
+        
+        // ========================================
+        // LIVE CHARTS
+        // ========================================
+        
+        function showCharts() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-bar"></i> ${t('liveCharts') || 'Live Charts'}</h3>
+                        <div class="chart-controls">
+                            <button class="chart-btn active" onclick="loadChart('BTCUSD')">BTC/USD</button>
+                            <button class="chart-btn" onclick="loadChart('ETHUSD')">ETH/USD</button>
+                            <button class="chart-btn" onclick="loadChart('EURUSD')">EUR/USD</button>
+                            <button class="chart-btn" onclick="loadChart('GBPUSD')">GBP/USD</button>
+                            <button class="chart-btn" onclick="loadChart('XAUUSD')">XAU/USD</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="tv_chart" class="chart-container"></div>
+                    </div>
+                </div>
+            `;
+            setTimeout(() => loadChart('BTCUSD'), 100);
+        }
+        
+        function loadChart(symbol) {
+            document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
+            if (event) event.currentTarget.classList.add('active');
+            new TradingView.widget({
+                "container_id": "tv_chart",
+                "width": "100%",
+                "height": "100%",
+                "symbol": symbol,
+                "interval": "60",
+                "timezone": "Etc/UTC",
+                "theme": document.documentElement.getAttribute('data-theme') || 'dark',
+                "style": "1",
+                "locale": currentLang === 'fr' ? 'fr' : 'en',
+                "toolbar_bg": "#f1f3f6",
+                "enable_publishing": false,
+                "hide_side_toolbar": false,
+                "allow_symbol_change": true,
+                "studies": ["RSI@tv-basicstudies", "MACD@tv-basicstudies", "BB@tv-basicstudies"]
+            });
+        }
+        
+        // ========================================
+        // AI NEWS
+        // ========================================
+        
+        function showAINews() {
+            if (tier === 'free_trial') {
+                if (!confirm(t('premiumRequired') || 'AI News is a Premium feature. Upgrade now?')) {
+                    return;
+                }
+                showUpgrade();
+                return;
+            }
+            
+            document.getElementById('contentArea').innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-robot"></i> ${t('aiNews') || 'AI News Analysis'}</h3>
+                        <button class="btn-primary" onclick="getAINews()">${t('analyze') || 'Analyze'}</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="aiResult" class="ai-grid"></div>
+                    </div>
+                </div>
+            `;
+            getAINews();
+        }
+        
+        async function getAINews() {
+            let res = await fetch(API + '/ai-news', { method: 'POST' });
+            let data = await res.json();
+            let html = '';
+            data.pairs.forEach(p => {
+                html += `
+                    <div class="ai-card ${p.color}">
+                        <div class="ai-pair">${p.pair}</div>
+                        <span class="ai-signal ${p.signal.toLowerCase()}">${t(p.signal.toLowerCase()) || p.signal}</span>
+                        <div class="ai-confidence">
+                            <span>${p.confidence}%</span>
+                            <div class="confidence-bar"><div class="confidence-fill" style="width:${p.confidence}%"></div></div>
+                        </div>
+                        <div class="ai-reason">${p.reason}</div>
+                    </div>
+                `;
+            });
+            document.getElementById('aiResult').innerHTML = html;
+        }
+        
+        // ========================================
+        // NEWS SOURCES
+        // ========================================
+        
+        function showSources() {
+            Promise.all([
+                fetch(API + '/recommended-sources?lang=' + currentLang).then(r => r.json()),
+                fetch(API + '/user/sources').then(r => r.json())
+            ]).then(([recommended, userSources]) => {
+                let html = `
+                    <div class="card" style="margin-bottom:20px;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-plus-circle"></i> ${t('addSource') || 'Add Your Own Source'}</h3>
+                        </div>
+                        <div class="card-body">
+                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                <input id="sourceName" placeholder="${t('sourceName') || 'Source name'}" style="flex:1; padding:12px; background:var(--bg); border:2px solid var(--border); border-radius:8px; color:var(--text);">
+                                <input id="sourceUrl" placeholder="RSS URL" style="flex:2; padding:12px; background:var(--bg); border:2px solid var(--border); border-radius:8px; color:var(--text);">
+                                <button class="btn-primary" onclick="addSource()" style="flex:0 0 auto;">${t('add') || 'Add'}</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-star"></i> ${t('recommendedSources') || 'Recommended Sources'}</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="sources-grid">
+                                ${recommended.map(s => `
+                                    <div class="source-card" onclick="addRecommendedSource('${s.name}', '${s.url}', '${s.category}')">
+                                        <div class="source-icon">${s.icon || '📰'}</div>
+                                        <div class="source-name">${s.name}</div>
+                                        <div class="source-category">${s.category}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                if (userSources.sources && userSources.sources.length > 0) {
+                    html += `
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-check-circle"></i> ${t('yourSources') || 'Your Sources'}</h3>
+                            </div>
+                            <div class="card-body">
+                                ${userSources.sources.map(s => `
+                                    <div style="padding:10px; background:var(--bg); margin:5px 0; border-radius:8px;">
+                                        <strong>${s.name}</strong> - ${s.url}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('contentArea').innerHTML = html;
+            });
+        }
+        
+        async function addSource() {
+            let name = document.getElementById('sourceName').value;
+            let url = document.getElementById('sourceUrl').value;
+            if (!name || !url) return alert('Please fill both fields');
+            
+            await fetch(API + '/user/sources', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, url, category: 'custom' })
+            });
+            alert('Source added!');
+            showSources();
+        }
+        
+        async function addRecommendedSource(name, url, category) {
+            await fetch(API + '/user/sources', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, url, category })
+            });
+            alert(`${name} added to your sources`);
+            showSources();
+        }
+        
+        // ========================================
+        // UPGRADE PAGE
+        // ========================================
+        
+        function showUpgrade() {
+            fetch(API + '/countries')
+                .then(r => r.json())
+                .then(countries => {
+                    const country = countries[currentLang === 'fr' ? 'CM' : 'CM']; // Default to Cameroon
+                    
+                    document.getElementById('contentArea').innerHTML = `
+                        <div class="pricing-grid">
+                            <div class="pricing-card premium">
+                                <div class="popular-badge">${t('mostPopular') || '🔥 MOST POPULAR'}</div>
+                                <div class="pricing-name">${t('premium')}</div>
+                                <div class="pricing-price">${country.premium} <small>${country.currency}</small></div>
+                                <ul class="pricing-features">
+                                    <li><i class="fas fa-check feature-check"></i> ${t('aiNews') || 'AI News Analysis'}</li>
+                                    <li><i class="fas fa-check feature-check"></i> ${t('advancedIndicators') || 'Advanced Indicators'}</li>
+                                    <li><i class="fas fa-check feature-check"></i> 10 ${t('sources') || 'News Sources'}</li>
+                                    <li><i class="fas fa-times feature-times"></i> ${t('apiAccess') || 'API Access'}</li>
+                                </ul>
+                                <button class="btn-primary" onclick="upgrade('premium')" style="background:gold; color:black;">${t('select') || 'Select'}</button>
+                            </div>
+                            
+                            <div class="pricing-card pro">
+                                <div class="pricing-name">${t('pro')}</div>
+                                <div class="pricing-price">${country.pro} <small>${country.currency}</small></div>
+                                <ul class="pricing-features">
+                                    <li><i class="fas fa-check feature-check"></i> ${t('everything') || 'Everything in Premium'}</li>
+                                    <li><i class="fas fa-check feature-check"></i> ${t('unlimitedSources') || 'Unlimited Sources'}</li>
+                                    <li><i class="fas fa-check feature-check"></i> ${t('apiAccess') || 'API Access'}</li>
+                                    <li><i class="fas fa-check feature-check"></i> ${t('prioritySupport') || 'Priority Support'}</li>
+                                </ul>
+                                <button class="btn-primary" onclick="upgrade('pro')">${t('select') || 'Select'}</button>
+                            </div>
+                        </div>
+                        
+                        <div id="paymentSection" class="payment-section" style="display:none;">
+                            <div class="payment-header">
+                                <div class="payment-icon">📱</div>
+                                <div>
+                                    <h3 style="color:var(--text);">${t('mtnPayment') || 'MTN Mobile Money'}</h3>
+                                    <p style="color:var(--text-light);">${t('enterNumber') || 'Enter your MTN number'}</p>
+                                </div>
+                            </div>
+                            <input type="tel" id="paymentPhone" placeholder="67XXXXXX" style="width:100%; padding:15px; margin-bottom:15px; background:var(--bg); border:2px solid var(--border); border-radius:8px; color:var(--text);">
+                            <div style="display:flex; gap:10px;">
+                                <button class="btn-primary" onclick="processPayment()" style="flex:2;">${t('confirm') || 'Confirm Payment'}</button>
+                                <button class="btn-secondary" onclick="document.getElementById('paymentSection').style.display='none'" style="flex:1;">${t('cancel') || 'Cancel'}</button>
+                            </div>
+                        </div>
+                    `;
+                });
+        }
+        
+        let selectedPlan = 'premium';
+        
+        function upgrade(plan) {
+            selectedPlan = plan;
+            document.getElementById('paymentSection').style.display = 'block';
+        }
+        
+        async function processPayment() {
+            let phone = document.getElementById('paymentPhone').value;
+            if (!phone) return alert('Please enter your phone number');
+            
+            let res = await fetch(API + '/payment/request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plan: selectedPlan, phone })
+            });
+            
+            let data = await res.json();
+            if (data.success) {
+                alert('Payment request sent! Check your phone to complete.');
+                setTimeout(() => location.reload(), 3000);
+            } else {
+                alert('Payment failed');
+            }
+        }
+        
+        // ========================================
+        // SUPPORT CHAT
+        // ========================================
+        
+        function toggleChat() {
+            let chat = document.getElementById('chatWindow');
+            chat.style.display = chat.style.display === 'none' ? 'flex' : 'none';
+        }
+        
+        async function sendSupport() {
+            let msg = document.getElementById('chatInput').value;
+            if (!msg) return;
+            
+            let msgs = document.getElementById('chatMessages');
+            msgs.innerHTML += `<div class="message user">${msg}</div>`;
+            document.getElementById('chatInput').value = '';
+            
+            await fetch(API + '/support/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            });
+            
+            setTimeout(() => {
+                msgs.innerHTML += `<div class="message bot">${t('supportResponse') || 'Thanks! We\'ll respond within 24h.'}</div>`;
+                msgs.scrollTop = msgs.scrollHeight;
+            }, 1000);
+        }
+        
+        // ========================================
+        // UTILITIES
+        // ========================================
+        
+        function toggleTheme() {
+            let html = document.documentElement;
+            let theme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', theme);
+            document.querySelector('.theme-toggle i').className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            
+            // Refresh chart if visible
+            if (document.getElementById('tv_chart')) {
+                loadChart('BTCUSD');
+            }
+        }
+        
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('visible');
+        }
+        
+        // Initialize
+        checkLogin();
+    </script>
+</body>
+</html>
