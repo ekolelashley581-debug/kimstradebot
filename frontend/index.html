@@ -455,6 +455,29 @@
         
         function showDashboard() {
             document.getElementById('contentArea').innerHTML = `
+        </div>
+        <div class="two-column">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-line"></i> Market Overview</h3>
+                    <button class="btn-secondary" onclick="navigate('analysis')">View All</button>
+                </div>
+                <div class="card-body">
+                    <table class="market-table">
+                        <thead>
+                            <tr><th>Pair</th><th>Price</th><th>24h</th><th>Signal</th></tr>
+                        </thead>
+                        <tbody>
+                            <!-- Real prices will load here -->
+                            <tr><td colspan="4"><div class="loading-spinner"></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+    
+    // ⭐ ADD THIS LINE RIGHT HERE ⭐
+    setTimeout(() => loadRealPrices(), 500);
+}
                 <div class="stats-grid">
                     <div class="stat-card"><div class="stat-header"><span class="stat-title">Account Tier</span><div class="stat-icon"><i class="fas fa-crown"></i></div></div><div class="stat-value">${tier==='free_trial'?'FREE':tier.toUpperCase()}</div><div class="stat-change">${tier==='free_trial'?'7 days trial':'Active'}</div></div>
                     <div class="stat-card"><div class="stat-header"><span class="stat-title">Analyses</span><div class="stat-icon"><i class="fas fa-chart-line"></i></div></div><div class="stat-value">12</div><div class="stat-change">+3 today</div></div>
@@ -1273,6 +1296,106 @@ async function submitPaymentRequest() {
     } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
+    }
+}
+        // ========================================
+// REAL PRICES FROM COINGECKO (ADD THIS FUNCTION)
+// ========================================
+
+async function loadRealPrices() {
+    try {
+        // Fetch real prices from your backend
+        const res = await fetch(API + '/market-prices');
+        const data = await res.json();
+        
+        // Check if we got real data
+        if (data.success && data.prices && data.prices.length > 0) {
+            // Find the market table body
+            const marketTable = document.querySelector('.market-table tbody');
+            
+            if (marketTable) {
+                // Replace the loading spinner with real data
+                marketTable.innerHTML = data.prices.map(coin => {
+                    // Determine signal based on price change
+                    let signal = 'WAIT';
+                    let signalClass = 'wait';
+                    
+                    if (coin.change_24h > 2) {
+                        signal = 'BUY';
+                        signalClass = 'buy';
+                    } else if (coin.change_24h < -2) {
+                        signal = 'SELL';
+                        signalClass = 'sell';
+                    }
+                    
+                    return `
+                        <tr>
+                            <td>
+                                <div class="pair-info">
+                                    <div class="pair-icon">${coin.symbol.charAt(0)}</div>
+                                    ${coin.symbol}/USD
+                                </div>
+                            </td>
+                            <td class="price ${coin.change_24h > 0 ? 'up' : 'down'}">
+                                $${coin.price.toLocaleString()}
+                            </td>
+                            <td class="price ${coin.change_24h > 0 ? 'up' : 'down'}">
+                                ${coin.change_24h > 0 ? '+' : ''}${coin.change_24h}%
+                            </td>
+                            <td>
+                                <span class="signal ${signalClass}">${signal}</span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        } else {
+            // If API fails, use mock data
+            useMockPrices();
+        }
+    } catch (error) {
+        console.log('Error loading real prices:', error);
+        // Fall back to mock data
+        useMockPrices();
+    }
+}
+
+// Fallback function for mock data (in case API fails)
+function useMockPrices() {
+    const marketTable = document.querySelector('.market-table tbody');
+    if (marketTable) {
+        marketTable.innerHTML = `
+            <tr>
+                <td><div class="pair-info"><div class="pair-icon">₿</div>BTC/USD</div></td>
+                <td class="price up">$73,452</td>
+                <td class="price up">+2.3%</td>
+                <td><span class="signal buy">BUY</span></td>
+            </tr>
+            <tr>
+                <td><div class="pair-info"><div class="pair-icon">Ξ</div>ETH/USD</div></td>
+                <td class="price up">$3,892</td>
+                <td class="price down">-1.2%</td>
+                <td><span class="signal wait">WAIT</span></td>
+            </tr>
+            <tr>
+                <td><div class="pair-info"><div class="pair-icon">X</div>XRP/USD</div></td>
+                <td class="price up">$0.58</td>
+                <td class="price up">+0.8%</td>
+                <td><span class="signal wait">WAIT</span></td>
+            </tr>
+            <tr>
+                <td><div class="pair-info"><div class="pair-icon">S</div>SOL/USD</div></td>
+                <td class="price up">$142.00</td>
+                <td class="price up">+5.6%</td>
+                <td><span class="signal buy">BUY</span></td>
+            </tr>
+            <tr>
+                <td><div class="pair-info"><div class="pair-icon">A</div>ADA/USD</div></td>
+                <td class="price down">$0.45</td>
+                <td class="price down">-0.3%</td>
+                <td><span class="signal wait">WAIT</span></td>
+            </tr>
+        `;
     }
 }
     </script>
