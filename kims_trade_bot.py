@@ -517,6 +517,43 @@ def search_news():
         return jsonify({'success': False, 'error': str(e)})
 
 # ============================================
+# RSS FEED FETCHER
+# ============================================
+
+@app.route('/api/rss', methods=['GET'])
+def fetch_rss():
+    """Fetch RSS feed from user-provided URL"""
+    import xml.etree.ElementTree as ET
+    
+    url = request.args.get('url')
+    if not url:
+        return jsonify({'error': 'URL required'}), 400
+    
+    try:
+        response = requests.get(url, timeout=10)
+        root = ET.fromstring(response.content)
+        
+        articles = []
+        # Try to find items in RSS feed
+        for item in root.findall('.//item')[:10]:
+            title = item.find('title')
+            link = item.find('link')
+            pub_date = item.find('pubDate')
+            description = item.find('description')
+            
+            articles.append({
+                'title': title.text if title is not None else 'No title',
+                'url': link.text if link is not None else '',
+                'publishedAt': pub_date.text if pub_date is not None else datetime.now().isoformat(),
+                'description': description.text[:200] if description is not None else '',
+                'source': url.split('/')[2] if '://' in url else url
+            })
+        
+        return jsonify({'success': True, 'articles': articles})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+# ============================================
 # SUPPORT CHAT
 # ============================================
 
