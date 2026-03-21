@@ -536,6 +536,8 @@
     
     // Load real prices after dashboard renders
     setTimeout(() => loadRealPrices(), 500);
+    // Auto-refresh prices every 60 seconds
+    setInterval(() => loadRealPrices(), 60000);
     // Load real news
     loadRealNews();
 }
@@ -1348,94 +1350,104 @@ async function submitPaymentRequest() {
 
 async function loadRealPrices() {
     try {
-        // Fetch real prices from your backend
         const res = await fetch(API + '/market-prices');
         const data = await res.json();
         
-        // Check if we got real data
+        const tableBody = document.getElementById('marketTableBody');
+        if (!tableBody) return;
+        
         if (data.success && data.prices && data.prices.length > 0) {
-            // Find the market table body
-            const marketTable = document.querySelector('.market-table tbody');
+            // Display REAL prices from CoinGecko
+            tableBody.innerHTML = data.prices.map(coin => {
+                let signal = 'WAIT';
+                let signalClass = 'wait';
+                if (coin.change_24h > 2) { signal = 'BUY'; signalClass = 'buy'; }
+                else if (coin.change_24h < -2) { signal = 'SELL'; signalClass = 'sell'; }
+                
+                const priceColor = coin.change_24h > 0 ? 'up' : coin.change_24h < 0 ? 'down' : '';
+                const changeSymbol = coin.change_24h > 0 ? '+' : '';
+                
+                // Format price with commas and 2 decimals
+                let formattedPrice = coin.price;
+                if (coin.price < 1) {
+                    formattedPrice = coin.price.toFixed(4);
+                } else {
+                    formattedPrice = coin.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
+                
+                return `
+                    <tr>
+                        <td>
+                            <div class="pair-info">
+                                <div class="pair-icon">${coin.symbol.charAt(0)}</div>
+                                <strong>${coin.symbol}/USD</strong>
+                            </div>
+                            <small style="color: var(--text-light);">Current Price</small>
+                        </td>
+                        <td class="price ${priceColor}" style="font-weight: 700; font-size: 18px;">
+                            $${formattedPrice}
+                        </td>
+                        <td class="price ${priceColor}">
+                            ${changeSymbol}${coin.change_24h.toFixed(2)}%
+                        </td>
+                        <td>
+                            <span class="signal ${signalClass}">${signal}</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
             
-            if (marketTable) {
-                // Replace the loading spinner with real data
-                marketTable.innerHTML = data.prices.map(coin => {
-                    // Determine signal based on price change
-                    let signal = 'WAIT';
-                    let signalClass = 'wait';
-                    
-                    if (coin.change_24h > 2) {
-                        signal = 'BUY';
-                        signalClass = 'buy';
-                    } else if (coin.change_24h < -2) {
-                        signal = 'SELL';
-                        signalClass = 'sell';
-                    }
-                    
-                    return `
-                        <tr>
-                            <td>
-                                <div class="pair-info">
-                                    <div class="pair-icon">${coin.symbol.charAt(0)}</div>
-                                    ${coin.symbol}/USD
-                                </div>
-                            </td>
-                            <td class="price ${coin.change_24h > 0 ? 'up' : 'down'}">
-                                $${coin.price.toLocaleString()}
-                            </td>
-                            <td class="price ${coin.change_24h > 0 ? 'up' : 'down'}">
-                                ${coin.change_24h > 0 ? '+' : ''}${coin.change_24h}%
-                            </td>
-                            <td>
-                                <span class="signal ${signalClass}">${signal}</span>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
+            // Also update the stat cards with real BTC price
+            const btcPrice = data.prices.find(p => p.symbol === 'BTC');
+            if (btcPrice) {
+                const statCards = document.querySelectorAll('.stat-value');
+                if (statCards.length > 0) {
+                    // You can add a stat card for BTC price if you want
+                    console.log(`✅ BTC Price: $${btcPrice.price.toLocaleString()}`);
+                }
             }
+            
+            console.log('✅ Real-time prices loaded from CoinGecko');
         } else {
-            // If API fails, use mock data
             useMockPrices();
         }
     } catch (error) {
         console.log('Error loading real prices:', error);
-        // Fall back to mock data
         useMockPrices();
     }
 }
 
-// Fallback function for mock data (in case API fails)
 function useMockPrices() {
-    const marketTable = document.querySelector('.market-table tbody');
-    if (marketTable) {
-        marketTable.innerHTML = `
+    const tableBody = document.getElementById('marketTableBody');
+    if (tableBody) {
+        tableBody.innerHTML = `
             <tr>
-                <td><div class="pair-info"><div class="pair-icon">₿</div>BTC/USD</div></td>
-                <td class="price up">$73,452</td>
+                <td><div class="pair-info"><div class="pair-icon">₿</div><strong>BTC/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
+                <td class="price up" style="font-weight: 700; font-size: 18px;">$73,452</td>
                 <td class="price up">+2.3%</td>
                 <td><span class="signal buy">BUY</span></td>
             </tr>
             <tr>
-                <td><div class="pair-info"><div class="pair-icon">Ξ</div>ETH/USD</div></td>
-                <td class="price up">$3,892</td>
+                <td><div class="pair-info"><div class="pair-icon">Ξ</div><strong>ETH/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
+                <td class="price up" style="font-weight: 700; font-size: 18px;">$3,892</td>
                 <td class="price down">-1.2%</td>
                 <td><span class="signal wait">WAIT</span></td>
             </tr>
             <tr>
-                <td><div class="pair-info"><div class="pair-icon">X</div>XRP/USD</div></td>
-                <td class="price up">$0.58</td>
+                <td><div class="pair-info"><div class="pair-icon">X</div><strong>XRP/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
+                <td class="price up" style="font-weight: 700; font-size: 18px;">$0.58</td>
                 <td class="price up">+0.8%</td>
                 <td><span class="signal wait">WAIT</span></td>
             </tr>
             <tr>
-                <td><div class="pair-info"><div class="pair-icon">S</div>SOL/USD</div></td>
-                <td class="price up">$142.00</td>
+                <td><div class="pair-info"><div class="pair-icon">S</div><strong>SOL/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
+                <td class="price up" style="font-weight: 700; font-size: 18px;">$142.00</td>
                 <td class="price up">+5.6%</td>
                 <td><span class="signal buy">BUY</span></td>
             </tr>
             <tr>
-                <td><div class="pair-info"><div class="pair-icon">A</div>ADA/USD</div></td>
-                <td class="price down">$0.45</td>
+                <td><div class="pair-info"><div class="pair-icon">A</div><strong>ADA/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
+                <td class="price down" style="font-weight: 700; font-size: 18px;">$0.45</td>
                 <td class="price down">-0.3%</td>
                 <td><span class="signal wait">WAIT</span></td>
             </tr>
