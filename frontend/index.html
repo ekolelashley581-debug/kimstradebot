@@ -216,6 +216,67 @@
             .stats-grid, .two-column, .three-column, .pricing-grid { grid-template-columns: 1fr; }
             .ai-grid { grid-template-columns: 1fr; }
         }
+
+        /* Payment Section Styles - ADD THIS */
+.payment-section {
+    background: linear-gradient(135deg, rgba(37,99,235,0.1), rgba(124,58,237,0.1));
+    border: 2px solid var(--primary);
+    border-radius: 20px;
+    padding: 30px;
+    margin-top: 30px;
+}
+
+.payment-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.payment-tab-btn {
+    padding: 10px 20px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.payment-tab-btn.active,
+.payment-tab-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.payment-form {
+    margin-top: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+.payment-input {
+    width: 100%;
+    padding: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    margin-bottom: 15px;
+}
+
+.bank-details {
+    background: var(--bg);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    margin-bottom: 15px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
     </style>
 </head>
 <body>
@@ -233,7 +294,7 @@
         <div class="nav-item" onclick="navigate('ideas')"><i class="fas fa-lightbulb"></i><span>Market Ideas</span></div>
         
         <div class="nav-divider"></div>
-        
+        <div class="nav-item" onclick="navigate('ideas')"><i class="fas fa-lightbulb"></i> <span data-i18n="ideas">Market Ideas</span></div>
         <div class="nav-item" onclick="window.location.href='/profile.html'"><i class="fas fa-user"></i><span>Profile</span></div>
         <div class="nav-item" id="adminNav" onclick="window.location.href='/admin.html'" style="display:none;"><i class="fas fa-cog"></i><span>Admin</span></div>
         
@@ -390,6 +451,7 @@
             else if(page==='ai') showAINews();
             else if(page==='sources') showSources();
             else if(page==='ideas') showIdeas();
+            else if (page === 'ideas') showIdeas();
         }
         
         function showDashboard() {
@@ -524,6 +586,303 @@
         document.documentElement.setAttribute('data-theme', savedTheme);
         setInterval(()=>{ if(document.getElementById('newsFeed')) loadRealNews(); }, 300000);
         checkLogin();
+
+        // ========================================
+// MARKET IDEAS FUNCTIONS (ADD THIS)
+// ========================================
+
+function showIdeas() {
+    document.getElementById('contentArea').innerHTML = `
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-lightbulb"></i> Submit Your Market Idea</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label>Idea Title</label>
+                    <input type="text" id="ideaTitle" class="payment-input" placeholder="e.g., BTC Bullish Pattern">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="ideaDesc" rows="4" class="payment-input" placeholder="Describe your market pattern, trend, or analysis..."></textarea>
+                </div>
+                <button class="btn-primary" onclick="submitIdea()">Submit Idea</button>
+            </div>
+        </div>
+        <div class="card" style="margin-top: 20px;">
+            <div class="card-header">
+                <h3><i class="fas fa-users"></i> Community Ideas</h3>
+            </div>
+            <div class="card-body" id="ideasList">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    `;
+    loadIdeas();
+}
+
+async function loadIdeas() {
+    try {
+        const res = await fetch(API + '/ideas');
+        const data = await res.json();
+        const container = document.getElementById('ideasList');
+        if (data.ideas && data.ideas.length > 0) {
+            container.innerHTML = data.ideas.map(idea => `
+                <div style="padding: 15px; border-bottom: 1px solid var(--border);">
+                    <strong style="color: var(--primary);">${escapeHtml(idea.title)}</strong>
+                    <p style="margin-top: 8px; color: var(--text-light);">${escapeHtml(idea.description)}</p>
+                    <small style="color: var(--text-light);">Submitted: ${new Date(idea.created_at).toLocaleString()}</small>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-light);">No ideas yet. Be the first to share!</p>';
+        }
+    } catch (error) {
+        document.getElementById('ideasList').innerHTML = '<p style="color: var(--danger);">Error loading ideas</p>';
+    }
+}
+
+async function submitIdea() {
+    const title = document.getElementById('ideaTitle').value;
+    const description = document.getElementById('ideaDesc').value;
+    
+    if (!title || !description) {
+        alert('Please fill in both title and description');
+        return;
+    }
+    
+    const btn = event.currentTarget;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    btn.disabled = true;
+    
+    try {
+        const res = await fetch(API + '/ideas/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, description })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert('Idea submitted successfully!');
+            document.getElementById('ideaTitle').value = '';
+            document.getElementById('ideaDesc').value = '';
+            loadIdeas();
+        } else {
+            alert(data.error || 'Failed to submit idea');
+        }
+    } catch (error) {
+        alert('Network error. Please try again.');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ========================================
+// UPGRADE FUNCTIONS - REPLACE YOUR EXISTING showUpgrade() AND ADD THESE
+// ========================================
+
+// Find your existing showUpgrade() function and REPLACE it with this:
+
+function showUpgrade() {
+    fetch(API + '/countries')
+        .then(r => r.json())
+        .then(countries => {
+            const country = countries.CM || countries['CM'];
+            
+            document.getElementById('contentArea').innerHTML = `
+                <div class="pricing-grid">
+                    <div class="pricing-card premium">
+                        <div class="popular-badge">🔥 MOST POPULAR</div>
+                        <div class="pricing-name">Premium</div>
+                        <div class="pricing-price">${country.premium.toLocaleString()} <small>${country.currency}</small></div>
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check feature-check"></i> AI News Analysis</li>
+                            <li><i class="fas fa-check feature-check"></i> Advanced Indicators</li>
+                            <li><i class="fas fa-check feature-check"></i> 10 News Sources</li>
+                            <li><i class="fas fa-times feature-times"></i> API Access</li>
+                        </ul>
+                        <button class="btn-primary" onclick="showPaymentOptions('premium', ${country.premium}, '${country.currency}')" style="background:gold; color:black;">Select Premium</button>
+                    </div>
+                    
+                    <div class="pricing-card pro">
+                        <div class="pricing-name">Pro</div>
+                        <div class="pricing-price">${country.pro.toLocaleString()} <small>${country.currency}</small></div>
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check feature-check"></i> Everything in Premium</li>
+                            <li><i class="fas fa-check feature-check"></i> Unlimited Sources</li>
+                            <li><i class="fas fa-check feature-check"></i> API Access</li>
+                            <li><i class="fas fa-check feature-check"></i> Priority Support</li>
+                        </ul>
+                        <button class="btn-primary" onclick="showPaymentOptions('pro', ${country.pro}, '${country.currency}')">Select Pro</button>
+                    </div>
+                </div>
+                
+                <div id="paymentSection" class="payment-section" style="display:none;">
+                    <div class="payment-header">
+                        <div class="payment-icon">💰</div>
+                        <div>
+                            <h3 style="color:var(--text);">Complete Your Payment</h3>
+                            <p style="color:var(--text-light);" id="paymentPlanInfo"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="payment-tabs">
+                        <button class="payment-tab-btn active" onclick="selectPaymentMethod('card')">💳 Card</button>
+                        <button class="payment-tab-btn" onclick="selectPaymentMethod('orange')">📱 Orange Money</button>
+                        <button class="payment-tab-btn" onclick="selectPaymentMethod('mtn')">📱 MTN MoMo</button>
+                        <button class="payment-tab-btn" onclick="selectPaymentMethod('bank')">🏦 Bank Transfer</button>
+                    </div>
+                    
+                    <div id="cardForm" class="payment-form">
+                        <div class="form-group"><label>Card Number</label><input type="text" id="cardNumber" class="payment-input" placeholder="1234 5678 9012 3456"></div>
+                        <div style="display:flex; gap:15px;">
+                            <div style="flex:1"><label>Expiry</label><input type="text" id="cardExpiry" class="payment-input" placeholder="MM/YY"></div>
+                            <div style="flex:1"><label>CVV</label><input type="text" id="cardCvv" class="payment-input" placeholder="123"></div>
+                        </div>
+                        <div class="form-group"><label>Cardholder Name</label><input type="text" id="cardName" class="payment-input" placeholder="Name on card"></div>
+                        <div class="form-group"><label>Email</label><input type="email" id="cardEmail" class="payment-input" placeholder="your@email.com"></div>
+                    </div>
+                    
+                    <div id="orangeForm" class="payment-form" style="display:none;">
+                        <div class="form-group"><label>Orange Money Number</label><input type="tel" id="orangeNumber" class="payment-input" placeholder="67XXXXXX"></div>
+                        <div class="form-group"><label>Full Name</label><input type="text" id="orangeName" class="payment-input" placeholder="Your name"></div>
+                        <div class="form-group"><label>Email</label><input type="email" id="orangeEmail" class="payment-input" placeholder="your@email.com"></div>
+                    </div>
+                    
+                    <div id="mtnForm" class="payment-form" style="display:none;">
+                        <div class="form-group"><label>MTN Number</label><input type="tel" id="mtnNumber" class="payment-input" placeholder="67XXXXXX"></div>
+                        <div class="form-group"><label>Full Name</label><input type="text" id="mtnName" class="payment-input" placeholder="Your name"></div>
+                        <div class="form-group"><label>Email</label><input type="email" id="mtnEmail" class="payment-input" placeholder="your@email.com"></div>
+                    </div>
+                    
+                    <div id="bankForm" class="payment-form" style="display:none;">
+                        <div class="bank-details">
+                            <p><strong>Send payment to:</strong></p>
+                            <p>Bank: [YOUR BANK NAME]</p>
+                            <p>Account Name: [YOUR NAME]</p>
+                            <p>Account Number: [YOUR ACCOUNT NUMBER]</p>
+                            <p>Reference: Your email address</p>
+                        </div>
+                        <div class="form-group"><label>Transaction Reference</label><input type="text" id="bankRef" class="payment-input" placeholder="Transaction ID"></div>
+                        <div class="form-group"><label>Email</label><input type="email" id="bankEmail" class="payment-input" placeholder="your@email.com"></div>
+                    </div>
+                    
+                    <button class="btn-primary" onclick="submitPaymentRequest()">Submit Payment Request</button>
+                    <p style="font-size:12px; text-align:center; margin-top:15px;">Payment will be verified within 24 hours</p>
+                </div>
+            `;
+        });
+}
+
+// Add these payment functions after showUpgrade()
+let selectedPlan = null, selectedAmount = null, selectedCurrency = null, selectedPaymentMethod = 'card';
+
+function showPaymentOptions(plan, amount, currency) {
+    selectedPlan = plan;
+    selectedAmount = amount;
+    selectedCurrency = currency;
+    document.getElementById('paymentPlanInfo').innerHTML = `${plan.toUpperCase()} - ${amount} ${currency}`;
+    document.getElementById('paymentSection').style.display = 'block';
+    document.getElementById('paymentSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+function selectPaymentMethod(method) {
+    selectedPaymentMethod = method;
+    document.querySelectorAll('.payment-tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    
+    document.getElementById('cardForm').style.display = 'none';
+    document.getElementById('orangeForm').style.display = 'none';
+    document.getElementById('mtnForm').style.display = 'none';
+    document.getElementById('bankForm').style.display = 'none';
+    
+    if (method === 'card') document.getElementById('cardForm').style.display = 'block';
+    else if (method === 'orange') document.getElementById('orangeForm').style.display = 'block';
+    else if (method === 'mtn') document.getElementById('mtnForm').style.display = 'block';
+    else if (method === 'bank') document.getElementById('bankForm').style.display = 'block';
+}
+
+async function submitPaymentRequest() {
+    let paymentDetails = {};
+    let isValid = true;
+    let userEmail = '';
+    
+    if (selectedPaymentMethod === 'card') {
+        const cardNumber = document.getElementById('cardNumber').value;
+        const cardExpiry = document.getElementById('cardExpiry').value;
+        const cardCvv = document.getElementById('cardCvv').value;
+        const cardName = document.getElementById('cardName').value;
+        userEmail = document.getElementById('cardEmail').value;
+        
+        if (!cardNumber || !cardExpiry || !cardCvv || !cardName || !userEmail) isValid = false;
+        paymentDetails = { last4: cardNumber.slice(-4), expiry: cardExpiry, name: cardName, email: userEmail };
+        
+    } else if (selectedPaymentMethod === 'orange') {
+        const phone = document.getElementById('orangeNumber').value;
+        const name = document.getElementById('orangeName').value;
+        userEmail = document.getElementById('orangeEmail').value;
+        if (!phone || !name || !userEmail) isValid = false;
+        paymentDetails = { phone, name, email: userEmail };
+        
+    } else if (selectedPaymentMethod === 'mtn') {
+        const phone = document.getElementById('mtnNumber').value;
+        const name = document.getElementById('mtnName').value;
+        userEmail = document.getElementById('mtnEmail').value;
+        if (!phone || !name || !userEmail) isValid = false;
+        paymentDetails = { phone, name, email: userEmail };
+        
+    } else if (selectedPaymentMethod === 'bank') {
+        const reference = document.getElementById('bankRef').value;
+        userEmail = document.getElementById('bankEmail').value;
+        if (!userEmail) isValid = false;
+        paymentDetails = { reference: reference || 'pending', email: userEmail };
+    }
+    
+    if (!isValid) {
+        alert('Please fill all required fields');
+        return;
+    }
+    
+    const btn = event.currentTarget;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    btn.disabled = true;
+    
+    try {
+        const res = await fetch(API + '/payment/request-manual', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                plan: selectedPlan,
+                amount: selectedAmount,
+                currency: selectedCurrency,
+                method: selectedPaymentMethod,
+                details: paymentDetails
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert(`✅ Payment request submitted!\n\nWe will verify and activate your ${selectedPlan.toUpperCase()} account within 24 hours.\n\nThank you!`);
+            document.getElementById('paymentSection').style.display = 'none';
+            navigate('dashboard');
+        } else {
+            alert('❌ Failed: ' + (data.error || 'Please try again'));
+        }
+    } catch (error) {
+        alert('Network error. Please try again.');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
     </script>
 </body>
 </html>
