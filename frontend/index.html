@@ -512,67 +512,95 @@
         async function submitIdea() { let t=document.getElementById('ideaTitle').value, d=document.getElementById('ideaDesc').value; if(!t||!d) return alert('Fill both'); let r=await fetch(API+'/ideas/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:t,description:d})}); let data=await r.json(); if(data.success) { alert('Idea submitted!'); loadIdeas(); } else alert(data.error); }
         
         function showUpgrade() {
-            fetch(API+'/countries').then(r=>r.json()).then(c=>{
-                const country = c.CM;
-                document.getElementById('contentArea').innerHTML = `
-                    <div class="pricing-grid">
-                        <div class="pricing-card premium"><div class="popular-badge">🔥 MOST POPULAR</div><div class="pricing-name">Premium</div><div class="pricing-price">${country.premium} <small>${country.currency}</small></div><ul class="pricing-features"><li><i class="fas fa-check feature-check"></i> AI News Analysis</li><li><i class="fas fa-check feature-check"></i> Advanced Indicators</li><li><i class="fas fa-check feature-check"></i> 10 News Sources</li><li><i class="fas fa-times feature-times"></i> API Access</li></ul><button class="btn-primary" onclick="showPaymentOptions('premium',${country.premium},'${country.currency}')" style="background:gold; color:black;">Select Premium</button></div>
-                        <div class="pricing-card pro"><div class="pricing-name">Pro</div><div class="pricing-price">${country.pro} <small>${country.currency}</small></div><ul class="pricing-features"><li><i class="fas fa-check feature-check"></i> Everything in Premium</li><li><i class="fas fa-check feature-check"></i> Unlimited Sources</li><li><i class="fas fa-check feature-check"></i> API Access</li><li><i class="fas fa-check feature-check"></i> Priority Support</li></ul><button class="btn-primary" onclick="showPaymentOptions('pro',${country.pro},'${country.currency}')">Select Pro</button></div>
+    fetch(API + '/countries')
+        .then(r => r.json())
+        .then(countries => {
+            const country = countries.CM || countries['CM'];
+            
+            document.getElementById('contentArea').innerHTML = `
+                <div class="pricing-grid">
+                    <div class="pricing-card premium">
+                        <div class="popular-badge">🔥 MOST POPULAR</div>
+                        <div class="pricing-name">Premium</div>
+                        <div class="pricing-price">${country.premium.toLocaleString()} <small>${country.currency}</small></div>
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check feature-check"></i> AI News Analysis</li>
+                            <li><i class="fas fa-check feature-check"></i> Advanced Indicators</li>
+                            <li><i class="fas fa-check feature-check"></i> 10 News Sources</li>
+                            <li><i class="fas fa-times feature-times"></i> API Access</li>
+                        </ul>
+                        <button class="btn-primary" onclick="showPaymentOptions('premium', ${country.premium}, '${country.currency}')" style="background:gold; color:black;">Select Premium</button>
                     </div>
-                    <div id="paymentSection" class="payment-section" style="display:none;">
-                        <div class="payment-header"><div class="payment-icon">💰</div><div><h3>Complete Your Payment</h3><p id="paymentPlanInfo"></p></div></div>
-                        <div class="payment-tabs"><button class="payment-tab-btn active" onclick="selectPaymentMethod('card')">💳 Card</button><button class="payment-tab-btn" onclick="selectPaymentMethod('orange')">📱 Orange Money</button><button class="payment-tab-btn" onclick="selectPaymentMethod('mtn')">📱 MTN MoMo</button><button class="payment-tab-btn" onclick="selectPaymentMethod('bank')">🏦 Bank Transfer</button></div>
-                        <div id="cardForm" class="payment-form"><div class="form-group"><label>Card Number</label><input type="text" id="cardNumber" class="payment-input" placeholder="1234 5678 9012 3456"></div><div style="display:flex; gap:15px;"><div style="flex:1"><label>Expiry</label><input type="text" id="cardExpiry" class="payment-input" placeholder="MM/YY"></div><div style="flex:1"><label>CVV</label><input type="text" id="cardCvv" class="payment-input" placeholder="123"></div></div><div class="form-group"><label>Cardholder Name</label><input type="text" id="cardName" class="payment-input" placeholder="Name on card"></div><div class="form-group"><label>Email</label><input type="email" id="cardEmail" class="payment-input" placeholder="your@email.com"></div></div>
-                        <div id="orangeForm" class="payment-form" style="display:none;"><div class="form-group"><label>Orange Money Number</label><input type="tel" id="orangeNumber" class="payment-input" placeholder="67XXXXXX"></div><div class="form-group"><label>Full Name</label><input type="text" id="orangeName" class="payment-input" placeholder="Your name"></div><div class="form-group"><label>Email</label><input type="email" id="orangeEmail" class="payment-input" placeholder="your@email.com"></div></div>
-                        <div id="mtnForm" class="payment-form" style="display:none;"><div class="form-group"><label>MTN Number</label><input type="tel" id="mtnNumber" class="payment-input" placeholder="67XXXXXX"></div><div class="form-group"><label>Full Name</label><input type="text" id="mtnName" class="payment-input" placeholder="Your name"></div><div class="form-group"><label>Email</label><input type="email" id="mtnEmail" class="payment-input" placeholder="your@email.com"></div></div>
-                        <div id="bankForm" class="payment-form" style="display:none;"><div class="bank-details"><p><strong>Send payment to:</strong></p><p>Bank: [YOUR BANK]</p><p>Account: [YOUR ACCOUNT]</p><p>Reference: Your email</p></div><div class="form-group"><label>Transaction Reference</label><input type="text" id="bankRef" class="payment-input" placeholder="Transaction ID"></div><div class="form-group"><label>Email</label><input type="email" id="bankEmail" class="payment-input" placeholder="your@email.com"></div></div>
-                        <button class="btn-primary" onclick="submitPaymentRequest()">Submit Payment Request</button>
-                    </div>`;
-            });
-        }
-        
-        let selectedPlan = null, selectedAmount = null, selectedCurrency = null, selectedPaymentMethod = 'card';
-        function showPaymentOptions(plan, amount, currency) { selectedPlan=plan; selectedAmount=amount; selectedCurrency=currency; document.getElementById('paymentPlanInfo').innerHTML=`${plan.toUpperCase()} - ${amount} ${currency}`; document.getElementById('paymentSection').style.display='block'; }
-        function selectPaymentMethod(method) {
-            selectedPaymentMethod=method;
-            document.querySelectorAll('.payment-tab-btn').forEach(b=>b.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            document.getElementById('cardForm').style.display='none'; document.getElementById('orangeForm').style.display='none'; document.getElementById('mtnForm').style.display='none'; document.getElementById('bankForm').style.display='none';
-            if(method==='card') document.getElementById('cardForm').style.display='block';
-            else if(method==='orange') document.getElementById('orangeForm').style.display='block';
-            else if(method==='mtn') document.getElementById('mtnForm').style.display='block';
-            else if(method==='bank') document.getElementById('bankForm').style.display='block';
-        }
-        async function submitPaymentRequest() {
-            let details={}, valid=true, email='';
-            if(selectedPaymentMethod==='card') {
-                let cn=document.getElementById('cardNumber').value, ce=document.getElementById('cardExpiry').value, cv=document.getElementById('cardCvv').value, nm=document.getElementById('cardName').value, em=document.getElementById('cardEmail').value;
-                if(!cn||!ce||!cv||!nm||!em) valid=false;
-                details={last4:cn.slice(-4),expiry:ce,name:nm,email:em}; email=em;
-            } else if(selectedPaymentMethod==='orange') {
-                let ph=document.getElementById('orangeNumber').value, nm=document.getElementById('orangeName').value, em=document.getElementById('orangeEmail').value;
-                if(!ph||!nm||!em) valid=false;
-                details={phone:ph,name:nm,email:em}; email=em;
-            } else if(selectedPaymentMethod==='mtn') {
-                let ph=document.getElementById('mtnNumber').value, nm=document.getElementById('mtnName').value, em=document.getElementById('mtnEmail').value;
-                if(!ph||!nm||!em) valid=false;
-                details={phone:ph,name:nm,email:em}; email=em;
-            } else if(selectedPaymentMethod==='bank') {
-                let ref=document.getElementById('bankRef').value, em=document.getElementById('bankEmail').value;
-                if(!em) valid=false;
-                details={reference:ref||'pending',email:em}; email=em;
-            }
-            if(!valid) { alert('Please fill all fields'); return; }
-            let btn=event.currentTarget; let orig=btn.innerHTML; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Submitting...'; btn.disabled=true;
-            try {
-                let res=await fetch(API+'/payment/request-manual',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:selectedPlan,amount:selectedAmount,currency:selectedCurrency,method:selectedPaymentMethod,details})});
-                let data=await res.json();
-                if(data.success) { alert('Payment request submitted! We will verify within 24 hours.'); document.getElementById('paymentSection').style.display='none'; navigate('dashboard'); }
-                else alert('Failed: '+ (data.error||'Try again'));
-            } catch(e) { alert('Network error'); }
-            finally { btn.innerHTML=orig; btn.disabled=false; }
-        }
-        
+                    
+                    <div class="pricing-card pro">
+                        <div class="pricing-name">Pro</div>
+                        <div class="pricing-price">${country.pro.toLocaleString()} <small>${country.currency}</small></div>
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check feature-check"></i> Everything in Premium</li>
+                            <li><i class="fas fa-check feature-check"></i> Unlimited Sources</li>
+                            <li><i class="fas fa-check feature-check"></i> API Access</li>
+                            <li><i class="fas fa-check feature-check"></i> Priority Support</li>
+                        </ul>
+                        <button class="btn-primary" onclick="showPaymentOptions('pro', ${country.pro}, '${country.currency}')">Select Pro</button>
+                    </div>
+                </div>
+                
+                <div id="paymentSection" class="payment-section" style="display:none;">
+                    <div class="payment-header">
+                        <div class="payment-icon">💰</div>
+                        <div>
+                            <h3 style="color:var(--text);">Complete Your Payment</h3>
+                            <p style="color:var(--text-light);" id="paymentPlanInfo"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="payment-tabs">
+                        <button class="payment-tab-btn active" onclick="selectPaymentMethod('card')">💳 Card</button>
+                        <button class="payment-tab-btn" onclick="selectPaymentMethod('orange')">📱 Orange Money</button>
+                        <button class="payment-tab-btn" onclick="selectPaymentMethod('mtn')">📱 MTN MoMo</button>
+                        <button class="payment-tab-btn" onclick="selectPaymentMethod('bank')">🏦 Bank Transfer</button>
+                    </div>
+                    
+                    <div id="cardForm" class="payment-form">
+                        <div class="form-group"><label>Card Number</label><input type="text" id="cardNumber" class="payment-input" placeholder="1234 5678 9012 3456"></div>
+                        <div style="display:flex; gap:15px;">
+                            <div style="flex:1"><label>Expiry</label><input type="text" id="cardExpiry" class="payment-input" placeholder="MM/YY"></div>
+                            <div style="flex:1"><label>CVV</label><input type="text" id="cardCvv" class="payment-input" placeholder="123"></div>
+                        </div>
+                        <div class="form-group"><label>Cardholder Name</label><input type="text" id="cardName" class="payment-input" placeholder="Name on card"></div>
+                        <div class="form-group"><label>Email</label><input type="email" id="cardEmail" class="payment-input" placeholder="your@email.com"></div>
+                    </div>
+                    
+                    <div id="orangeForm" class="payment-form" style="display:none;">
+                        <div class="form-group"><label>Orange Money Number</label><input type="tel" id="orangeNumber" class="payment-input" placeholder="67XXXXXX"></div>
+                        <div class="form-group"><label>Full Name</label><input type="text" id="orangeName" class="payment-input" placeholder="Your name"></div>
+                        <div class="form-group"><label>Email</label><input type="email" id="orangeEmail" class="payment-input" placeholder="your@email.com"></div>
+                    </div>
+                    
+                    <div id="mtnForm" class="payment-form" style="display:none;">
+                        <div class="form-group"><label>MTN Number</label><input type="tel" id="mtnNumber" class="payment-input" placeholder="67XXXXXX"></div>
+                        <div class="form-group"><label>Full Name</label><input type="text" id="mtnName" class="payment-input" placeholder="Your name"></div>
+                        <div class="form-group"><label>Email</label><input type="email" id="mtnEmail" class="payment-input" placeholder="your@email.com"></div>
+                    </div>
+                    
+                    <div id="bankForm" class="payment-form" style="display:none;">
+                        <div class="bank-details">
+                            <p><strong>Send payment to:</strong></p>
+                            <p>Bank: [YOUR BANK NAME]</p>
+                            <p>Account Name: [YOUR NAME]</p>
+                            <p>Account Number: [YOUR ACCOUNT NUMBER]</p>
+                            <p>Reference: Your email address</p>
+                        </div>
+                        <div class="form-group"><label>Transaction Reference</label><input type="text" id="bankRef" class="payment-input" placeholder="Transaction ID"></div>
+                        <div class="form-group"><label>Email</label><input type="email" id="bankEmail" class="payment-input" placeholder="your@email.com"></div>
+                    </div>
+                    
+                    <button class="btn-primary" onclick="submitPaymentRequest()">Submit Payment Request</button>
+                    <p style="font-size:12px; text-align:center; margin-top:15px;">Payment will be verified within 24 hours</p>
+                </div>
+            `;
+        });
+}
         function toggleChat() { let w=document.getElementById('chatWindow'); w.style.display=w.style.display==='none'?'flex':'none'; }
         async function sendSupport() { let msg=document.getElementById('chatInput').value; if(!msg) return; let msgs=document.getElementById('chatMessages'); msgs.innerHTML+=`<div class="message user">${msg}</div>`; document.getElementById('chatInput').value=''; await fetch(API+'/support/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})}); setTimeout(()=>{ msgs.innerHTML+=`<div class="message bot">Thanks! We'll respond within 24h.</div>`; msgs.scrollTop=msgs.scrollHeight; },1000); }
         
