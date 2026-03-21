@@ -456,7 +456,7 @@ def get_current_market_prices():
     
     @app.route('/api/forex-prices', methods=['GET'])
     def get_forex_prices():
-    """Get real-time forex and commodity prices"""
+        """Get real-time forex and commodity prices"""
     try:
         # Using ExchangeRate-API or similar (free tier available)
         # For now, return real-time approximations
