@@ -1623,52 +1623,86 @@ async function submitPaymentRequest() {
 
 async function loadRealPrices() {
     try {
-        const res = await fetch(API + '/market-prices');
-        const data = await res.json();
+        // Get real crypto prices from CoinGecko via your backend
+        const cryptoRes = await fetch(API + '/market-prices');
+        const cryptoData = await cryptoRes.json();
+        
+        // Get real forex prices from ExchangeRate API via your backend
+        const forexRes = await fetch(API + '/forex-prices');
+        const forexData = await forexRes.json();
         
         const tableBody = document.getElementById('marketTableBody');
         if (!tableBody) return;
         
-        if (data.success && data.prices && data.prices.length > 0) {
-            // Add animation class to show update
-            tableBody.style.transition = 'all 0.3s ease';
-            
-            tableBody.innerHTML = data.prices.map(coin => {
+        let allPrices = [];
+        
+        // Add crypto prices if available
+        if (cryptoData.success && cryptoData.prices && cryptoData.prices.length > 0) {
+            allPrices = allPrices.concat(cryptoData.prices);
+            console.log('✅ Real crypto prices loaded:', cryptoData.source);
+        }
+        
+        // Add forex prices if available
+        if (forexData.success && forexData.prices && forexData.prices.length > 0) {
+            allPrices = allPrices.concat(forexData.prices);
+            console.log('✅ Real forex prices loaded');
+        }
+        
+        // If we have real data, display it
+        if (allPrices.length > 0) {
+            tableBody.innerHTML = allPrices.map(item => {
+                // Calculate signal based on price change
                 let signal = 'WAIT';
                 let signalClass = 'wait';
-                if (coin.change_24h > 2) { signal = 'BUY'; signalClass = 'buy'; }
-                else if (coin.change_24h < -2) { signal = 'SELL'; signalClass = 'sell'; }
-                
-                const priceColor = coin.change_24h > 0 ? 'up' : coin.change_24h < 0 ? 'down' : '';
-                const changeSymbol = coin.change_24h > 0 ? '+' : '';
-                
-                // Format price
-                let formattedPrice = coin.price;
-                if (coin.price < 1) {
-                    formattedPrice = coin.price.toFixed(4);
-                } else if (coin.price < 10) {
-                    formattedPrice = coin.price.toFixed(3);
-                } else {
-                    formattedPrice = coin.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const change = item.change_24h || 0;
+                if (change > 2) { 
+                    signal = 'BUY'; 
+                    signalClass = 'buy'; 
+                } else if (change < -2) { 
+                    signal = 'SELL'; 
+                    signalClass = 'sell'; 
                 }
                 
-                // Add price change animation class
-                const priceClass = `price ${priceColor} price-update`;
+                // Determine color for price change
+                const priceColor = change > 0 ? 'up' : change < 0 ? 'down' : '';
+                const changeSymbol = change > 0 ? '+' : '';
+                
+                // Format price based on value
+                let formattedPrice = item.price;
+                if (item.price < 1 && item.price > 0) {
+                    formattedPrice = item.price.toFixed(4);
+                } else if (item.price < 10 && item.price > 0) {
+                    formattedPrice = item.price.toFixed(3);
+                } else if (item.price > 1000) {
+                    formattedPrice = item.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                } else {
+                    formattedPrice = item.price.toFixed(2);
+                }
+                
+                // Add currency symbol
+                let priceDisplay = formattedPrice;
+                if (item.symbol === 'BTC' || item.symbol === 'ETH' || item.symbol === 'XRP' || item.symbol === 'SOL' || item.symbol === 'ADA') {
+                    priceDisplay = `$${formattedPrice}`;
+                } else if (item.symbol === 'XAUUSD') {
+                    priceDisplay = `$${formattedPrice}`;
+                } else if (item.symbol === 'XAGUSD') {
+                    priceDisplay = `$${formattedPrice}`;
+                }
                 
                 return `
-                    <tr class="price-row" data-symbol="${coin.symbol}" data-price="${coin.price}">
+                    <tr class="price-row" data-symbol="${item.symbol}" data-price="${item.price}">
                         <td>
                             <div class="pair-info">
-                                <div class="pair-icon">${getCoinIcon(coin.symbol)}</div>
-                                <strong>${coin.symbol}/USD</strong>
+                                <div class="pair-icon">${getIconForSymbol(item.symbol)}</div>
+                                <strong>${item.symbol}</strong>
                             </div>
                             <small style="color: var(--text-light);">Current Price</small>
                         </td>
-                        <td class="${priceClass}" style="font-weight: 700; font-size: 18px;">
-                            $<span class="price-value">${formattedPrice}</span>
+                        <td class="price ${priceColor}" style="font-weight: 700; font-size: 18px;">
+                            ${priceDisplay}
                         </td>
                         <td class="${priceColor}">
-                            <span class="change-value">${changeSymbol}${coin.change_24h.toFixed(2)}%</span>
+                            ${changeSymbol}${change.toFixed(2)}%
                         </td>
                         <td>
                             <span class="signal ${signalClass}">${signal}</span>
@@ -1677,105 +1711,88 @@ async function loadRealPrices() {
                 `;
             }).join('');
             
-            // Add blinking effect for updated prices
-            animatePriceChanges(data.prices);
+            // Add timestamp to show when data was last updated
+            const timestamp = new Date().toLocaleTimeString();
+            let updateNote = document.querySelector('.price-update-note');
+            if (!updateNote) {
+                updateNote = document.createElement('div');
+                updateNote.className = 'price-update-note';
+                updateNote.style.cssText = 'text-align: right; font-size: 11px; color: var(--text-light); margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border);';
+                tableBody.parentElement.parentElement.appendChild(updateNote);
+            }
+            updateNote.innerHTML = `<i class="fas fa-sync-alt"></i> Real-time prices updated: ${timestamp} | Source: ${cryptoData.source || 'Market Data'}`;
             
-            console.log(`✅ Real-time prices updated at ${new Date().toLocaleTimeString()}`);
+            console.log('✅ Dashboard updated with real market data');
         } else {
+            // Fallback to mock data if no real data
             useMockPrices();
         }
+        
     } catch (error) {
         console.log('Error loading real prices:', error);
         useMockPrices();
     }
 }
 
-// Helper function to get coin icons
-function getCoinIcon(symbol) {
+// Helper function to get icons for different symbols
+function getIconForSymbol(symbol) {
     const icons = {
         'BTC': '₿',
         'ETH': 'Ξ',
         'XRP': 'X',
         'SOL': 'S',
         'ADA': 'A',
-        'DOT': 'D',
-        'DOGE': 'Ð'
+        'EURUSD': '€',
+        'GBPUSD': '£',
+        'USDJPY': '¥',
+        'USDCAD': 'C$',
+        'AUDUSD': 'A$',
+        'NZDUSD': 'NZ$',
+        'XAUUSD': '👑',
+        'XAGUSD': '🥈'
     };
     return icons[symbol] || symbol.charAt(0);
 }
 
-// Function to animate price changes
-function animatePriceChanges(newPrices) {
-    const rows = document.querySelectorAll('.price-row');
-    rows.forEach(row => {
-        const symbol = row.getAttribute('data-symbol');
-        const oldPrice = parseFloat(row.getAttribute('data-price'));
-        const newPriceData = newPrices.find(p => p.symbol === symbol);
-        
-        if (newPriceData && oldPrice !== newPriceData.price) {
-            const priceElement = row.querySelector('.price-value');
-            const changeElement = row.querySelector('.change-value');
-            
-            // Add flash animation
-            priceElement.style.animation = 'priceFlash 0.5s ease';
-            if (newPriceData.price > oldPrice) {
-                priceElement.style.color = 'var(--success)';
-                changeElement.style.color = 'var(--success)';
-            } else if (newPriceData.price < oldPrice) {
-                priceElement.style.color = 'var(--danger)';
-                changeElement.style.color = 'var(--danger)';
-            }
-            
-            // Remove animation after it completes
-            setTimeout(() => {
-                priceElement.style.animation = '';
-                priceElement.style.color = '';
-                changeElement.style.color = '';
-            }, 500);
-            
-            // Update stored price
-            row.setAttribute('data-price', newPriceData.price);
-        }
-    });
-}
-
-// Mock data fallback
+// Fallback mock prices (only used if APIs fail)
 function useMockPrices() {
     const tableBody = document.getElementById('marketTableBody');
-    if (tableBody) {
-        tableBody.innerHTML = `
-            <tr data-symbol="BTC" data-price="73452">
-                <td><div class="pair-info"><div class="pair-icon">₿</div><strong>BTC/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
-                <td class="price up" style="font-weight: 700; font-size: 18px;">$<span class="price-value">73,452</span></td>
-                <td class="price up"><span class="change-value">+2.3%</span></td>
-                <td><span class="signal buy">BUY</span></td>
-            </tr>
-            <tr data-symbol="ETH" data-price="3892">
-                <td><div class="pair-info"><div class="pair-icon">Ξ</div><strong>ETH/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
-                <td class="price up" style="font-weight: 700; font-size: 18px;">$<span class="price-value">3,892</span></td>
-                <td class="price down"><span class="change-value">-1.2%</span></td>
-                <td><span class="signal wait">WAIT</span></td>
-            </tr>
-            <tr data-symbol="XRP" data-price="0.58">
-                <td><div class="pair-info"><div class="pair-icon">X</div><strong>XRP/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
-                <td class="price up" style="font-weight: 700; font-size: 18px;">$<span class="price-value">0.58</span></td>
-                <td class="price up"><span class="change-value">+0.8%</span></td>
-                <td><span class="signal wait">WAIT</span></td>
-            </tr>
-            <tr data-symbol="SOL" data-price="142">
-                <td><div class="pair-info"><div class="pair-icon">S</div><strong>SOL/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
-                <td class="price up" style="font-weight: 700; font-size: 18px;">$<span class="price-value">142.00</span></td>
-                <td class="price up"><span class="change-value">+5.6%</span></td>
-                <td><span class="signal buy">BUY</span></td>
-            </tr>
-            <tr data-symbol="ADA" data-price="0.45">
-                <td><div class="pair-info"><div class="pair-icon">A</div><strong>ADA/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
-                <td class="price down" style="font-weight: 700; font-size: 18px;">$<span class="price-value">0.45</span></td>
-                <td class="price down"><span class="change-value">-0.3%</span></td>
-                <td><span class="signal wait">WAIT</span></td>
-            </tr>
-        `;
-    }
+    if (!tableBody) return;
+    
+    tableBody.innerHTML = `
+        <tr data-symbol="BTC" data-price="66800">
+            <td><div class="pair-info"><div class="pair-icon">₿</div><strong>BTC/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
+            <td class="price up" style="font-weight: 700; font-size: 18px;">$66,800</td>
+            <td class="up">+1.2%</td>
+            <td><span class="signal wait">WAIT</span></td>
+        </tr>
+        <tr data-symbol="ETH" data-price="3350">
+            <td><div class="pair-info"><div class="pair-icon">Ξ</div><strong>ETH/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
+            <td class="price up" style="font-weight: 700; font-size: 18px;">$3,350</td>
+            <td class="up">+0.8%</td>
+            <td><span class="signal wait">WAIT</span></td>
+        </tr>
+        <tr data-symbol="EURUSD" data-price="1.0892">
+            <td><div class="pair-info"><div class="pair-icon">€</div><strong>EUR/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
+            <td class="price up" style="font-weight: 700; font-size: 18px;">1.0892</td>
+            <td class="up">+0.15%</td>
+            <td><span class="signal wait">WAIT</span></td>
+        </tr>
+        <tr data-symbol="GBPUSD" data-price="1.2654">
+            <td><div class="pair-info"><div class="pair-icon">£</div><strong>GBP/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
+            <td class="price up" style="font-weight: 700; font-size: 18px;">1.2654</td>
+            <td class="up">+0.08%</td>
+            <td><span class="signal wait">WAIT</span></td>
+        </tr>
+        <tr data-symbol="XAUUSD" data-price="2350.50">
+            <td><div class="pair-info"><div class="pair-icon">👑</div><strong>XAU/USD (Gold)</strong></div><small style="color: var(--text-light);">Current Price</small></td>
+            <td class="price up" style="font-weight: 700; font-size: 18px;">$2,350.50</td>
+            <td class="up">+0.45%</td>
+            <td><span class="signal wait">WAIT</span></td>
+        </tr>
+    `;
+    
+    console.log('⚠️ Using mock price data (real APIs unavailable)');
 }
     </script>
 </body>
