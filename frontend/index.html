@@ -2136,6 +2136,46 @@ function cancelPayment() {
         navigate('dashboard');
     }
 }
+
+        // ========================================
+// NAVIGATION FUNCTION (ADD THIS)
+// ========================================
+
+function navigate(page) {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    document.getElementById('pageTitle').innerText = page.charAt(0).toUpperCase() + page.slice(1);
+    
+    if (page === 'dashboard') showDashboard();
+    else if (page === 'analysis') showAnalysis();
+    else if (page === 'charts') showCharts();
+    else if (page === 'ai') showAINews();
+    else if (page === 'sources') showSources();
+    else if (page === 'upgrade') showUpgrade();
+    else if (page === 'ideas') showIdeas();
+}
+
+// ========================================
+// LOGOUT FUNCTION (ADD THIS)
+// ========================================
+
+async function logout() {
+    try {
+        const response = await fetch(API + '/logout', { method: 'POST' });
+        window.location.href = '/';
+    } catch (error) {
+        console.error('Logout error:', error);
+        window.location.href = '/';
+    }
+}
+
+// ========================================
+// SIDEBAR TOGGLE (ADD IF MISSING)
+// ========================================
+
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('visible');
+}
         function toggleChat() {
             let chat = document.getElementById('chatWindow');
             chat.style.display = chat.style.display === 'none' ? 'flex' : 'none';
