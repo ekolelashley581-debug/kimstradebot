@@ -171,6 +171,15 @@ def init_db():
                   created_at TEXT,
                   completed_at TEXT)''')
     
+    # NEW TABLE - ADD THIS
+    c.execute('''CREATE TABLE IF NOT EXISTS market_ideas
+                 (id INTEGER PRIMARY KEY,
+                  user_id INTEGER,
+                  user_email TEXT,
+                  title TEXT,
+                  description TEXT,
+                  created_at TEXT)''')
+    
     conn.commit()
     conn.close()
 
@@ -423,6 +432,19 @@ def combine_user_ideas(user_ideas):
 def ai_market_analysis():
     """Complete AI market analysis combining all sources"""
     try:
+# ADD THESE LINES RIGHT HERE:
+        conn = sqlite3.connect(config.DB_PATH)
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS market_ideas
+                     (id INTEGER PRIMARY KEY,
+                      user_id INTEGER,
+                      user_email TEXT,
+                      title TEXT,
+                      description TEXT,
+                      created_at TEXT)''')
+        conn.commit()
+        conn.close()
+        
         # 1. Get news from API
         news_response = requests.get(
             'https://newsapi.org/v2/everything',
