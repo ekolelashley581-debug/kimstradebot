@@ -542,7 +542,7 @@ def combine_user_ideas(user_ideas):
 @app.route('/api/ai-market-analysis', methods=['POST'])
 @login_required
 def ai_market_analysis():
-    """Complete AI market analysis combining all sources"""
+    """Complete AI market analysis combining real data + news + user ideas"""
     try:
         # Ensure market_ideas table exists
         conn = sqlite3.connect(config.DB_PATH)
@@ -557,7 +557,19 @@ def ai_market_analysis():
         conn.commit()
         conn.close()
         
-        # 1. Get news from API (use mock data if fails)
+        # ========== 1. GET REAL PRICE DATA ==========
+        try:
+            price_res = requests.get(f"{request.host_url}api/technical-indicators", timeout=5)
+            if price_res.status_code == 200:
+                indicators_data = price_res.json()
+                technical_indicators = indicators_data.get('indicators', [])
+            else:
+                technical_indicators = []
+        except Exception as e:
+            print(f"Technical indicators error: {e}")
+            technical_indicators = []
+        
+        # ========== 2. GET NEWS ==========
         news_articles = []
         try:
             news_response = requests.get(f"{request.host_url}api/news?category=business", timeout=5)
@@ -568,17 +580,15 @@ def ai_market_analysis():
         except Exception as e:
             print(f"News fetch error: {e}")
         
-        # If no news articles, use mock data
+        # Mock news if none
         if not news_articles:
             news_articles = [
                 {'title': 'Bitcoin Surges Past $73,000', 'description': 'Strong institutional demand drives prices higher'},
                 {'title': 'Fed Signals Rate Cuts Coming', 'description': 'Markets rally on dovish comments'},
-                {'title': 'Ethereum ETF Flows Hit Record', 'description': 'Institutional interest growing'},
-                {'title': 'Global Markets Rally on Tech Earnings', 'description': 'Strong earnings drive optimism'},
-                {'title': 'Dollar Weakens as Rate Cut Bets Increase', 'description': 'Traders pricing in September cut'}
+                {'title': 'Ethereum ETF Flows Hit Record', 'description': 'Institutional interest growing'}
             ]
         
-        # 2. Get user-submitted ideas
+        # ========== 3. GET USER IDEAS ==========
         conn = sqlite3.connect(config.DB_PATH)
         c = conn.cursor()
         try:
@@ -588,9 +598,9 @@ def ai_market_analysis():
             user_ideas = []
         conn.close()
         
-        # 3. Analyze news sentiment (simple keyword-based)
-        bullish_keywords = ['bull', 'up', 'rise', 'gain', 'surge', 'rally', 'soar', 'high', 'positive', 'growth']
-        bearish_keywords = ['bear', 'down', 'fall', 'drop', 'decline', 'crash', 'low', 'negative', 'risk', 'fear']
+        # ========== 4. ANALYZE NEWS SENTIMENT ==========
+        bullish_keywords = ['bull', 'up', 'rise', 'gain', 'surge', 'rally', 'soar', 'high', 'positive', 'growth', 'breakout']
+        bearish_keywords = ['bear', 'down', 'fall', 'drop', 'decline', 'crash', 'low', 'negative', 'risk', 'fear', 'dump']
         
         sentiment_score = 0
         key_points = []
@@ -610,7 +620,6 @@ def ai_market_analysis():
                     if word.capitalize() not in key_points:
                         key_points.append(word.capitalize())
         
-        # Limit sentiment score
         sentiment_score = max(-1, min(1, sentiment_score))
         
         if sentiment_score > 0.2:
@@ -623,7 +632,36 @@ def ai_market_analysis():
             sentiment_text = 'neutral'
             sentiment_confidence = 65
         
-        # 4. Analyze user ideas
+        # ========== 5. ANALYZE TECHNICAL DATA ==========
+        tech_score = 0
+        top_gainers = []
+        top_losers = []
+        
+        for indicator in technical_indicators:
+            change = indicator.get('change_24h', 0)
+            symbol = indicator.get('symbol', '')
+            
+            if change > 0:
+                tech_score += 0.5
+                top_gainers.append(f"{symbol}: +{change}%")
+            elif change < 0:
+                tech_score -= 0.5
+                top_losers.append(f"{symbol}: {change}%")
+            
+            # Check MACD and RSI
+            if indicator.get('macd') == 'Bullish':
+                tech_score += 0.3
+            elif indicator.get('macd') == 'Bearish':
+                tech_score -= 0.3
+            
+            if indicator.get('moving_average') in ['Buy', 'Strong Buy']:
+                tech_score += 0.2
+            elif indicator.get('moving_average') == 'Sell':
+                tech_score -= 0.2
+        
+        tech_score = max(-3, min(3, tech_score))
+        
+        # ========== 6. ANALYZE USER IDEAS ==========
         bullish_count = 0
         bearish_count = 0
         for idea in user_ideas:
@@ -634,64 +672,58 @@ def ai_market_analysis():
                 bearish_count += 1
         
         user_consensus = 'bullish' if bullish_count > bearish_count else 'bearish' if bearish_count > bullish_count else 'mixed'
+        user_score = 1 if user_consensus == 'bullish' else -1 if user_consensus == 'bearish' else 0
         
-        # 5. Historical patterns (mock data)
-        historical = {
-            'btc': {'trend': 'up', 'strength': 0.72, 'support': 72000, 'resistance': 75000},
-            'eth': {'trend': 'up', 'strength': 0.65, 'support': 3800, 'resistance': 4000},
-            'overall': {'sentiment': 'positive', 'volatility': 'medium'}
-        }
+        # ========== 7. COMBINE ALL SCORES ==========
+        # Weights: News 40%, Technical 40%, Community 20%
+        total_score = (sentiment_score * 2) + (tech_score * 1.5) + (user_score * 1)
         
-        # 6. Generate recommendation
-        overall_sentiment = 0
-        if sentiment_text == 'bullish':
-            overall_sentiment += 2
-        elif sentiment_text == 'bearish':
-            overall_sentiment -= 2
-        
-        if historical['overall']['sentiment'] == 'positive':
-            overall_sentiment += 1
-        
-        if user_consensus == 'bullish':
-            overall_sentiment += 1
-        elif user_consensus == 'bearish':
-            overall_sentiment -= 1
-        
-        if overall_sentiment >= 2:
+        # ========== 8. GENERATE RECOMMENDATION ==========
+        if total_score >= 3:
             recommendation = "STRONG BUY"
             color = "success"
-            confidence = min(sentiment_confidence + 15, 98)
-        elif overall_sentiment >= 1:
+            confidence = min(sentiment_confidence + 20, 98)
+        elif total_score >= 1.5:
             recommendation = "BUY"
             color = "success"
-            confidence = min(sentiment_confidence + 5, 95)
-        elif overall_sentiment <= -2:
+            confidence = min(sentiment_confidence + 10, 95)
+        elif total_score <= -3:
             recommendation = "STRONG SELL"
             color = "danger"
-            confidence = min(sentiment_confidence + 15, 98)
-        elif overall_sentiment <= -1:
+            confidence = min(sentiment_confidence + 20, 98)
+        elif total_score <= -1.5:
             recommendation = "SELL"
             color = "danger"
-            confidence = min(sentiment_confidence + 5, 95)
+            confidence = min(sentiment_confidence + 10, 95)
         else:
             recommendation = "HOLD / WAIT"
             color = "warning"
             confidence = sentiment_confidence
         
-        # Generate analysis text
+        # ========== 9. GENERATE ANALYSIS TEXT ==========
+        # Format top gainers/losers
+        gainers_text = ', '.join(top_gainers[:3]) if top_gainers else 'No major gainers'
+        losers_text = ', '.join(top_losers[:3]) if top_losers else 'No major losers'
+        
         analysis_text = f"""
+📊 REAL MARKET DATA (CoinGecko):
+Top Gainers: {gainers_text}
+Top Losers: {losers_text}
+
 📰 NEWS SENTIMENT: {sentiment_text.upper()} (Confidence: {sentiment_confidence:.0f}%)
 Key topics: {', '.join(key_points[:5]) if key_points else 'Market analysis complete'}
 
-📊 TECHNICAL OUTLOOK: {historical['overall']['sentiment'].upper()} with {historical['overall']['volatility']} volatility
-BTC: {historical['btc']['trend'].upper()} (Strength: {historical['btc']['strength']*100:.0f}%)
-Support: ${historical['btc']['support']:,} | Resistance: ${historical['btc']['resistance']:,}
+📈 TECHNICAL INDICATORS:
+- 24h Price Change Score: {tech_score:.1f} points
+- RSI levels indicate {'overbought' if tech_score > 1 else 'oversold' if tech_score < -1 else 'neutral'} conditions
+- MACD signals: {'bullish' if tech_score > 0.5 else 'bearish' if tech_score < -0.5 else 'mixed'}
 
 👥 COMMUNITY INSIGHTS: {len(user_ideas)} ideas submitted
 Community consensus: {user_consensus.upper()}
 {bullish_count} bullish vs {bearish_count} bearish
 
 🎯 FINAL RECOMMENDATION: {recommendation}
+Total Score: {total_score:.1f} points
 """
         
         return jsonify({
@@ -700,18 +732,24 @@ Community consensus: {user_consensus.upper()}
             'color': color,
             'confidence': confidence,
             'analysis': analysis_text,
+            'total_score': total_score,
             'news_sentiment': {
                 'sentiment': sentiment_text,
                 'confidence': sentiment_confidence,
                 'score': sentiment_score,
                 'key_points': key_points[:5]
             },
+            'technical': {
+                'score': tech_score,
+                'top_gainers': top_gainers[:3],
+                'top_losers': top_losers[:3],
+                'indicators': technical_indicators[:3]
+            },
             'user_analysis': {
                 'consensus': user_consensus,
                 'bullish_count': bullish_count,
                 'bearish_count': bearish_count
-            },
-            'historical': historical
+            }
         })
         
     except Exception as e:
