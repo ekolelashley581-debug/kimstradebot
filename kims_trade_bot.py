@@ -877,6 +877,63 @@ def reject_payment():
     return jsonify({'success': True})
 
 # ============================================
+# MARKET IDEAS ROUTES (ADD THIS)
+# ============================================
+
+@app.route('/api/ideas', methods=['GET'])
+def get_ideas():
+    """Get all market ideas from users"""
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS market_ideas
+                 (id INTEGER PRIMARY KEY,
+                  user_id INTEGER,
+                  user_email TEXT,
+                  title TEXT,
+                  description TEXT,
+                  created_at TEXT)''')
+    c.execute("SELECT id, user_email, title, description, created_at FROM market_ideas ORDER BY created_at DESC")
+    ideas = c.fetchall()
+    conn.close()
+    
+    return jsonify({'ideas': [{
+        'id': i[0],
+        'user_email': i[1],
+        'title': i[2],
+        'description': i[3],
+        'created_at': i[4]
+    } for i in ideas]})
+
+@app.route('/api/ideas/submit', methods=['POST'])
+@login_required
+def submit_idea():
+    """Submit a new market idea"""
+    data = request.json
+    title = data.get('title')
+    description = data.get('description')
+    
+    if not title or not description:
+        return jsonify({'error': 'Title and description required'}), 400
+    
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS market_ideas
+                 (id INTEGER PRIMARY KEY,
+                  user_id INTEGER,
+                  user_email TEXT,
+                  title TEXT,
+                  description TEXT,
+                  created_at TEXT)''')
+    
+    c.execute('''INSERT INTO market_ideas (user_id, user_email, title, description, created_at)
+                 VALUES (?, ?, ?, ?, ?)''',
+              (session['user_id'], session['email'], title, description, datetime.now().isoformat()))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True})
+
+# ============================================
 # FOR RENDER - COMMENT OUT LOCAL DEVELOPMENT SECTION
 # ============================================
 
