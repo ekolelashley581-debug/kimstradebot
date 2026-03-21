@@ -647,44 +647,92 @@ async function loadTechnicalIndicators() {
 
 async function runAdvancedAnalysis() {
     const resultDiv = document.getElementById('analysisResult');
-    resultDiv.innerHTML = '<div class="loading-spinner"></div><p style="text-align:center;">AI analyzing market data...</p>';
+    resultDiv.innerHTML = '<div class="loading-spinner"></div><p style="text-align:center;">AI analyzing market data from news, user ideas, and historical patterns...</p>';
     
     try {
-        const res = await fetch(API + '/analyze', { method: 'POST' });
+        const res = await fetch(API + '/ai-market-analysis', { method: 'POST' });
         const data = await res.json();
         
-        resultDiv.innerHTML = `
-            <div class="analysis-output" style="background: var(--bg); border-radius: 12px; padding: 20px;">
-                <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-                    <div style="flex: 1; background: rgba(16,185,129,0.1); border-radius: 12px; padding: 15px;">
-                        <small style="color: var(--text-light);">AI Confidence</small>
-                        <h3 style="color: var(--success);">92%</h3>
+        if (data.success) {
+            resultDiv.innerHTML = `
+                <div class="analysis-output" style="background: var(--bg); border-radius: 12px; padding: 20px;">
+                    <!-- Recommendation Header -->
+                    <div style="background: ${data.color === 'success' ? 'rgba(16,185,129,0.1)' : data.color === 'danger' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)'}; border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center;">
+                        <h2 style="color: var(--${data.color}); margin-bottom: 10px;">
+                            <i class="fas fa-${data.recommendation.includes('BUY') ? 'arrow-up' : data.recommendation.includes('SELL') ? 'arrow-down' : 'pause'}"></i>
+                            ${data.recommendation}
+                        </h2>
+                        <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+                            <div><span style="color: var(--text-light);">AI Confidence:</span> <strong style="color: var(--${data.color});">${data.confidence}%</strong></div>
+                            <div><span style="color: var(--text-light);">Risk Level:</span> <strong>${data.confidence > 80 ? 'Low' : data.confidence > 60 ? 'Medium' : 'High'}</strong></div>
+                        </div>
                     </div>
-                    <div style="flex: 1; background: rgba(37,99,235,0.1); border-radius: 12px; padding: 15px;">
-                        <small style="color: var(--text-light);">Risk Level</small>
-                        <h3 style="color: var(--warning);">Medium</h3>
+                    
+                    <!-- Analysis Grid -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                        <!-- News Sentiment Card -->
+                        <div style="background: var(--card); border-radius: 12px; padding: 15px;">
+                            <h4 style="color: var(--primary); margin-bottom: 10px;"><i class="fas fa-newspaper"></i> News Sentiment</h4>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span>${data.news_sentiment.sentiment.toUpperCase()}</span>
+                                <span>${data.news_sentiment.confidence.toFixed(0)}% confidence</span>
+                            </div>
+                            <div style="height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 10px;">
+                                <div style="width: ${Math.abs(data.news_sentiment.score * 100)}%; height: 100%; background: ${data.news_sentiment.sentiment === 'bullish' ? 'var(--success)' : data.news_sentiment.sentiment === 'bearish' ? 'var(--danger)' : 'var(--warning)'}; border-radius: 3px;"></div>
+                            </div>
+                            <small style="color: var(--text-light);">Key topics: ${data.news_sentiment.key_points.join(', ') || 'Analyzing...'}</small>
+                        </div>
+                        
+                        <!-- Community Insights Card -->
+                        <div style="background: var(--card); border-radius: 12px; padding: 15px;">
+                            <h4 style="color: var(--primary); margin-bottom: 10px;"><i class="fas fa-users"></i> Community Insights</h4>
+                            <div style="display: flex; gap: 15px; margin-bottom: 10px;">
+                                <div><span style="color: var(--success);">🐂 Bullish:</span> ${data.user_analysis.bullish_count}</div>
+                                <div><span style="color: var(--danger);">🐻 Bearish:</span> ${data.user_analysis.bearish_count}</div>
+                            </div>
+                            <div style="height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 10px;">
+                                <div style="width: ${(data.user_analysis.bullish_count / (data.user_analysis.bullish_count + data.user_analysis.bearish_count + 1)) * 100}%; height: 100%; background: var(--success); border-radius: 3px;"></div>
+                            </div>
+                            <small style="color: var(--text-light);">Consensus: ${data.user_analysis.consensus.toUpperCase()}</small>
+                        </div>
+                        
+                        <!-- Technical Outlook Card -->
+                        <div style="background: var(--card); border-radius: 12px; padding: 15px;">
+                            <h4 style="color: var(--primary); margin-bottom: 10px;"><i class="fas fa-chart-line"></i> Technical Outlook</h4>
+                            <div>BTC: <strong style="color: ${data.historical.btc.trend === 'up' ? 'var(--success)' : 'var(--danger)'}">${data.historical.btc.trend.toUpperCase()}</strong> (${(data.historical.btc.strength * 100).toFixed(0)}% strength)</div>
+                            <div>Support: $${data.historical.btc.support.toLocaleString()} | Resistance: $${data.historical.btc.resistance.toLocaleString()}</div>
+                            <div style="margin-top: 8px;"><small style="color: var(--text-light);">Volatility: ${data.historical.overall.volatility}</small></div>
+                        </div>
                     </div>
-                    <div style="flex: 1; background: rgba(245,158,11,0.1); border-radius: 12px; padding: 15px;">
-                        <small style="color: var(--text-light);">Timeframe</small>
-                        <h3 style="color: var(--text);">4H / Daily</h3>
+                    
+                    <!-- Full Analysis Text -->
+                    <div style="background: var(--card); border-radius: 12px; padding: 20px;">
+                        <h4 style="color: var(--primary); margin-bottom: 15px;"><i class="fas fa-microchip"></i> AI Analysis Summary</h4>
+                        <pre style="color: var(--text-light); line-height: 1.6; font-family: inherit; white-space: pre-wrap; background: transparent; border: none; padding: 0;">${data.analysis}</pre>
+                    </div>
+                    
+                    <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                        <button class="btn-secondary" onclick="showAnalysis()"><i class="fas fa-chart-line"></i> Back to Analysis</button>
+                        <button class="btn-primary" onclick="runAdvancedAnalysis()"><i class="fas fa-sync-alt"></i> Refresh Analysis</button>
                     </div>
                 </div>
-                <div style="background: var(--card); border-radius: 12px; padding: 20px;">
-                    <h4 style="color: var(--primary); margin-bottom: 15px;"><i class="fas fa-microchip"></i> AI Analysis Summary</h4>
-                    <p style="color: var(--text-light); line-height: 1.6;">${data.result || 'Market showing bullish momentum with strong support at key levels. RSI indicates room for further upside. Watch resistance at $75,000 for BTC.'}</p>
+            `;
+        } else {
+            resultDiv.innerHTML = `
+                <div class="analysis-output" style="background: var(--bg); border-radius: 12px; padding: 20px; text-align: center;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: var(--danger); margin-bottom: 20px;"></i>
+                    <h3 style="color: var(--text);">Analysis Temporarily Unavailable</h3>
+                    <p style="color: var(--text-light);">${data.error || 'Please try again in a moment.'}</p>
+                    <button class="btn-primary" onclick="runAdvancedAnalysis()" style="margin-top: 20px;">Retry</button>
                 </div>
-                <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
-                    <button class="btn-secondary" onclick="showAnalysis()"><i class="fas fa-chart-line"></i> View Full Report</button>
-                    <button class="btn-primary" onclick="runAdvancedAnalysis()"><i class="fas fa-sync-alt"></i> Refresh</button>
-                </div>
-            </div>
-        `;
+            `;
+        }
     } catch (error) {
         resultDiv.innerHTML = `
             <div class="analysis-output" style="background: var(--bg); border-radius: 12px; padding: 20px; text-align: center;">
                 <i class="fas fa-chart-line" style="font-size: 48px; color: var(--primary); margin-bottom: 20px;"></i>
-                <h3 style="color: var(--text);">Analysis Ready</h3>
-                <p style="color: var(--text-light);">Click Run Analysis to get AI-powered insights</p>
+                <h3 style="color: var(--text);">AI Analysis Ready</h3>
+                <p style="color: var(--text-light);">Click the button above to get real-time market analysis combining news, user ideas, and historical data.</p>
             </div>
         `;
     }
