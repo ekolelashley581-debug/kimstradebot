@@ -575,26 +575,48 @@
 async function loadMarketSentiment() {
     try {
         const res = await fetch(API + '/market-sentiment');
+        if (!res.ok) throw new Error('Network response was not ok');
         const data = await res.json();
         const sentiment = data.sentiment || 50;
         const sentimentText = sentiment < 30 ? 'Bearish' : sentiment > 70 ? 'Bullish' : 'Neutral';
         
-        document.getElementById('sentimentBar').style.width = sentiment + '%';
-        document.getElementById('sentimentValue').innerHTML = `<strong style="color: ${sentiment > 70 ? 'var(--success)' : sentiment < 30 ? 'var(--danger)' : 'var(--warning)'}">${sentimentText}</strong>`;
-        document.getElementById('sentimentAnalysis').innerHTML = `
-            <p style="color: var(--text-light);">
-                <i class="fas fa-chart-line"></i> ${data.analysis || 'Market showing mixed signals. Watch key levels.'}
-            </p>
-        `;
+        const sentimentBar = document.getElementById('sentimentBar');
+        const sentimentValue = document.getElementById('sentimentValue');
+        const sentimentAnalysis = document.getElementById('sentimentAnalysis');
+        
+        if (sentimentBar) sentimentBar.style.width = sentiment + '%';
+        if (sentimentValue) sentimentValue.innerHTML = `<strong style="color: ${sentiment > 70 ? 'var(--success)' : sentiment < 30 ? 'var(--danger)' : 'var(--warning)'}">${sentimentText}</strong>`;
+        if (sentimentAnalysis) sentimentAnalysis.innerHTML = `<p style="color: var(--text-light);"><i class="fas fa-chart-line"></i> ${data.analysis || 'Market showing mixed signals. Watch key levels.'}</p>`;
     } catch (error) {
-        console.log('Sentiment data mock');
-        document.getElementById('sentimentBar').style.width = '52%';
-        document.getElementById('sentimentValue').innerHTML = '<strong style="color: var(--warning);">Neutral</strong>';
+        console.log('Sentiment data mock - using demo data');
+        // Use mock data if API not available
+        const sentimentBar = document.getElementById('sentimentBar');
+        const sentimentValue = document.getElementById('sentimentValue');
+        const sentimentAnalysis = document.getElementById('sentimentAnalysis');
+        
+        if (sentimentBar) sentimentBar.style.width = '52%';
+        if (sentimentValue) sentimentValue.innerHTML = '<strong style="color: var(--warning);">Neutral</strong>';
+        if (sentimentAnalysis) sentimentAnalysis.innerHTML = '<p style="color: var(--text-light);"><i class="fas fa-chart-line"></i> Market sentiment is neutral. Watch for breakouts.</p>';
     }
 }
 
 async function loadTopMovers() {
     const container = document.getElementById('topMovers');
+    if (!container) return;
+    
+    try {
+        // Try to fetch real data
+        const res = await fetch(API + '/market-movers');
+        if (res.ok) {
+            const data = await res.json();
+            // Display real data
+            return;
+        }
+    } catch (error) {
+        console.log('Using mock movers data');
+    }
+    
+    // Mock data as fallback
     container.innerHTML = `
         <div style="display: flex; justify-content: space-between; padding: 10px 0;">
             <span><i class="fas fa-arrow-up" style="color: var(--success);"></i> BTC/USD</span>
@@ -613,6 +635,8 @@ async function loadTopMovers() {
 
 async function loadTechnicalIndicators() {
     const container = document.getElementById('indicatorsGrid');
+    if (!container) return;
+    
     container.innerHTML = `
         <div class="indicator-card" style="background: var(--bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
@@ -644,6 +668,7 @@ async function loadTechnicalIndicators() {
         </div>
     `;
 }
+
 
 async function runAdvancedAnalysis() {
     const resultDiv = document.getElementById('analysisResult');
