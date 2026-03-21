@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KIM'S TRADE BOT – Professional Trading Platform</title>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* ========== YOUR ORIGINAL CSS ========== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         
         :root {
@@ -24,8 +24,8 @@
         [data-theme="dark"] {
             --bg: #0f172a;
             --bg-light: #1e293b;
-            --text: #f8fafc;
-            --text-light: #94a3b8;
+            --text: #ffffff;
+            --text-light: #cbd5e1;
             --border: #334155;
             --card: #1e293b;
             --hover: #2d3a4f;
@@ -41,14 +41,8 @@
             --hover: #f1f5f9;
         }
         
-        body {
-            background: var(--dark);
-            min-height: 100vh;
-            display: flex;
-            transition: all 0.3s;
-        }
+        body { background: var(--dark); min-height: 100vh; display: flex; transition: all 0.3s; color: var(--text); }
         
-        /* SIDEBAR */
         .sidebar {
             width: var(--sidebar-width);
             background: var(--darker);
@@ -60,1089 +54,201 @@
             overflow-y: auto;
             box-shadow: 4px 0 20px rgba(0,0,0,0.3);
             z-index: 1000;
-        }
-        
-        .sidebar-header {
-            padding: 30px 20px;
-            border-bottom: 1px solid #334155;
-        }
-        
-        .sidebar-header h1 {
-            font-size: 24px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #60a5fa, #a78bfa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 5px;
-        }
-        
-        .sidebar-header p {
-            font-size: 12px;
-            color: #94a3b8;
-        }
-        
-        .nav-item {
             display: flex;
-            align-items: center;
-            padding: 14px 20px;
-            margin: 4px 8px;
-            border-radius: 12px;
-            color: #cbd5e1;
-            cursor: pointer;
-            transition: all 0.3s;
+            flex-direction: column;
         }
         
-        .nav-item i {
-            width: 24px;
-            font-size: 18px;
-            margin-right: 12px;
-        }
+        .sidebar-header { padding: 30px 20px; border-bottom: 1px solid #334155; }
+        .sidebar-header h1 { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .sidebar-header p { font-size: 12px; color: #94a3b8; margin-top: 5px; }
         
+        .nav-item { display: flex; align-items: center; padding: 14px 20px; margin: 4px 8px; border-radius: 12px; color: #cbd5e1; cursor: pointer; transition: all 0.3s; }
+        .nav-item i { width: 24px; margin-right: 12px; }
         .nav-item span { flex: 1; font-size: 14px; font-weight: 500; }
-        .nav-item .badge {
-            background: var(--primary);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 600;
-        }
-        
+        .nav-item .badge { background: var(--primary); color: white; padding: 4px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; }
         .nav-item:hover { background: #334155; color: white; }
         .nav-item.active { background: var(--primary); color: white; }
         
-        .nav-divider {
-            height: 1px;
-            background: #334155;
-            margin: 15px 20px;
-        }
+        .nav-divider { height: 1px; background: #334155; margin: 15px 20px; }
         
-        .user-info {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            padding: 20px;
-            border-top: 1px solid #334155;
-            display: flex;
-            align-items: center;
-            background: var(--darker);
-        }
-        
-        .user-avatar {
-            width: 45px;
-            height: 45px;
-            background: var(--primary);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 18px;
-            margin-right: 12px;
-            color: white;
-        }
-        
-        .user-details h4 { font-size: 14px; margin-bottom: 3px; color: white; }
+        .sidebar-footer { margin-top: auto; padding: 20px; border-top: 1px solid #334155; }
+        .user-info { display: flex; align-items: center; margin-bottom: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; }
+        .user-avatar { width: 45px; height: 45px; background: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; margin-right: 12px; color: white; }
+        .user-details h4 { font-size: 14px; color: white; }
         .user-details p { font-size: 11px; color: #94a3b8; }
+        .logout-btn { width: 100%; padding: 12px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .logout-btn:hover { background: #dc2626; }
         
-        /* ADDED: Logout button container inside sidebar (before user-info) */
-        .logout-container {
-            padding: 15px 20px 10px 20px;
-            border-top: 1px solid #334155;
-            margin-top: auto;
-        }
+        .main-content { flex: 1; margin-left: var(--sidebar-width); background: var(--bg); min-height: 100vh; }
+        .top-header { height: 70px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; position: sticky; top: 0; z-index: 100; }
+        .page-title { font-size: 24px; font-weight: 700; color: var(--text); }
+        .header-right { display: flex; align-items: center; gap: 20px; }
+        .theme-toggle, .fullscreen-btn { width: 40px; height: 40px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text); transition: all 0.3s; }
+        .theme-toggle:hover, .fullscreen-btn:hover { background: var(--primary); color: white; }
+        .lang-selector { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-size: 14px; cursor: pointer; }
+        .tier-badge { background: linear-gradient(135deg, var(--primary), #7c3aed); color: white; padding: 6px 16px; border-radius: 30px; font-size: 12px; font-weight: 600; }
+        .content-area { padding: 30px; }
         
-        .logout-btn {
-            width: 100%;
-            padding: 12px;
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            transition: background 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .logout-btn:hover {
-            background: #dc2626;
-        }
-        
-        /* MAIN CONTENT */
-        .main-content {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            background: var(--bg);
-            min-height: 100vh;
-        }
-        
-        .top-header {
-            height: 70px;
-            background: var(--card);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 30px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        
-        .page-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--text);
-        }
-        
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        
-        .theme-toggle {
-            width: 40px;
-            height: 40px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--text);
-            transition: all 0.3s;
-        }
-        
-        .theme-toggle:hover {
-            background: var(--primary);
-            color: white;
-        }
-        
-        /* ADDED: Fullscreen button for charts */
-        .fullscreen-btn {
-            width: 40px;
-            height: 40px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--text);
-            transition: all 0.3s;
-        }
-        
-        .fullscreen-btn:hover {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .lang-selector {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 8px 12px;
-            color: var(--text);
-            font-size: 14px;
-            cursor: pointer;
-        }
-        
-        .tier-badge {
-            background: linear-gradient(135deg, var(--primary), #7c3aed);
-            color: white;
-            padding: 6px 16px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .content-area {
-            padding: 30px;
-        }
-        
-        /* ========== REST OF YOUR CSS (unchanged) ========== */
-        /* AUTH PAGES - BEAUTIFUL LOGIN */
-        .auth-container {
-            min-height: calc(100vh - 70px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .auth-card {
-            background: var(--card);
-            border-radius: 30px;
-            padding: 50px 40px;
-            width: 100%;
-            max-width: 500px;
-            border: 1px solid var(--border);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        }
-        
-        .auth-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .auth-header h2 {
-            color: var(--text);
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-        
-        .auth-header p {
-            color: var(--text-light);
-            font-size: 14px;
-        }
-        
-        .auth-flags {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        
-        .flag-btn {
-            padding: 8px 16px;
-            border: 2px solid var(--border);
-            border-radius: 30px;
-            background: var(--bg);
-            color: var(--text);
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        
-        .flag-btn:hover {
-            border-color: var(--primary);
-        }
-        
-        .flag-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-        
-        .auth-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            background: var(--bg);
-            padding: 5px;
-            border-radius: 50px;
-        }
-        
-        .auth-tab {
-            flex: 1;
-            text-align: center;
-            padding: 14px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: 600;
-            color: var(--text-light);
-            transition: all 0.3s;
-        }
-        
-        .auth-tab.active {
-            background: var(--primary);
-            color: white;
-        }
-        
+        /* Auth Styles */
+        .auth-container { min-height: calc(100vh - 70px); display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .auth-card { background: var(--card); border-radius: 30px; padding: 50px 40px; width: 100%; max-width: 500px; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .auth-header { text-align: center; margin-bottom: 30px; }
+        .auth-header h2 { color: var(--text); font-size: 32px; }
+        .auth-header p { color: var(--text-light); font-size: 14px; }
+        .auth-tabs { display: flex; gap: 10px; margin-bottom: 30px; background: var(--bg); padding: 5px; border-radius: 50px; }
+        .auth-tab { flex: 1; text-align: center; padding: 14px; border-radius: 50px; cursor: pointer; font-weight: 600; color: var(--text-light); transition: all 0.3s; }
+        .auth-tab.active { background: var(--primary); color: white; }
         .auth-form { display: none; }
         .auth-form.active { display: block; }
-        
         .form-group { margin-bottom: 20px; }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text);
-            font-weight: 500;
-        }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--text); font-weight: 500; }
+        .input-group { position: relative; }
+        .input-group i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-light); }
+        .input-group input, .input-group select { width: 100%; padding: 16px 16px 16px 50px; background: var(--bg); border: 2px solid var(--border); border-radius: 12px; color: var(--text); font-size: 15px; }
+        .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--primary); }
+        .btn-primary { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-secondary { background: var(--bg); border: 2px solid var(--border); color: var(--text); padding: 12px 20px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 500; }
+        .error-message { background: rgba(239,68,68,0.1); color: var(--danger); padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none; }
         
-        .input-group {
-            position: relative;
-        }
+        /* Dashboard Styles */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: var(--card); border-radius: 16px; padding: 24px; border: 1px solid var(--border); transition: all 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .stat-title { color: var(--text-light); font-size: 14px; font-weight: 500; }
+        .stat-icon { width: 48px; height: 48px; background: linear-gradient(135deg, var(--primary), #7c3aed); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; }
+        .stat-value { font-size: 32px; font-weight: 700; color: var(--text); }
+        .stat-change { color: var(--success); font-size: 13px; }
         
-        .input-group i {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-light);
-            font-size: 18px;
-        }
+        .two-column { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .three-column { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .card { background: var(--card); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; }
+        .card-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .card-header h3 { color: var(--text); font-size: 18px; font-weight: 600; }
+        .card-header h3 i { margin-right: 10px; color: var(--primary); }
+        .card-body { padding: 24px; }
         
-        .input-group input, .input-group select {
-            width: 100%;
-            padding: 16px 16px 16px 50px;
-            background: var(--bg);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            color: var(--text);
-            font-size: 15px;
-            transition: all 0.3s;
-        }
-        
-        .input-group input:focus, .input-group select:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        
-        .btn-primary {
-            width: 100%;
-            padding: 16px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-primary:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(37,99,235,0.3);
-        }
-        
-        .btn-secondary {
-            background: var(--bg);
-            border: 2px solid var(--border);
-            color: var(--text);
-            padding: 12px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        
-        .btn-secondary:hover {
-            background: var(--hover);
-        }
-        
-        .error-message {
-            background: rgba(239,68,68,0.1);
-            color: var(--danger);
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        
-        /* STATS GRID - BUSY PROFESSIONAL */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-card {
-            background: var(--card);
-            border-radius: 16px;
-            padding: 24px;
-            border: 1px solid var(--border);
-            transition: all 0.3s;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-        
-        .stat-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .stat-title {
-            color: var(--text-light);
-            font-size: 14px;
-            font-weight: 500;
-        }
-        
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--primary), #7c3aed);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-        }
-        
-        .stat-value {
-            font-size: 32px;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 5px;
-        }
-        
-        .stat-change {
-            color: var(--success);
-            font-size: 13px;
-        }
-        
-        /* TWO COLUMN LAYOUT */
-        .two-column {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .three-column {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        /* CARDS */
-        .card {
-            background: var(--card);
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            overflow: hidden;
-        }
-        
-        .card-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .card-header h3 {
-            color: var(--text);
-            font-size: 18px;
-            font-weight: 600;
-        }
-        
-        .card-header h3 i {
-            margin-right: 10px;
-            color: var(--primary);
-        }
-        
-        .card-body {
-            padding: 24px;
-        }
-        
-        /* MARKET TABLE */
-        .market-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .market-table th {
-            text-align: left;
-            padding: 15px 20px;
-            color: var(--text-light);
-            font-weight: 500;
-            font-size: 13px;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .market-table td {
-            padding: 15px 20px;
-            color: var(--text);
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .market-table tr:hover td {
-            background: var(--hover);
-        }
-        
-        .pair-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .pair-icon {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, var(--primary), #7c3aed);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 16px;
-        }
-        
+        .market-table { width: 100%; border-collapse: collapse; }
+        .market-table th { text-align: left; padding: 15px 20px; color: var(--text-light); font-weight: 500; font-size: 13px; border-bottom: 1px solid var(--border); }
+        .market-table td { padding: 15px 20px; color: var(--text); border-bottom: 1px solid var(--border); }
         .price.up { color: var(--success); font-weight: 600; }
         .price.down { color: var(--danger); font-weight: 600; }
+        .signal { padding: 5px 12px; border-radius: 30px; font-size: 12px; font-weight: 600; display: inline-block; }
+        .signal.buy { background: rgba(16,185,129,0.15); color: var(--success); }
+        .signal.sell { background: rgba(239,68,68,0.15); color: var(--danger); }
+        .signal.wait { background: rgba(245,158,11,0.15); color: var(--warning); }
         
-        .signal {
-            padding: 5px 12px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .signal.buy {
-            background: rgba(16,185,129,0.15);
-            color: var(--success);
-        }
-        
-        .signal.sell {
-            background: rgba(239,68,68,0.15);
-            color: var(--danger);
-        }
-        
-        .signal.wait {
-            background: rgba(245,158,11,0.15);
-            color: var(--warning);
-        }
-        
-        /* AI ANALYSIS CARDS - PROFESSIONAL */
-        .ai-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .ai-card {
-            background: var(--bg);
-            border-radius: 12px;
-            padding: 20px;
-            border-left: 4px solid;
-            transition: all 0.3s;
-        }
-        
+        .ai-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px; }
+        .ai-card { background: var(--bg); border-radius: 12px; padding: 20px; border-left: 4px solid; transition: all 0.3s; }
         .ai-card.success { border-left-color: var(--success); }
         .ai-card.warning { border-left-color: var(--warning); }
         .ai-card.danger { border-left-color: var(--danger); }
-        
-        .ai-card:hover {
-            transform: translateX(5px);
-        }
-        
-        .ai-pair {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: var(--text);
-        }
-        
-        .ai-signal {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-        
-        .ai-signal.buy {
-            background: rgba(16,185,129,0.15);
-            color: var(--success);
-        }
-        
-        .ai-signal.sell {
-            background: rgba(239,68,68,0.15);
-            color: var(--danger);
-        }
-        
-        .ai-signal.wait {
-            background: rgba(245,158,11,0.15);
-            color: var(--warning);
-        }
-        
-        .ai-confidence {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 10px 0;
-        }
-        
-        .confidence-bar {
-            flex: 1;
-            height: 8px;
-            background: var(--border);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        .confidence-fill {
-            height: 100%;
-            background: var(--primary);
-            border-radius: 4px;
-        }
-        
-        .ai-reason {
-            color: var(--text-light);
-            font-size: 13px;
-            line-height: 1.5;
-        }
-        
-        /* NEWS SOURCES */
-        .sources-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-        
-        .source-card {
-            background: var(--bg);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            padding: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-        }
-        
-        .source-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-3px);
-        }
-        
-        .source-card.selected {
-            border-color: var(--success);
-            background: rgba(16,185,129,0.1);
-        }
-        
-        .source-icon {
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-        
-        .source-name {
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: var(--text);
-        }
-        
-        .source-category {
-            font-size: 11px;
-            color: var(--text-light);
-        }
-        
-        /* CHART */
-        .chart-container {
-            height: 500px;
-            width: 100%;
-            border-radius: 12px;
-            overflow: hidden;
-            margin-top: 20px;
-        }
-        
-        .chart-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .chart-btn {
-            padding: 8px 16px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text);
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.3s;
-        }
-        
-        .chart-btn:hover {
-            background: var(--hover);
-        }
-        
-        .chart-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-        
-        /* NEWS FEED */
-        .news-feed {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .news-item {
-            padding: 15px 20px;
-            border-bottom: 1px solid var(--border);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .news-item:hover {
-            background: var(--hover);
-        }
-        
-        .news-source {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            font-size: 12px;
-            color: var(--text-light);
-        }
-        
-        .news-title {
-            font-size: 14px;
-            color: var(--text);
-            font-weight: 500;
-        }
-        
-        /* UPGRADE PAGE */
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin: 30px 0;
-        }
-        
-        .pricing-card {
-            background: var(--card);
-            border-radius: 20px;
-            padding: 30px;
-            border: 2px solid transparent;
-            position: relative;
-            transition: all 0.3s;
-        }
-        
-        .pricing-card:hover {
-            transform: translateY(-10px);
-        }
-        
-        .pricing-card.premium {
-            border-color: gold;
-        }
-        
-        .pricing-card.pro {
-            border-color: var(--primary);
-        }
-        
-        .popular-badge {
-            position: absolute;
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: gold;
-            color: black;
-            padding: 5px 20px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .pricing-name {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        
-        .pricing-price {
-            font-size: 36px;
-            font-weight: 800;
-            text-align: center;
-            margin: 20px 0;
-        }
-        
-        .pricing-price small {
-            font-size: 14px;
-            font-weight: 400;
-            color: var(--text-light);
-        }
-        
-        .pricing-features {
-            list-style: none;
-            margin: 25px 0;
-        }
-        
-        .pricing-features li {
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border);
-            font-size: 14px;
-            color: var(--text);
-        }
-        
-        .pricing-features i {
-            margin-right: 10px;
-        }
-        
-        .feature-check { color: var(--success); }
-        .feature-times { color: var(--danger); }
-        
-        .payment-section {
-            background: linear-gradient(135deg, #ffc10720, #ff8e8e20);
-            border: 2px solid #ffc107;
-            border-radius: 20px;
-            padding: 30px;
-            margin-top: 30px;
-        }
-        
-        .payment-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .payment-icon {
-            width: 60px;
-            height: 60px;
-            background: #ffc107;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-        }
-        
-        /* SUPPORT CHAT */
-        .chat-button {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background: var(--primary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            z-index: 9999;
-            transition: all 0.3s;
-        }
-        
-        .chat-button:hover {
-            transform: scale(1.1);
-        }
-        
-        .chat-window {
-            position: fixed;
-            bottom: 100px;
-            right: 30px;
-            width: 350px;
-            height: 500px;
-            background: var(--card);
-            border-radius: 15px;
-            border: 1px solid var(--border);
-            display: none;
-            flex-direction: column;
-            z-index: 9999;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-        
-        .chat-header {
-            padding: 15px;
-            background: var(--primary);
-            color: white;
-            border-radius: 15px 15px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .chat-header span:last-child {
-            cursor: pointer;
-            font-size: 20px;
-        }
-        
-        .chat-messages {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            background: var(--bg);
-        }
-        
-        .message {
-            margin-bottom: 10px;
-            padding: 10px 15px;
-            border-radius: 10px;
-            max-width: 80%;
-            word-wrap: break-word;
-        }
-        
-        .message.user {
-            background: var(--primary);
-            color: white;
-            margin-left: auto;
-        }
-        
-        .message.bot {
-            background: var(--card);
-            color: var(--text);
-            border: 1px solid var(--border);
-        }
-        
-        .chat-input {
-            display: flex;
-            padding: 10px;
-            border-top: 1px solid var(--border);
-            background: var(--card);
-        }
-        
-        .chat-input input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: var(--bg);
-            color: var(--text);
-            margin-right: 10px;
-        }
-        
-        .chat-input button {
-            padding: 10px 20px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .chat-input button:hover {
-            background: var(--primary-dark);
-        }
-        
-        /* FOOTER */
-        .footer {
-            background: var(--card);
-            border-top: 1px solid var(--border);
-            padding: 40px 30px;
-            margin-top: 40px;
-        }
-        
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-        
-        .footer-links a {
-            color: var(--text-light);
-            text-decoration: none;
-            font-size: 14px;
-            transition: color 0.3s;
-        }
-        
-        .footer-links a:hover {
-            color: var(--primary);
-        }
-        
-        .footer-copyright {
-            text-align: center;
-            color: var(--text-light);
-            font-size: 13px;
-        }
-        
-        /* LOADING */
-        .loading-spinner {
-            border: 4px solid var(--border);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .hidden { display: none !important; }
-        
-        /* RESPONSIVE */
-        @media (max-width: 1200px) {
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .three-column { grid-template-columns: repeat(2, 1fr); }
-        }
+        .ai-pair { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--text); }
+        .ai-signal { display: inline-block; padding: 4px 12px; border-radius: 30px; font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+        .ai-confidence { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+        .confidence-bar { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+        .confidence-fill { height: 100%; background: var(--primary); border-radius: 4px; }
+        .ai-reason { color: var(--text-light); font-size: 13px; }
+        
+        .sources-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
+        .source-card { background: var(--bg); border: 2px solid var(--border); border-radius: 12px; padding: 15px; cursor: pointer; transition: all 0.3s; text-align: center; }
+        .source-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+        .source-icon { font-size: 32px; margin-bottom: 10px; }
+        .source-name { font-weight: 600; color: var(--text); }
+        .source-category { font-size: 11px; color: var(--text-light); }
+        
+        .chart-container { height: 500px; width: 100%; border-radius: 12px; overflow: hidden; margin-top: 20px; }
+        .chart-controls { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .chart-btn { padding: 8px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); cursor: pointer; transition: all 0.3s; }
+        .chart-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        
+        .news-feed { max-height: 400px; overflow-y: auto; }
+        .news-item { padding: 15px 20px; border-bottom: 1px solid var(--border); cursor: pointer; transition: all 0.3s; }
+        .news-item:hover { background: var(--hover); }
+        .news-source { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; color: var(--text-light); }
+        .news-title { font-size: 14px; color: var(--text); font-weight: 500; }
+        
+        .pricing-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 30px 0; }
+        .pricing-card { background: var(--card); border-radius: 20px; padding: 30px; border: 2px solid transparent; position: relative; transition: all 0.3s; }
+        .pricing-card.premium { border-color: gold; }
+        .pricing-card.pro { border-color: var(--primary); }
+        .popular-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: gold; color: black; padding: 5px 20px; border-radius: 30px; font-size: 12px; font-weight: 600; }
+        .pricing-name { font-size: 24px; font-weight: 700; text-align: center; color: var(--text); }
+        .pricing-price { font-size: 36px; font-weight: 800; text-align: center; margin: 20px 0; color: var(--text); }
+        .pricing-features { list-style: none; margin: 25px 0; }
+        .pricing-features li { padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--text); }
+        .feature-check { color: var(--success); margin-right: 10px; }
+        .feature-times { color: var(--danger); margin-right: 10px; }
+        
+        .payment-section { background: linear-gradient(135deg, rgba(37,99,235,0.1), rgba(124,58,237,0.1)); border: 2px solid var(--primary); border-radius: 20px; padding: 30px; margin-top: 30px; }
+        .payment-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .payment-tab-btn { padding: 10px 20px; background: var(--bg); border: 1px solid var(--border); border-radius: 30px; color: var(--text); cursor: pointer; transition: all 0.3s; }
+        .payment-tab-btn.active, .payment-tab-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .payment-form { margin-top: 20px; }
+        .payment-input { width: 100%; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); margin-bottom: 15px; }
+        .bank-details { background: var(--bg); padding: 15px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 15px; }
+        
+        .chat-button { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 9999; }
+        .chat-window { position: fixed; bottom: 100px; right: 30px; width: 350px; height: 500px; background: var(--card); border-radius: 15px; border: 1px solid var(--border); display: none; flex-direction: column; z-index: 9999; }
+        .chat-header { padding: 15px; background: var(--primary); color: white; border-radius: 15px 15px 0 0; display: flex; justify-content: space-between; }
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; background: var(--bg); }
+        .message { margin-bottom: 10px; padding: 10px 15px; border-radius: 10px; max-width: 80%; }
+        .message.user { background: var(--primary); color: white; margin-left: auto; }
+        .message.bot { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+        .chat-input { display: flex; padding: 10px; border-top: 1px solid var(--border); background: var(--card); }
+        .chat-input input { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); margin-right: 10px; }
+        
+        .footer { background: var(--card); border-top: 1px solid var(--border); padding: 40px 30px; margin-top: 40px; }
+        .footer-links { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-bottom: 20px; }
+        .footer-links a { color: var(--text-light); text-decoration: none; font-size: 14px; }
+        .footer-links a:hover { color: var(--primary); }
+        .footer-copyright { text-align: center; color: var(--text-light); font-size: 13px; }
+        
+        .loading-spinner { border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { to { transform: rotate(360deg); } }
         
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); position: fixed; }
+            .sidebar.visible { transform: translateX(0); }
             .main-content { margin-left: 0; }
-            .two-column, .three-column, .pricing-grid { grid-template-columns: 1fr; }
+            .top-header i.fa-bars { display: block !important; cursor: pointer; }
+            .stats-grid, .two-column, .three-column, .pricing-grid { grid-template-columns: 1fr; }
             .ai-grid { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h1>KIM'S TRADE BOT</h1>
-            <p id="sidebar-subtitle">Professional Trading Platform</p>
+            <p>Professional Trading Platform</p>
         </div>
         
-        <div class="nav-item active" onclick="navigate('dashboard')">
-            <i class="fas fa-home"></i> <span data-i18n="dashboard">Dashboard</span>
-        </div>
-        <div class="nav-item" onclick="navigate('analysis')">
-            <i class="fas fa-chart-line"></i> <span data-i18n="analysis">Market Analysis</span>
-        </div>
-        <div class="nav-item" onclick="navigate('charts')">
-            <i class="fas fa-chart-bar"></i> <span data-i18n="charts">Live Charts</span>
-        </div>
-        <div class="nav-item" onclick="navigate('ai')">
-            <i class="fas fa-robot"></i> <span data-i18n="ai">AI News</span>
-            <span class="badge" id="aiBadge">PREMIUM</span>
-        </div>
-        <div class="nav-item" onclick="navigate('sources')">
-            <i class="fas fa-newspaper"></i> <span data-i18n="sources">News Sources</span>
-        </div>
+        <div class="nav-item active" onclick="navigate('dashboard')"><i class="fas fa-home"></i><span>Dashboard</span></div>
+        <div class="nav-item" onclick="navigate('analysis')"><i class="fas fa-chart-line"></i><span>Market Analysis</span></div>
+        <div class="nav-item" onclick="navigate('charts')"><i class="fas fa-chart-bar"></i><span>Live Charts</span></div>
+        <div class="nav-item" onclick="navigate('ai')"><i class="fas fa-robot"></i><span>AI News</span><span class="badge" id="aiBadge">PREMIUM</span></div>
+        <div class="nav-item" onclick="navigate('sources')"><i class="fas fa-newspaper"></i><span>News Sources</span></div>
+        <div class="nav-item" onclick="navigate('ideas')"><i class="fas fa-lightbulb"></i><span>Market Ideas</span></div>
         
         <div class="nav-divider"></div>
         
-        <div class="nav-item" onclick="window.location.href='/profile.html'">
-            <i class="fas fa-user"></i> <span data-i18n="profile">Profile</span>
-        </div>
-        <div class="nav-item" id="adminNav" onclick="window.location.href='/admin.html'" style="display:none;">
-            <i class="fas fa-cog"></i> <span>Admin</span>
-        </div>
+        <div class="nav-item" onclick="window.location.href='/profile.html'"><i class="fas fa-user"></i><span>Profile</span></div>
+        <div class="nav-item" id="adminNav" onclick="window.location.href='/admin.html'" style="display:none;"><i class="fas fa-cog"></i><span>Admin</span></div>
         
-        <!-- Original user-info (kept exactly as is) -->
-        <div class="user-info" id="userInfo">
-            <div class="user-avatar" id="userAvatar">K</div>
-            <div class="user-details">
-                <h4 id="userName">Loading...</h4>
-                <p id="userTier">Free Trial</p>
+        <div class="sidebar-footer">
+            <div class="user-info" id="userInfo">
+                <div class="user-avatar" id="userAvatar">K</div>
+                <div class="user-details">
+                    <h4 id="userName">Loading...</h4>
+                    <p id="userTier">Free Trial</p>
+                </div>
             </div>
-        </div>
-        
-        <!-- ADDED: Logout button placed after user-info, before sidebar ends -->
-        <div class="logout-container">
-            <button class="logout-btn" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
+            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </div>
-    
-    <!-- Main Content -->
+
     <div class="main-content">
         <div class="top-header">
             <i class="fas fa-bars" style="font-size:24px; cursor:pointer; display:none;" onclick="toggleSidebar()"></i>
@@ -1152,166 +258,61 @@
                     <option value="en">🇬🇧 English</option>
                     <option value="fr">🇫🇷 Français</option>
                 </select>
-                <div class="theme-toggle" onclick="toggleTheme()">
-                    <i class="fas fa-moon"></i>
-                </div>
-                <!-- ADDED: Fullscreen button for charts (hidden by default, shown when chart page is active) -->
-                <div class="fullscreen-btn" id="fullscreenChartBtn" onclick="toggleChartFullscreen()" style="display: none;">
-                    <i class="fas fa-expand"></i>
-                </div>
+                <div class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i></div>
+                <div class="fullscreen-btn" id="fullscreenChartBtn" onclick="toggleChartFullscreen()" style="display: none;"><i class="fas fa-expand"></i></div>
                 <span class="tier-badge" id="headerTier">FREE</span>
             </div>
         </div>
         
         <div class="content-area" id="contentArea"></div>
         
-        <!-- Footer -->
         <div class="footer">
             <div class="footer-links">
-                <a href="/privacy.html" data-i18n="privacy">Privacy</a>
-                <a href="/terms.html" data-i18n="terms">Terms</a>
-                <a href="/about.html" data-i18n="about">About</a>
-                <a href="/contact.html" data-i18n="contact">Contact</a>
+                <a href="/privacy.html">Privacy</a>
+                <a href="/terms.html">Terms</a>
+                <a href="/about.html">About</a>
+                <a href="/contact.html">Contact</a>
             </div>
-            <div class="footer-copyright">
-                © 2026 KIM'S TRADE BOT. <span data-i18n="rights">All rights reserved.</span>
-            </div>
+            <div class="footer-copyright">© 2026 KIM'S TRADE BOT. All rights reserved.</div>
         </div>
     </div>
     
-    <!-- Support Chat -->
-    <div class="chat-button" onclick="toggleChat()">
-        <i class="fas fa-comment"></i>
-    </div>
-    
+    <div class="chat-button" onclick="toggleChat()"><i class="fas fa-comment"></i></div>
     <div class="chat-window" id="chatWindow">
-        <div class="chat-header">
-            <span data-i18n="support">💬 Support</span>
-            <span onclick="toggleChat()">✕</span>
-        </div>
-        <div class="chat-messages" id="chatMessages">
-            <div class="message bot" data-i18n="welcomeMsg">👋 How can we help you today?</div>
-        </div>
-        <div class="chat-input">
-            <input type="text" id="chatInput" placeholder="Type your message...">
-            <button onclick="sendSupport()" data-i18n="send">Send</button>
+        <div class="chat-header"><span>💬 Support</span><span onclick="toggleChat()">✕</span></div>
+        <div class="chat-messages" id="chatMessages"><div class="message bot">👋 How can we help you today?</div></div>
+        <div class="chat-input"><input type="text" id="chatInput" placeholder="Type your message..."><button onclick="sendSupport()">Send</button></div>
+    </div>
+    
+    <div id="countryModal" class="country-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; align-items:center; justify-content:center;">
+        <div style="background:var(--card); border-radius:20px; padding:40px; max-width:400px; text-align:center;">
+            <i class="fas fa-globe" style="font-size:48px; color:var(--primary); margin-bottom:20px;"></i>
+            <h2 style="margin-bottom:10px;">Not Available Yet</h2>
+            <p style="margin-bottom:20px;">Be the first to know when we launch in your country!</p>
+            <input type="text" id="waitlistName" placeholder="Your Name" style="width:100%; padding:12px; margin-bottom:10px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text);">
+            <input type="email" id="waitlistEmail" placeholder="Your Email" style="width:100%; padding:12px; margin-bottom:20px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text);">
+            <button onclick="submitWaitlist()" class="btn-primary" style="margin-bottom:10px;">Join Waitlist</button>
+            <button onclick="closeCountryModal()" class="btn-secondary">Close</button>
         </div>
     </div>
     
     <script src="https://s3.tradingview.com/tv.js"></script>
     <script>
-        // ========================================
-        // YOUR ORIGINAL JAVASCRIPT (PRESERVED)
-        // ========================================
         const API = '/api';
-        let user = null;
-        let tier = 'free';
-        let isAdmin = false;
-        let currentLang = 'en';
-        let currentChartWidget = null; // added to manage chart instance for fullscreen
+        let user = null, tier = 'free', isAdmin = false, currentLang = 'en', currentChartWidget = null;
         
-        // Translations (your full object)
         const translations = {
-            en: {
-                dashboard: 'Dashboard',
-                analysis: 'Market Analysis',
-                charts: 'Live Charts',
-                ai: 'AI News',
-                sources: 'News Sources',
-                profile: 'Profile',
-                privacy: 'Privacy',
-                terms: 'Terms',
-                about: 'About',
-                contact: 'Contact',
-                rights: 'All rights reserved.',
-                support: '💬 Support',
-                send: 'Send',
-                welcomeMsg: '👋 How can we help you today?',
-                login: 'Login',
-                register: 'Register',
-                email: 'Email',
-                password: 'Password',
-                phone: 'Phone Number',
-                country: 'Country',
-                selectCountry: 'Select your country',
-                createAccount: 'Create Account',
-                alreadyHave: 'Already have an account?',
-                noAccount: "Don't have an account?",
-                welcome: 'Welcome to Kim\'s Trade Bot',
-                professional: 'Professional Trading Platform',
-                upgrade: 'Upgrade',
-                premium: 'Premium',
-                pro: 'Pro',
-                buy: 'BUY',
-                sell: 'SELL',
-                wait: 'WAIT',
-                confidence: 'confidence',
-                reasoning: 'reasoning'
-            },
-            fr: {
-                dashboard: 'Tableau de Bord',
-                analysis: 'Analyse de Marché',
-                charts: 'Graphiques',
-                ai: 'IA Actualités',
-                sources: 'Sources',
-                profile: 'Profil',
-                privacy: 'Confidentialité',
-                terms: 'Conditions',
-                about: 'À propos',
-                contact: 'Contact',
-                rights: 'Tous droits réservés.',
-                support: '💬 Support',
-                send: 'Envoyer',
-                welcomeMsg: '👋 Comment pouvons-nous vous aider?',
-                login: 'Connexion',
-                register: 'S\'inscrire',
-                email: 'Email',
-                password: 'Mot de passe',
-                phone: 'Téléphone',
-                country: 'Pays',
-                selectCountry: 'Choisissez votre pays',
-                createAccount: 'Créer un compte',
-                alreadyHave: 'Déjà un compte?',
-                noAccount: 'Pas de compte?',
-                welcome: 'Bienvenue sur Kim\'s Trade Bot',
-                professional: 'Plateforme de Trading Professionnelle',
-                upgrade: 'Améliorer',
-                premium: 'Premium',
-                pro: 'Pro',
-                buy: 'ACHETER',
-                sell: 'VENDRE',
-                wait: 'ATTENDRE',
-                confidence: 'confiance',
-                reasoning: 'raisonnement'
-            }
+            en: { dashboard: 'Dashboard', analysis: 'Market Analysis', charts: 'Live Charts', ai: 'AI News', sources: 'News Sources', ideas: 'Market Ideas', profile: 'Profile', upgrade: 'Upgrade', buy: 'BUY', sell: 'SELL', wait: 'WAIT' },
+            fr: { dashboard: 'Tableau de Bord', analysis: 'Analyse Marché', charts: 'Graphiques', ai: 'IA Actualités', sources: 'Sources', ideas: 'Idées Marché', profile: 'Profil', upgrade: 'Améliorer', buy: 'ACHETER', sell: 'VENDRE', wait: 'ATTENDRE' }
         };
         
-        function t(key) {
-            return translations[currentLang]?.[key] || translations.en[key] || key;
-        }
-        
-        function updateAllText() {
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                el.textContent = t(key);
-            });
-        }
+        function t(key) { return translations[currentLang]?.[key] || translations.en[key] || key; }
         
         function changeLanguage(lang) {
             currentLang = lang;
-            document.documentElement.lang = lang;
-            updateAllText();
             localStorage.setItem('preferredLang', lang);
-            
-            const activeItem = document.querySelector('.nav-item.active');
-            if (activeItem) {
-                const page = activeItem.textContent.trim().toLowerCase().replace(/\s+/g, '');
-                if (page.includes('dashboard')) showDashboard();
-                else if (page.includes('analysis')) showAnalysis();
-                else if (page.includes('charts')) showCharts();
-                else if (page.includes('ai')) showAINews();
-                else if (page.includes('sources')) showSources();
-            }
+            const active = document.querySelector('.nav-item.active');
+            if (active) navigate(active.innerText.trim().toLowerCase().replace(/\s+/g, ''));
         }
         
         async function checkLogin() {
@@ -1319,1051 +320,209 @@
                 let res = await fetch(API + '/check_session');
                 let data = await res.json();
                 if (data.logged_in) {
-                    user = data.email;
-                    tier = data.tier;
-                    isAdmin = data.is_admin;
+                    user = data.email; tier = data.tier; isAdmin = data.is_admin;
                     currentLang = data.lang || localStorage.getItem('preferredLang') || 'en';
-                    
                     document.getElementById('langSelector').value = currentLang;
-                    changeLanguage(currentLang);
-                    
                     document.getElementById('userName').innerText = user.split('@')[0];
                     document.getElementById('userTier').innerText = tier === 'free_trial' ? 'FREE TRIAL' : tier.toUpperCase();
                     document.getElementById('headerTier').innerText = tier === 'free_trial' ? 'FREE' : tier.toUpperCase();
                     document.getElementById('userAvatar').innerText = user.charAt(0).toUpperCase();
-                    
                     if (isAdmin) document.getElementById('adminNav').style.display = 'flex';
-                    
-                    let isPremium = tier === 'premium' || tier === 'pro';
-                    document.getElementById('aiBadge').style.display = isPremium ? 'inline' : 'none';
-                    
+                    document.getElementById('aiBadge').style.display = (tier === 'premium' || tier === 'pro') ? 'inline' : 'none';
                     showDashboard();
-                } else {
-                    showLogin();
-                }
-            } catch {
-                showLogin();
-            }
+                } else { showLogin(); }
+            } catch { showLogin(); }
         }
         
         function showLogin() {
-            fetch(API + '/countries')
-                .then(r => r.json())
-                .then(countries => {
-                    let countryOptions = Object.entries(countries).map(([code, info]) => 
-                        `<option value="${code}">${info.flag} ${info.name}</option>`
-                    ).join('');
-                    
-                    document.getElementById('contentArea').innerHTML = `
-                        <div class="auth-container">
-                            <div class="auth-card">
-                                <div class="auth-header">
-                                    <h2>${t('welcome')}</h2>
-                                    <p>${t('professional')}</p>
-                                </div>
-                                
-                                <div class="auth-flags">
-                                    <button class="flag-btn active" onclick="setAuthLang('en')">🇬🇧 English</button>
-                                    <button class="flag-btn" onclick="setAuthLang('fr')">🇫🇷 Français</button>
-                                </div>
-                                
-                                <div class="auth-tabs">
-                                    <div class="auth-tab active" onclick="switchAuthTab('login')">${t('login')}</div>
-                                    <div class="auth-tab" onclick="switchAuthTab('register')">${t('register')}</div>
-                                </div>
-                                
-                                <div id="errorMsg" class="error-message"></div>
-                                
-                                <div id="loginForm" class="auth-form active">
-                                    <div class="form-group">
-                                        <label>${t('email')}</label>
-                                        <div class="input-group">
-                                            <i class="fas fa-envelope"></i>
-                                            <input type="email" id="loginEmail" placeholder="your@email.com">
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>${t('password')}</label>
-                                        <div class="input-group">
-                                            <i class="fas fa-lock"></i>
-                                            <input type="password" id="loginPass" placeholder="••••••••">
-                                        </div>
-                                    </div>
-                                    <button class="btn-primary" onclick="login()">${t('login')}</button>
-                                </div>
-                                
-                                <div id="registerForm" class="auth-form">
-                                    <div class="form-group">
-                                        <label>${t('email')}</label>
-                                        <div class="input-group">
-                                            <i class="fas fa-envelope"></i>
-                                            <input type="email" id="regEmail" placeholder="your@email.com">
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>${t('password')}</label>
-                                        <div class="input-group">
-                                            <i class="fas fa-lock"></i>
-                                            <input type="password" id="regPass" placeholder="••••••••">
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>${t('phone')}</label>
-                                        <div class="input-group">
-                                            <i class="fas fa-phone"></i>
-                                            <input type="tel" id="regPhone" placeholder="67XXXXXX">
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>${t('country')}</label>
-                                        <div class="input-group">
-                                            <i class="fas fa-globe"></i>
-                                            <select id="regCountry">
-                                                ${countryOptions}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <button class="btn-primary" onclick="register()">${t('createAccount')}</button>
-                                </div>
-                            </div>
+            fetch(API + '/countries').then(r=>r.json()).then(countries => {
+                let opts = Object.entries(countries).map(([c,i])=>`<option value="${c}">${i.flag} ${i.name}</option>`).join('');
+                document.getElementById('contentArea').innerHTML = `
+                    <div class="auth-container"><div class="auth-card">
+                        <div class="auth-header"><h2>Welcome to Kim's Trade Bot</h2><p>Professional Trading Platform</p></div>
+                        <div class="auth-tabs"><div class="auth-tab active" onclick="switchAuthTab('login')">Login</div><div class="auth-tab" onclick="switchAuthTab('register')">Register</div></div>
+                        <div id="errorMsg" class="error-message"></div>
+                        <div id="loginForm" class="auth-form active">
+                            <div class="form-group"><label>Email</label><div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="loginEmail" placeholder="your@email.com"></div></div>
+                            <div class="form-group"><label>Password</label><div class="input-group"><i class="fas fa-lock"></i><input type="password" id="loginPass" placeholder="••••••••"></div></div>
+                            <button class="btn-primary" onclick="login()">Login</button>
                         </div>
-                    `;
-                });
-        }
-        
-        function setAuthLang(lang) {
-            document.querySelectorAll('.flag-btn').forEach(b => b.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            currentLang = lang;
+                        <div id="registerForm" class="auth-form">
+                            <div class="form-group"><label>Email</label><div class="input-group"><i class="fas fa-envelope"></i><input type="email" id="regEmail" placeholder="your@email.com"></div></div>
+                            <div class="form-group"><label>Password</label><div class="input-group"><i class="fas fa-lock"></i><input type="password" id="regPass" placeholder="••••••••"></div></div>
+                            <div class="form-group"><label>Phone</label><div class="input-group"><i class="fas fa-phone"></i><input type="tel" id="regPhone" placeholder="67XXXXXX"></div></div>
+                            <div class="form-group"><label>Country</label><div class="input-group"><i class="fas fa-globe"></i><select id="regCountry">${opts}</select></div></div>
+                            <button class="btn-primary" onclick="register()">Create Account</button>
+                        </div>
+                    </div></div>`;
+            });
         }
         
         function switchAuthTab(tab) {
-            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
-            
-            if (tab === 'login') {
-                document.querySelector('.auth-tab').classList.add('active');
-                document.getElementById('loginForm').classList.add('active');
-            } else {
-                document.querySelectorAll('.auth-tab')[1].classList.add('active');
-                document.getElementById('registerForm').classList.add('active');
-            }
+            document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f=>f.classList.remove('active'));
+            if(tab==='login') { document.querySelector('.auth-tab').classList.add('active'); document.getElementById('loginForm').classList.add('active'); }
+            else { document.querySelectorAll('.auth-tab')[1].classList.add('active'); document.getElementById('registerForm').classList.add('active'); }
         }
         
         async function login() {
-            let email = document.getElementById('loginEmail').value;
-            let pass = document.getElementById('loginPass').value;
-            let res = await fetch(API + '/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password: pass })
-            });
-            let data = await res.json();
-            if (data.success) {
-                location.reload();
-            } else {
-                document.getElementById('errorMsg').style.display = 'block';
-                document.getElementById('errorMsg').innerText = data.error || 'Login failed';
-            }
+            let email=document.getElementById('loginEmail').value, pass=document.getElementById('loginPass').value;
+            let res=await fetch(API+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+            let data=await res.json();
+            if(data.success) location.reload();
+            else document.getElementById('errorMsg').innerText=data.error||'Login failed';
         }
         
         async function register() {
-            let email = document.getElementById('regEmail').value;
-            let pass = document.getElementById('regPass').value;
-            let phone = document.getElementById('regPhone').value;
-            let country = document.getElementById('regCountry').value;
-            
-            let res = await fetch(API + '/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password: pass, phone, country, lang: currentLang })
-            });
-            
-            if (res.ok) {
-                alert('Registration successful! Please login.');
-                switchAuthTab('login');
-            } else {
-                let data = await res.json();
-                document.getElementById('errorMsg').style.display = 'block';
-                document.getElementById('errorMsg').innerText = data.error || 'Registration failed';
-            }
+            let email=document.getElementById('regEmail').value, pass=document.getElementById('regPass').value, phone=document.getElementById('regPhone').value, country=document.getElementById('regCountry').value;
+            let res=await fetch(API+'/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass,phone,country,lang:currentLang})});
+            if(res.ok) { alert('Registration successful! Please login.'); switchAuthTab('login'); }
+            else { let d=await res.json(); alert(d.error); }
         }
         
         function navigate(page) {
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
             event.currentTarget.classList.add('active');
             document.getElementById('pageTitle').innerText = page.charAt(0).toUpperCase() + page.slice(1);
-            
-            if (page === 'dashboard') showDashboard();
-            else if (page === 'analysis') showAnalysis();
-            else if (page === 'charts') showCharts();
-            else if (page === 'ai') showAINews();
-            else if (page === 'sources') showSources();
-            else if (page === 'upgrade') showUpgrade();
+            if(page==='dashboard') showDashboard();
+            else if(page==='analysis') showAnalysis();
+            else if(page==='charts') showCharts();
+            else if(page==='ai') showAINews();
+            else if(page==='sources') showSources();
+            else if(page==='ideas') showIdeas();
         }
         
         function showDashboard() {
             document.getElementById('contentArea').innerHTML = `
                 <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <span class="stat-title">${t('account') || 'Account Tier'}</span>
-                            <div class="stat-icon"><i class="fas fa-crown"></i></div>
-                        </div>
-                        <div class="stat-value">${tier === 'free_trial' ? 'FREE' : tier.toUpperCase()}</div>
-                        <div class="stat-change">${tier === 'free_trial' ? '7 days trial' : 'Active'}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <span class="stat-title">${t('analyses') || 'Analyses'}</span>
-                            <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
-                        </div>
-                        <div class="stat-value">12</div>
-                        <div class="stat-change">+3 today</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <span class="stat-title">${t('accuracy') || 'AI Accuracy'}</span>
-                            <div class="stat-icon"><i class="fas fa-brain"></i></div>
-                        </div>
-                        <div class="stat-value">82%</div>
-                        <div class="stat-change">+5% this week</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <span class="stat-title">${t('sources') || 'News Sources'}</span>
-                            <div class="stat-icon"><i class="fas fa-newspaper"></i></div>
-                        </div>
-                        <div class="stat-value">3</div>
-                        <div class="stat-change">${t('active') || 'Active'}</div>
-                    </div>
+                    <div class="stat-card"><div class="stat-header"><span class="stat-title">Account Tier</span><div class="stat-icon"><i class="fas fa-crown"></i></div></div><div class="stat-value">${tier==='free_trial'?'FREE':tier.toUpperCase()}</div><div class="stat-change">${tier==='free_trial'?'7 days trial':'Active'}</div></div>
+                    <div class="stat-card"><div class="stat-header"><span class="stat-title">Analyses</span><div class="stat-icon"><i class="fas fa-chart-line"></i></div></div><div class="stat-value">12</div><div class="stat-change">+3 today</div></div>
+                    <div class="stat-card"><div class="stat-header"><span class="stat-title">AI Accuracy</span><div class="stat-icon"><i class="fas fa-brain"></i></div></div><div class="stat-value">82%</div><div class="stat-change">+5% this week</div></div>
+                    <div class="stat-card"><div class="stat-header"><span class="stat-title">News Sources</span><div class="stat-icon"><i class="fas fa-newspaper"></i></div></div><div class="stat-value">3</div><div class="stat-change">Active</div></div>
                 </div>
-                
                 <div class="two-column">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3><i class="fas fa-chart-line"></i> ${t('marketOverview') || 'Market Overview'}</h3>
-                            <button class="btn-secondary" onclick="navigate('analysis')">${t('viewAll') || 'View All'}</button>
-                        </div>
-                        <div class="card-body">
-                            <table class="market-table">
-                                <tr><th>${t('pair') || 'Pair'}</th><th>${t('price') || 'Price'}</th><th>24h</th><th>${t('signal') || 'Signal'}</th></tr>
-                                <tr><td><div class="pair-info"><div class="pair-icon">₿</div>BTC/USD</div></td><td class="price up">$73,452</td><td class="price up">+2.3%</td><td><span class="signal buy">${t('buy')}</span></td></tr>
-                                <tr><td><div class="pair-info"><div class="pair-icon">Ξ</div>ETH/USD</div></td><td class="price up">$3,892</td><td class="price down">-1.2%</td><td><span class="signal wait">${t('wait')}</span></td></tr>
-                                <tr><td><div class="pair-info"><div class="pair-icon">€</div>EUR/USD</div></td><td class="price up">1.0892</td><td class="price up">+0.5%</td><td><span class="signal buy">${t('buy')}</span></td></tr>
-                                <tr><td><div class="pair-info"><div class="pair-icon">£</div>GBP/USD</div></td><td class="price up">1.2654</td><td class="price up">+0.3%</td><td><span class="signal wait">${t('wait')}</span></td></tr>
-                                <tr><td><div class="pair-info"><div class="pair-icon">👑</div>XAU/USD</div></td><td class="price up">$2,345</td><td class="price up">+1.6%</td><td><span class="signal buy">${t('buy')}</span></td></tr>
-                            </table>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header">
-                            <h3><i class="fas fa-newspaper"></i> ${t('latestNews') || 'Latest News'}</h3>
-                            <button class="btn-secondary" onclick="navigate('sources')">${t('manage') || 'Manage'}</button>
-                        </div>
-                        <div class="card-body news-feed" id="newsFeed">
-                            <div class="news-item"><div class="news-source"><span>CoinDesk</span><span>5m ago</span></div><div class="news-title">Bitcoin ETF inflows reach record</div></div>
-                            <div class="news-item"><div class="news-source"><span>Reuters</span><span>15m ago</span></div><div class="news-title">Fed signals rate cuts in June</div></div>
-                            <div class="news-item"><div class="news-source"><span>Bloomberg</span><span>32m ago</span></div><div class="news-title">Gold hits all-time high</div></div>
-                        </div>
-                    </div>
+                    <div class="card"><div class="card-header"><h3><i class="fas fa-chart-line"></i> Market Overview</h3><button class="btn-secondary" onclick="navigate('analysis')">View All</button></div><div class="card-body"><table class="market-table"><tr><th>Pair</th><th>Price</th><th>24h</th><th>Signal</th></tr><tr><td><div class="pair-info"><div class="pair-icon">₿</div>BTC/USD</div></td><td class="price up">$73,452</td><td class="price up">+2.3%</td><td><span class="signal buy">BUY</span></td></tr><tr><td><div class="pair-info"><div class="pair-icon">Ξ</div>ETH/USD</div></td><td class="price up">$3,892</td><td class="price down">-1.2%</td><td><span class="signal wait">WAIT</span></td></tr></table></div></div>
+                    <div class="card"><div class="card-header"><h3><i class="fas fa-newspaper"></i> Latest News</h3><button class="btn-secondary" onclick="navigate('sources')">Manage</button></div><div class="card-body news-feed" id="newsFeed"><div class="news-item"><div class="news-source"><span>Loading news...</span></div></div></div></div>
                 </div>
-                
                 <div class="three-column">
-                    <div class="card" onclick="navigate('analysis')" style="cursor:pointer;">
-                        <div class="card-header"><h3><i class="fas fa-chart-line"></i> ${t('advancedAnalysis') || 'Advanced Analysis'}</h3></div>
-                        <div class="card-body"><p>${t('analysisDesc') || 'Professional market analysis'}</p></div>
-                    </div>
-                    <div class="card" onclick="navigate('ai')" style="cursor:pointer;">
-                        <div class="card-header"><h3><i class="fas fa-robot"></i> AI ${t('news') || 'News'}</h3></div>
-                        <div class="card-body"><p>${t('aiDesc') || 'AI-powered news insights'}</p></div>
-                    </div>
-                    <div class="card" onclick="showUpgrade()" style="cursor:pointer;">
-                        <div class="card-header"><h3><i class="fas fa-crown"></i> ${t('upgrade') || 'Upgrade'}</h3></div>
-                        <div class="card-body"><p>${t('upgradeDesc') || 'Unlock premium features'}</p></div>
-                    </div>
-                </div>
-            `;
-            // Load real news after dashboard loads
+                    <div class="card" onclick="navigate('analysis')"><div class="card-header"><h3><i class="fas fa-chart-line"></i> Advanced Analysis</h3></div><div class="card-body"><p>Professional market analysis</p></div></div>
+                    <div class="card" onclick="navigate('ai')"><div class="card-header"><h3><i class="fas fa-robot"></i> AI News</h3></div><div class="card-body"><p>AI-powered news insights</p></div></div>
+                    <div class="card" onclick="showUpgrade()"><div class="card-header"><h3><i class="fas fa-crown"></i> Upgrade</h3></div><div class="card-body"><p>Unlock premium features</p></div></div>
+                </div>`;
             loadRealNews();
         }
         
-        function showAnalysis() {
-            document.getElementById('contentArea').innerHTML = `
-                <div class="card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-chart-line"></i> ${t('advancedAnalysis') || 'Advanced Market Analysis'}</h3>
-                        <button class="btn-primary" onclick="runAnalysis()">${t('runAnalysis') || 'Run Analysis'}</button>
-                    </div>
-                    <div class="card-body">
-                        <p style="color:var(--text-light); margin-bottom:20px;">${t('analysisDesc') || 'Professional technical analysis using multiple indicators'}</p>
-                        <div id="analysisResult" class="analysis-result"></div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        async function runAnalysis() {
-            let div = document.getElementById('analysisResult');
-            div.innerHTML = '<div class="loading-spinner"></div>';
-            let res = await fetch(API + '/analyze', { method: 'POST' });
-            let data = await res.json();
-            div.innerHTML = `<pre style="background:#1a1a1a; color:#0f0; padding:20px; border-radius:8px;">${data.result || 'Analysis complete'}</pre>`;
-        }
+        function showAnalysis() { document.getElementById('contentArea').innerHTML = `<div class="card"><div class="card-header"><h3><i class="fas fa-chart-line"></i> Advanced Market Analysis</h3><button class="btn-primary" onclick="runAnalysis()">Run Analysis</button></div><div class="card-body"><div id="analysisResult"></div></div></div>`; }
+        async function runAnalysis() { let d=document.getElementById('analysisResult'); d.innerHTML='<div class="loading-spinner"></div>'; let r=await fetch(API+'/analyze',{method:'POST'}); let data=await r.json(); d.innerHTML=`<pre style="background:#1a1a1a; color:#0f0; padding:20px; border-radius:8px;">${data.result||'Analysis complete'}</pre>`; }
         
         function showCharts() {
-            document.getElementById('contentArea').innerHTML = `
-                <div class="card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-chart-bar"></i> ${t('liveCharts') || 'Live Charts'}</h3>
-                        <div class="chart-controls">
-                            <button class="chart-btn active" onclick="loadChart('BTCUSD')">BTC/USD</button>
-                            <button class="chart-btn" onclick="loadChart('ETHUSD')">ETH/USD</button>
-                            <button class="chart-btn" onclick="loadChart('EURUSD')">EUR/USD</button>
-                            <button class="chart-btn" onclick="loadChart('GBPUSD')">GBP/USD</button>
-                            <button class="chart-btn" onclick="loadChart('XAUUSD')">XAU/USD</button>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div id="tv_chart" class="chart-container"></div>
-                    </div>
-                </div>
-            `;
-            // Show fullscreen button when chart page is active
-            document.getElementById('fullscreenChartBtn').style.display = 'flex';
-            setTimeout(() => loadChart('BTCUSD'), 100);
+            document.getElementById('contentArea').innerHTML = `<div class="card"><div class="card-header"><h3><i class="fas fa-chart-bar"></i> Live Charts</h3><div class="chart-controls"><button class="chart-btn active" onclick="loadChart('BTCUSD')">BTC/USD</button><button class="chart-btn" onclick="loadChart('ETHUSD')">ETH/USD</button><button class="chart-btn" onclick="loadChart('EURUSD')">EUR/USD</button></div></div><div class="card-body"><div id="tv_chart" class="chart-container"></div></div></div>`;
+            document.getElementById('fullscreenChartBtn').style.display='flex';
+            setTimeout(()=>loadChart('BTCUSD'),100);
         }
-        
-        function loadChart(symbol) {
-            document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
-            if (event) event.currentTarget.classList.add('active');
-            if (currentChartWidget && currentChartWidget.remove) {
-                currentChartWidget.remove();
-            }
-            currentChartWidget = new TradingView.widget({
-                "container_id": "tv_chart",
-                "width": "100%",
-                "height": "100%",
-                "symbol": symbol,
-                "interval": "60",
-                "timezone": "Etc/UTC",
-                "theme": document.documentElement.getAttribute('data-theme') || 'dark',
-                "style": "1",
-                "locale": currentLang === 'fr' ? 'fr' : 'en',
-                "toolbar_bg": "#f1f3f6",
-                "enable_publishing": false,
-                "hide_side_toolbar": false,
-                "allow_symbol_change": true,
-                "studies": ["RSI@tv-basicstudies", "MACD@tv-basicstudies", "BB@tv-basicstudies"]
-            });
-        }
-        
-        // Fullscreen toggle for chart
-        function toggleChartFullscreen() {
-            const chartContainer = document.getElementById('tv_chart');
-            if (!chartContainer) return;
-            if (!document.fullscreenElement) {
-                chartContainer.requestFullscreen().catch(err => console.log(err));
-                chartContainer.classList.add('fullscreen');
-            } else {
-                document.exitFullscreen();
-                chartContainer.classList.remove('fullscreen');
-            }
-        }
+        function loadChart(s) { if(currentChartWidget) currentChartWidget.remove(); currentChartWidget = new TradingView.widget({ container_id:"tv_chart", width:"100%", height:"100%", symbol:s, interval:"60", theme:document.documentElement.getAttribute('data-theme')||'dark', locale:currentLang==='fr'?'fr':'en' }); }
+        function toggleChartFullscreen() { let c=document.getElementById('tv_chart'); if(c) c.requestFullscreen(); }
         
         function showAINews() {
-            if (tier === 'free_trial') {
-                if (!confirm(t('premiumRequired') || 'AI News is a Premium feature. Upgrade now?')) {
-                    return;
-                }
-                showUpgrade();
-                return;
-            }
-            
-            document.getElementById('contentArea').innerHTML = `
-                <div class="card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-robot"></i> ${t('aiNews') || 'AI News Analysis'}</h3>
-                        <button class="btn-primary" onclick="getAINews()">${t('analyze') || 'Analyze'}</button>
-                    </div>
-                    <div class="card-body">
-                        <div id="aiResult" class="ai-grid"></div>
-                    </div>
-                </div>
-            `;
+            if(tier==='free_trial') { if(confirm('Premium feature. Upgrade?')) showUpgrade(); return; }
+            document.getElementById('contentArea').innerHTML = `<div class="card"><div class="card-header"><h3><i class="fas fa-robot"></i> AI News Analysis</h3><button class="btn-primary" onclick="getAINews()">Analyze</button></div><div class="card-body"><div id="aiResult" class="ai-grid"></div></div></div>`;
             getAINews();
         }
-        
-        async function getAINews() {
-            let res = await fetch(API + '/ai-news', { method: 'POST' });
-            let data = await res.json();
-            let html = '';
-            data.pairs.forEach(p => {
-                html += `
-                    <div class="ai-card ${p.color}">
-                        <div class="ai-pair">${p.pair}</div>
-                        <span class="ai-signal ${p.signal.toLowerCase()}">${t(p.signal.toLowerCase()) || p.signal}</span>
-                        <div class="ai-confidence">
-                            <span>${p.confidence}%</span>
-                            <div class="confidence-bar"><div class="confidence-fill" style="width:${p.confidence}%"></div></div>
-                        </div>
-                        <div class="ai-reason">${p.reason}</div>
-                    </div>
-                `;
-            });
-            document.getElementById('aiResult').innerHTML = html;
-        }
+        async function getAINews() { let r=await fetch(API+'/ai-news',{method:'POST'}); let d=await r.json(); let h=''; d.pairs.forEach(p=>{ h+=`<div class="ai-card ${p.color}"><div class="ai-pair">${p.pair}</div><span class="ai-signal ${p.signal.toLowerCase()}">${t(p.signal.toLowerCase())}</span><div class="ai-confidence"><span>${p.confidence}%</span><div class="confidence-bar"><div class="confidence-fill" style="width:${p.confidence}%"></div></div></div><div class="ai-reason">${p.reason}</div></div>`; }); document.getElementById('aiResult').innerHTML=h; }
         
         function showSources() {
-            Promise.all([
-                fetch(API + '/recommended-sources?lang=' + currentLang).then(r => r.json()),
-                fetch(API + '/user/sources').then(r => r.json())
-            ]).then(([recommended, userSources]) => {
-                let html = `
-                    <div class="card" style="margin-bottom:20px;">
-                        <div class="card-header">
-                            <h3><i class="fas fa-plus-circle"></i> ${t('addSource') || 'Add Your Own Source'}</h3>
-                        </div>
-                        <div class="card-body">
-                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                                <input id="sourceName" placeholder="${t('sourceName') || 'Source name'}" style="flex:1; padding:12px; background:var(--bg); border:2px solid var(--border); border-radius:8px; color:var(--text);">
-                                <input id="sourceUrl" placeholder="RSS URL" style="flex:2; padding:12px; background:var(--bg); border:2px solid var(--border); border-radius:8px; color:var(--text);">
-                                <button class="btn-primary" onclick="addSource()" style="flex:0 0 auto;">${t('add') || 'Add'}</button>
-                            </div>
-                        </div>
+            Promise.all([fetch(API+'/recommended-sources?lang='+currentLang).then(r=>r.json()), fetch(API+'/user/sources').then(r=>r.json())]).then(([rec,userSrc])=>{
+                let h=`<div class="card"><div class="card-header"><h3><i class="fas fa-plus-circle"></i> Add Your Own Source</h3></div><div class="card-body"><div style="display:flex; gap:10px;"><input id="sourceName" placeholder="Source name" style="flex:1; padding:12px; background:var(--bg); border:2px solid var(--border); border-radius:8px;"><input id="sourceUrl" placeholder="RSS URL" style="flex:2; padding:12px; background:var(--bg); border:2px solid var(--border); border-radius:8px;"><button class="btn-primary" onclick="addSource()">Add</button></div></div></div>
+                <div class="card"><div class="card-header"><h3><i class="fas fa-star"></i> Recommended Sources</h3></div><div class="card-body"><div class="sources-grid">${rec.map(s=>`<div class="source-card" onclick="addRecommendedSource('${s.name}','${s.url}','${s.category}')"><div class="source-icon">${s.icon||'📰'}</div><div class="source-name">${s.name}</div><div class="source-category">${s.category}</div></div>`).join('')}</div></div></div>`;
+                if(userSrc.sources?.length) h+=`<div class="card"><div class="card-header"><h3><i class="fas fa-check-circle"></i> Your Sources</h3></div><div class="card-body">${userSrc.sources.map(s=>`<div style="padding:10px; background:var(--bg); margin:5px 0; border-radius:8px;"><strong>${s.name}</strong> - ${s.url}</div>`).join('')}</div></div>`;
+                document.getElementById('contentArea').innerHTML=h;
+            });
+        }
+        async function addSource() { let n=document.getElementById('sourceName').value, u=document.getElementById('sourceUrl').value; if(!n||!u) return alert('Fill both'); await fetch(API+'/user/sources',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,url:u,category:'custom'})}); alert('Added'); showSources(); }
+        async function addRecommendedSource(n,u,c) { await fetch(API+'/user/sources',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:n,url:u,category:c})}); alert(`${n} added`); showSources(); }
+        
+        function showIdeas() {
+            document.getElementById('contentArea').innerHTML = `<div class="card"><div class="card-header"><h3><i class="fas fa-lightbulb"></i> Submit Market Idea</h3></div><div class="card-body"><div class="form-group"><label>Idea Title</label><input type="text" id="ideaTitle" style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:8px;"></div><div class="form-group"><label>Description</label><textarea id="ideaDesc" rows="3" style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:8px;"></textarea></div><button class="btn-primary" onclick="submitIdea()">Submit Idea</button></div></div>
+            <div class="card"><div class="card-header"><h3><i class="fas fa-users"></i> Community Ideas</h3></div><div class="card-body" id="ideasList"><div class="loading-spinner"></div></div></div>`;
+            loadIdeas();
+        }
+        async function loadIdeas() { try { let r=await fetch(API+'/ideas'); let d=await r.json(); let h=''; if(d.ideas) d.ideas.forEach(i=>{ h+=`<div style="padding:15px; border-bottom:1px solid var(--border);"><strong>${i.title}</strong><br>${i.description}<br><small>${new Date(i.created_at).toLocaleString()}</small></div>`; }); document.getElementById('ideasList').innerHTML=h||'<p>No ideas yet.</p>'; } catch(e){} }
+        async function submitIdea() { let t=document.getElementById('ideaTitle').value, d=document.getElementById('ideaDesc').value; if(!t||!d) return alert('Fill both'); let r=await fetch(API+'/ideas/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:t,description:d})}); let data=await r.json(); if(data.success) { alert('Idea submitted!'); loadIdeas(); } else alert(data.error); }
+        
+        function showUpgrade() {
+            fetch(API+'/countries').then(r=>r.json()).then(c=>{
+                const country = c.CM;
+                document.getElementById('contentArea').innerHTML = `
+                    <div class="pricing-grid">
+                        <div class="pricing-card premium"><div class="popular-badge">🔥 MOST POPULAR</div><div class="pricing-name">Premium</div><div class="pricing-price">${country.premium} <small>${country.currency}</small></div><ul class="pricing-features"><li><i class="fas fa-check feature-check"></i> AI News Analysis</li><li><i class="fas fa-check feature-check"></i> Advanced Indicators</li><li><i class="fas fa-check feature-check"></i> 10 News Sources</li><li><i class="fas fa-times feature-times"></i> API Access</li></ul><button class="btn-primary" onclick="showPaymentOptions('premium',${country.premium},'${country.currency}')" style="background:gold; color:black;">Select Premium</button></div>
+                        <div class="pricing-card pro"><div class="pricing-name">Pro</div><div class="pricing-price">${country.pro} <small>${country.currency}</small></div><ul class="pricing-features"><li><i class="fas fa-check feature-check"></i> Everything in Premium</li><li><i class="fas fa-check feature-check"></i> Unlimited Sources</li><li><i class="fas fa-check feature-check"></i> API Access</li><li><i class="fas fa-check feature-check"></i> Priority Support</li></ul><button class="btn-primary" onclick="showPaymentOptions('pro',${country.pro},'${country.currency}')">Select Pro</button></div>
                     </div>
-                    
-                    <div class="card">
-                        <div class="card-header">
-                            <h3><i class="fas fa-star"></i> ${t('recommendedSources') || 'Recommended Sources'}</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="sources-grid">
-                                ${recommended.map(s => `
-                                    <div class="source-card" onclick="addRecommendedSource('${s.name}', '${s.url}', '${s.category}')">
-                                        <div class="source-icon">${s.icon || '📰'}</div>
-                                        <div class="source-name">${s.name}</div>
-                                        <div class="source-category">${s.category}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                if (userSources.sources && userSources.sources.length > 0) {
-                    html += `
-                        <div class="card">
-                            <div class="card-header">
-                                <h3><i class="fas fa-check-circle"></i> ${t('yourSources') || 'Your Sources'}</h3>
-                            </div>
-                            <div class="card-body">
-                                ${userSources.sources.map(s => `
-                                    <div style="padding:10px; background:var(--bg); margin:5px 0; border-radius:8px;">
-                                        <strong>${s.name}</strong> - ${s.url}
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                document.getElementById('contentArea').innerHTML = html;
+                    <div id="paymentSection" class="payment-section" style="display:none;">
+                        <div class="payment-header"><div class="payment-icon">💰</div><div><h3>Complete Your Payment</h3><p id="paymentPlanInfo"></p></div></div>
+                        <div class="payment-tabs"><button class="payment-tab-btn active" onclick="selectPaymentMethod('card')">💳 Card</button><button class="payment-tab-btn" onclick="selectPaymentMethod('orange')">📱 Orange Money</button><button class="payment-tab-btn" onclick="selectPaymentMethod('mtn')">📱 MTN MoMo</button><button class="payment-tab-btn" onclick="selectPaymentMethod('bank')">🏦 Bank Transfer</button></div>
+                        <div id="cardForm" class="payment-form"><div class="form-group"><label>Card Number</label><input type="text" id="cardNumber" class="payment-input" placeholder="1234 5678 9012 3456"></div><div style="display:flex; gap:15px;"><div style="flex:1"><label>Expiry</label><input type="text" id="cardExpiry" class="payment-input" placeholder="MM/YY"></div><div style="flex:1"><label>CVV</label><input type="text" id="cardCvv" class="payment-input" placeholder="123"></div></div><div class="form-group"><label>Cardholder Name</label><input type="text" id="cardName" class="payment-input" placeholder="Name on card"></div><div class="form-group"><label>Email</label><input type="email" id="cardEmail" class="payment-input" placeholder="your@email.com"></div></div>
+                        <div id="orangeForm" class="payment-form" style="display:none;"><div class="form-group"><label>Orange Money Number</label><input type="tel" id="orangeNumber" class="payment-input" placeholder="67XXXXXX"></div><div class="form-group"><label>Full Name</label><input type="text" id="orangeName" class="payment-input" placeholder="Your name"></div><div class="form-group"><label>Email</label><input type="email" id="orangeEmail" class="payment-input" placeholder="your@email.com"></div></div>
+                        <div id="mtnForm" class="payment-form" style="display:none;"><div class="form-group"><label>MTN Number</label><input type="tel" id="mtnNumber" class="payment-input" placeholder="67XXXXXX"></div><div class="form-group"><label>Full Name</label><input type="text" id="mtnName" class="payment-input" placeholder="Your name"></div><div class="form-group"><label>Email</label><input type="email" id="mtnEmail" class="payment-input" placeholder="your@email.com"></div></div>
+                        <div id="bankForm" class="payment-form" style="display:none;"><div class="bank-details"><p><strong>Send payment to:</strong></p><p>Bank: [YOUR BANK]</p><p>Account: [YOUR ACCOUNT]</p><p>Reference: Your email</p></div><div class="form-group"><label>Transaction Reference</label><input type="text" id="bankRef" class="payment-input" placeholder="Transaction ID"></div><div class="form-group"><label>Email</label><input type="email" id="bankEmail" class="payment-input" placeholder="your@email.com"></div></div>
+                        <button class="btn-primary" onclick="submitPaymentRequest()">Submit Payment Request</button>
+                    </div>`;
             });
         }
         
-        async function addSource() {
-            let name = document.getElementById('sourceName').value;
-            let url = document.getElementById('sourceUrl').value;
-            if (!name || !url) return alert('Please fill both fields');
-            
-            await fetch(API + '/user/sources', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, url, category: 'custom' })
-            });
-            alert('Source added!');
-            showSources();
+        let selectedPlan = null, selectedAmount = null, selectedCurrency = null, selectedPaymentMethod = 'card';
+        function showPaymentOptions(plan, amount, currency) { selectedPlan=plan; selectedAmount=amount; selectedCurrency=currency; document.getElementById('paymentPlanInfo').innerHTML=`${plan.toUpperCase()} - ${amount} ${currency}`; document.getElementById('paymentSection').style.display='block'; }
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod=method;
+            document.querySelectorAll('.payment-tab-btn').forEach(b=>b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById('cardForm').style.display='none'; document.getElementById('orangeForm').style.display='none'; document.getElementById('mtnForm').style.display='none'; document.getElementById('bankForm').style.display='none';
+            if(method==='card') document.getElementById('cardForm').style.display='block';
+            else if(method==='orange') document.getElementById('orangeForm').style.display='block';
+            else if(method==='mtn') document.getElementById('mtnForm').style.display='block';
+            else if(method==='bank') document.getElementById('bankForm').style.display='block';
         }
-        
-        async function addRecommendedSource(name, url, category) {
-            await fetch(API + '/user/sources', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, url, category })
-            });
-            alert(`${name} added to your sources`);
-            showSources();
-        }
-        
-       // ========================================
-// UPGRADE & PAYMENT SYSTEM (COMPLETE)
-// ========================================
-
-function showUpgrade() {
-    fetch(API + '/countries')
-        .then(r => r.json())
-        .then(countries => {
-            // Get the user's country or default to Cameroon
-            const userCountry = userCountryCode || 'CM';
-            const country = countries[userCountry] || countries['CM'];
-            
-            document.getElementById('contentArea').innerHTML = `
-                <div class="pricing-grid">
-                    <div class="pricing-card premium">
-                        <div class="popular-badge">🔥 MOST POPULAR</div>
-                        <div class="pricing-name">Premium</div>
-                        <div class="pricing-price">${country.premium.toLocaleString()} <small>${country.currency}</small></div>
-                        <ul class="pricing-features">
-                            <li><i class="fas fa-check feature-check"></i> AI News Analysis</li>
-                            <li><i class="fas fa-check feature-check"></i> Advanced Indicators</li>
-                            <li><i class="fas fa-check feature-check"></i> 10 News Sources</li>
-                            <li><i class="fas fa-check feature-check"></i> Email Support</li>
-                            <li><i class="fas fa-times feature-times"></i> API Access</li>
-                            <li><i class="fas fa-times feature-times"></i> Priority Support</li>
-                        </ul>
-                        <button class="btn-primary" onclick="showPaymentOptions('premium', ${country.premium}, '${country.currency}')" style="background:gold; color:black;">Select Premium</button>
-                    </div>
-                    
-                    <div class="pricing-card pro">
-                        <div class="pricing-name">Pro</div>
-                        <div class="pricing-price">${country.pro.toLocaleString()} <small>${country.currency}</small></div>
-                        <ul class="pricing-features">
-                            <li><i class="fas fa-check feature-check"></i> Everything in Premium</li>
-                            <li><i class="fas fa-check feature-check"></i> Unlimited News Sources</li>
-                            <li><i class="fas fa-check feature-check"></i> Full API Access</li>
-                            <li><i class="fas fa-check feature-check"></i> Priority 24/7 Support</li>
-                            <li><i class="fas fa-check feature-check"></i> Early Access to Features</li>
-                            <li><i class="fas fa-check feature-check"></i> Custom Indicators</li>
-                        </ul>
-                        <button class="btn-primary" onclick="showPaymentOptions('pro', ${country.pro}, '${country.currency}')">Select Pro</button>
-                    </div>
-                </div>
-                
-                <div id="paymentSection" class="payment-section" style="display:none;">
-                    <div class="payment-header">
-                        <div class="payment-icon">💰</div>
-                        <div>
-                            <h3 style="color:var(--text);">Complete Your Payment</h3>
-                            <p style="color:var(--text-light);" id="paymentPlanInfo"></p>
-                        </div>
-                    </div>
-                    
-                    <!-- Payment Method Tabs -->
-                    <div class="payment-tabs" style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
-                        <button class="payment-tab-btn active" onclick="selectPaymentMethod('card')">💳 Credit/Debit Card</button>
-                        <button class="payment-tab-btn" onclick="selectPaymentMethod('orange')">📱 Orange Money</button>
-                        <button class="payment-tab-btn" onclick="selectPaymentMethod('mtn')">📱 MTN Mobile Money</button>
-                        <button class="payment-tab-btn" onclick="selectPaymentMethod('bank')">🏦 Bank Transfer</button>
-                    </div>
-                    
-                    <!-- Card Payment Form -->
-                    <div id="cardForm" class="payment-form">
-                        <div class="form-group">
-                            <label>Card Number</label>
-                            <input type="text" id="cardNumber" class="payment-input" placeholder="1234 5678 9012 3456" style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text);">
-                        </div>
-                        <div style="display:flex; gap:15px;">
-                            <div class="form-group" style="flex:1;">
-                                <label>Expiry Date</label>
-                                <input type="text" id="cardExpiry" class="payment-input" placeholder="MM/YY" style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text);">
-                            </div>
-                            <div class="form-group" style="flex:1;">
-                                <label>CVV</label>
-                                <input type="text" id="cardCvv" class="payment-input" placeholder="123" style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text);">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Cardholder Name</label>
-                            <input type="text" id="cardName" class="payment-input" placeholder="Name on card" style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text);">
-                        </div>
-                        <div class="form-group">
-                            <label>Email (for receipt)</label>
-                            <input type="email" id="cardEmail" class="payment-input" placeholder="your@email.com" style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text);">
-                        </div>
-                    </div>
-                    
-                    <!-- Orange Money Form -->
-                    <div id="orangeForm" class="payment-form" style="display:none;">
-                        <div class="form-group">
-                            <label>Orange Money Number</label>
-                            <input type="tel" id="orangeNumber" class="payment-input" placeholder="67XXXXXX" style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text);">
-                        </div>
-                        <div class="form-group">
-                            <label>Full Name</label>
-                            <input type="text" id="orangeName" class="payment-input" placeholder="Your full name" style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text);">
-                        </div>
-                        <div class="form-group">
-                            <label>Email (for receipt)</label>
-                            <input type="email" id="orangeEmail" class="payment-input" placeholder="your@email.com" style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text);">
-                        </div>
-                        <div class="info-box" style="background:rgba(37,99,235,0.1); padding:12px; border-radius:8px; margin-top:10px;">
-                            <small><i class="fas fa-info-circle"></i> You will receive a payment request on your Orange Money number. Complete the payment and we'll activate your account within 24 hours.</small>
-                        </div>
-                    </div>
-                    
-                    <!-- MTN Mobile Money Form -->
-                    <div id="mtnForm" class="payment-form" style="display:none;">
-                        <div class="form-group">
-                            <label>MTN Mobile Money Number</label>
-                            <input type="tel" id="mtnNumber" class="payment-input" placeholder="67XXXXXX" style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text);">
-                        </div>
-                        <div class="form-group">
-                            <label>Full Name</label>
-                            <input type="text" id="mtnName" class="payment-input" placeholder="Your full name" style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text);">
-                        </div>
-                        <div class="form-group">
-                            <label>Email (for receipt)</label>
-                            <input type="email" id="mtnEmail" class="payment-input" placeholder="your@email.com" style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text);">
-                        </div>
-                        <div class="info-box" style="background:rgba(37,99,235,0.1); padding:12px; border-radius:8px; margin-top:10px;">
-                            <small><i class="fas fa-info-circle"></i> You will receive a payment request on your MTN number. Complete the payment and we'll activate your account within 24 hours.</small>
-                        </div>
-                    </div>
-                    
-                    <!-- Bank Transfer Form -->
-                    <div id="bankForm" class="payment-form" style="display:none;">
-                        <div class="bank-details" style="background:var(--bg); padding:15px; border-radius:10px; margin-bottom:15px; border:1px solid var(--border);">
-                            <p><strong><i class="fas fa-university"></i> Send payment to:</strong></p>
-                            <hr style="margin:10px 0; border-color:var(--border);">
-                            <p><strong>Bank Name:</strong> [YOUR BANK NAME]</p>
-                            <p><strong>Account Name:</strong> [YOUR FULL NAME]</p>
-                            <p><strong>Account Number:</strong> [YOUR ACCOUNT NUMBER]</p>
-                            <p><strong>Bank Code:</strong> [YOUR BANK CODE]</p>
-                            <p><strong>Reference:</strong> <span style="color:var(--primary);">Your Email Address</span></p>
-                            <hr style="margin:10px 0; border-color:var(--border);">
-                            <p><small><i class="fas fa-clock"></i> After transfer, your account will be activated within 24 hours.</small></p>
-                        </div>
-                        <div class="form-group">
-                            <label>Transaction Reference (optional)</label>
-                            <input type="text" id="bankRef" class="payment-input" placeholder="Transaction ID or Reference" style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text);">
-                        </div>
-                        <div class="form-group">
-                            <label>Email (for confirmation)</label>
-                            <input type="email" id="bankEmail" class="payment-input" placeholder="your@email.com" style="width:100%; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text);">
-                        </div>
-                    </div>
-                    
-                    <button class="btn-primary" onclick="submitPaymentRequest()" style="margin-top:20px; width:100%; padding:14px; font-size:16px;">
-                        <i class="fas fa-paper-plane"></i> Submit Payment Request
-                    </button>
-                    <p style="font-size:12px; color:var(--text-light); margin-top:15px; text-align:center;">
-                        <i class="fas fa-shield-alt"></i> Your payment information is secure. We will verify and activate your account within 24 hours.
-                    </p>
-                </div>
-            `;
-            
-            window.selectedPlan = null;
-            window.selectedAmount = null;
-            window.selectedCurrency = null;
-        });
-}
-
-let selectedPaymentMethod = 'card';
-
-function showPaymentOptions(plan, amount, currency) {
-    window.selectedPlan = plan;
-    window.selectedAmount = amount;
-    window.selectedCurrency = currency;
-    
-    const planName = plan === 'premium' ? 'PREMIUM' : 'PRO';
-    document.getElementById('paymentPlanInfo').innerHTML = `<strong>${planName}</strong> - ${amount.toLocaleString()} ${currency}`;
-    document.getElementById('paymentSection').style.display = 'block';
-    
-    // Smooth scroll to payment section
-    setTimeout(() => {
-        document.getElementById('paymentSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-}
-
-function selectPaymentMethod(method) {
-    selectedPaymentMethod = method;
-    
-    // Update tab styles
-    document.querySelectorAll('.payment-tab-btn').forEach(btn => btn.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-    
-    // Hide all forms
-    document.getElementById('cardForm').style.display = 'none';
-    document.getElementById('orangeForm').style.display = 'none';
-    document.getElementById('mtnForm').style.display = 'none';
-    document.getElementById('bankForm').style.display = 'none';
-    
-    // Show selected form
-    if (method === 'card') {
-        document.getElementById('cardForm').style.display = 'block';
-    } else if (method === 'orange') {
-        document.getElementById('orangeForm').style.display = 'block';
-    } else if (method === 'mtn') {
-        document.getElementById('mtnForm').style.display = 'block';
-    } else if (method === 'bank') {
-        document.getElementById('bankForm').style.display = 'block';
-    }
-}
-
-async function submitPaymentRequest() {
-    let paymentDetails = {};
-    let isValid = true;
-    let userEmail = '';
-    
-    // Collect payment details based on selected method
-    if (selectedPaymentMethod === 'card') {
-        const cardNumber = document.getElementById('cardNumber').value;
-        const cardExpiry = document.getElementById('cardExpiry').value;
-        const cardCvv = document.getElementById('cardCvv').value;
-        const cardName = document.getElementById('cardName').value;
-        const cardEmail = document.getElementById('cardEmail').value;
-        
-        if (!cardNumber || !cardExpiry || !cardCvv || !cardName) {
-            alert('❌ Please fill all card details');
-            isValid = false;
-        }
-        if (!cardEmail) {
-            alert('❌ Please enter your email address');
-            isValid = false;
-        }
-        
-        paymentDetails = {
-            last4: cardNumber.replace(/\s/g, '').slice(-4),
-            expiry: cardExpiry,
-            name: cardName,
-            email: cardEmail
-        };
-        userEmail = cardEmail;
-        
-    } else if (selectedPaymentMethod === 'orange') {
-        const orangeNumber = document.getElementById('orangeNumber').value;
-        const orangeName = document.getElementById('orangeName').value;
-        const orangeEmail = document.getElementById('orangeEmail').value;
-        
-        if (!orangeNumber || !orangeName) {
-            alert('❌ Please fill Orange Money details');
-            isValid = false;
-        }
-        if (!orangeEmail) {
-            alert('❌ Please enter your email address');
-            isValid = false;
-        }
-        
-        paymentDetails = {
-            phone: orangeNumber,
-            name: orangeName,
-            email: orangeEmail
-        };
-        userEmail = orangeEmail;
-        
-    } else if (selectedPaymentMethod === 'mtn') {
-        const mtnNumber = document.getElementById('mtnNumber').value;
-        const mtnName = document.getElementById('mtnName').value;
-        const mtnEmail = document.getElementById('mtnEmail').value;
-        
-        if (!mtnNumber || !mtnName) {
-            alert('❌ Please fill MTN Mobile Money details');
-            isValid = false;
-        }
-        if (!mtnEmail) {
-            alert('❌ Please enter your email address');
-            isValid = false;
-        }
-        
-        paymentDetails = {
-            phone: mtnNumber,
-            name: mtnName,
-            email: mtnEmail
-        };
-        userEmail = mtnEmail;
-        
-    } else if (selectedPaymentMethod === 'bank') {
-        const bankRef = document.getElementById('bankRef').value;
-        const bankEmail = document.getElementById('bankEmail').value;
-        
-        if (!bankEmail) {
-            alert('❌ Please enter your email address');
-            isValid = false;
-        }
-        
-        paymentDetails = {
-            reference: bankRef || 'pending',
-            email: bankEmail
-        };
-        userEmail = bankEmail;
-    }
-    
-    if (!isValid) return;
-    
-    // Show loading state
-    const submitBtn = event.currentTarget;
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-    submitBtn.disabled = true;
-    
-    try {
-        const res = await fetch(API + '/payment/request-manual', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                plan: window.selectedPlan,
-                amount: window.selectedAmount,
-                currency: window.selectedCurrency,
-                method: selectedPaymentMethod,
-                details: paymentDetails,
-                user_email: userEmail
-            })
-        });
-        
-        const data = await res.json();
-        
-        if (data.success) {
-            alert(`✅ Payment request submitted successfully!\n\nWe have received your ${window.selectedPlan.toUpperCase()} payment request.\n\nWe will verify and activate your account within 24 hours. You will receive a confirmation email at ${userEmail}.\n\nThank you for choosing Kim's Trade Bot!`);
-            document.getElementById('paymentSection').style.display = 'none';
-            navigate('dashboard');
-        } else {
-            alert('❌ Failed to submit payment request: ' + (data.error || 'Please try again'));
-        }
-    } catch (error) {
-        alert('❌ Network error. Please check your connection and try again.');
-    } finally {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    }
-}
-
-// Optional: Add a function to cancel payment
-function cancelPayment() {
-    if (confirm('Cancel payment request?')) {
-        document.getElementById('paymentSection').style.display = 'none';
-        navigate('dashboard');
-    }
-}
-
-        // ========================================
-// NAVIGATION FUNCTION (ADD THIS)
-// ========================================
-
-function navigate(page) {
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-    document.getElementById('pageTitle').innerText = page.charAt(0).toUpperCase() + page.slice(1);
-    
-    if (page === 'dashboard') showDashboard();
-    else if (page === 'analysis') showAnalysis();
-    else if (page === 'charts') showCharts();
-    else if (page === 'ai') showAINews();
-    else if (page === 'sources') showSources();
-    else if (page === 'upgrade') showUpgrade();
-    else if (page === 'ideas') showIdeas();
-}
-
-// ========================================
-// LOGOUT FUNCTION (ADD THIS)
-// ========================================
-
-async function logout() {
-    try {
-        const response = await fetch(API + '/logout', { method: 'POST' });
-        window.location.href = '/';
-    } catch (error) {
-        console.error('Logout error:', error);
-        window.location.href = '/';
-    }
-}
-
-// ========================================
-// SIDEBAR TOGGLE (ADD IF MISSING)
-// ========================================
-
-function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('visible');
-}
-        function toggleChat() {
-            let chat = document.getElementById('chatWindow');
-            chat.style.display = chat.style.display === 'none' ? 'flex' : 'none';
-        }
-        
-        async function sendSupport() {
-            let msg = document.getElementById('chatInput').value;
-            if (!msg) return;
-            
-            let msgs = document.getElementById('chatMessages');
-            msgs.innerHTML += `<div class="message user">${msg}</div>`;
-            document.getElementById('chatInput').value = '';
-            
-            await fetch(API + '/support/send', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: msg })
-            });
-            
-            setTimeout(() => {
-                msgs.innerHTML += `<div class="message bot">${t('supportResponse') || 'Thanks! We\'ll respond within 24h.'}</div>`;
-                msgs.scrollTop = msgs.scrollHeight;
-            }, 1000);
-        }
-        
-        function toggleTheme() {
-            let html = document.documentElement;
-            let theme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', theme);
-            document.querySelector('.theme-toggle i').className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-            
-            if (document.getElementById('tv_chart')) {
-                loadChart('BTCUSD');
+        async function submitPaymentRequest() {
+            let details={}, valid=true, email='';
+            if(selectedPaymentMethod==='card') {
+                let cn=document.getElementById('cardNumber').value, ce=document.getElementById('cardExpiry').value, cv=document.getElementById('cardCvv').value, nm=document.getElementById('cardName').value, em=document.getElementById('cardEmail').value;
+                if(!cn||!ce||!cv||!nm||!em) valid=false;
+                details={last4:cn.slice(-4),expiry:ce,name:nm,email:em}; email=em;
+            } else if(selectedPaymentMethod==='orange') {
+                let ph=document.getElementById('orangeNumber').value, nm=document.getElementById('orangeName').value, em=document.getElementById('orangeEmail').value;
+                if(!ph||!nm||!em) valid=false;
+                details={phone:ph,name:nm,email:em}; email=em;
+            } else if(selectedPaymentMethod==='mtn') {
+                let ph=document.getElementById('mtnNumber').value, nm=document.getElementById('mtnName').value, em=document.getElementById('mtnEmail').value;
+                if(!ph||!nm||!em) valid=false;
+                details={phone:ph,name:nm,email:em}; email=em;
+            } else if(selectedPaymentMethod==='bank') {
+                let ref=document.getElementById('bankRef').value, em=document.getElementById('bankEmail').value;
+                if(!em) valid=false;
+                details={reference:ref||'pending',email:em}; email=em;
             }
-        }
-        
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('visible');
-        }
-        
-        // Logout function (added)
-        async function logout() {
+            if(!valid) { alert('Please fill all fields'); return; }
+            let btn=event.currentTarget; let orig=btn.innerHTML; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Submitting...'; btn.disabled=true;
             try {
-                await fetch(API + '/logout', { method: 'POST' });
-                window.location.href = '/';
-            } catch (error) {
-                window.location.href = '/';
-            }
+                let res=await fetch(API+'/payment/request-manual',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:selectedPlan,amount:selectedAmount,currency:selectedCurrency,method:selectedPaymentMethod,details})});
+                let data=await res.json();
+                if(data.success) { alert('Payment request submitted! We will verify within 24 hours.'); document.getElementById('paymentSection').style.display='none'; navigate('dashboard'); }
+                else alert('Failed: '+ (data.error||'Try again'));
+            } catch(e) { alert('Network error'); }
+            finally { btn.innerHTML=orig; btn.disabled=false; }
         }
         
-        // Real news loader (added)
-        async function loadRealNews() {
-            const newsContainer = document.getElementById('newsFeed');
-            if (!newsContainer) return;
-            newsContainer.innerHTML = '<div class="loading-spinner"></div><p style="text-align:center;">Loading news...</p>';
-            try {
-                const response = await fetch('/api/news?category=business');
-                const data = await response.json();
-                if (data.success && data.articles) {
-                    newsContainer.innerHTML = '';
-                    data.articles.forEach(article => {
-                        const newsItem = document.createElement('div');
-                        newsItem.className = 'news-item';
-                        newsItem.style.cursor = 'pointer';
-                        newsItem.onclick = () => window.open(article.url, '_blank');
-                        let timeAgo = 'Just now';
-                        if (article.publishedAt) {
-                            const mins = Math.floor((new Date() - new Date(article.publishedAt)) / 60000);
-                            if (mins < 60) timeAgo = `${mins} min ago`;
-                            else if (mins < 1440) timeAgo = `${Math.floor(mins / 60)} hours ago`;
-                            else timeAgo = `${Math.floor(mins / 1440)} days ago`;
-                        }
-                        newsItem.innerHTML = `
-                            <div class="news-source"><span><strong>${article.source || 'News'}</strong></span><span>${timeAgo}</span></div>
-                            <div class="news-title" style="font-weight:600; margin:8px 0;">${article.title || 'No title'}</div>
-                            <div class="news-description" style="font-size:12px; color:var(--text-light);">${article.description ? article.description.substring(0,120)+'...' : 'Click to read full article'}</div>
-                        `;
-                        newsContainer.appendChild(newsItem);
-                    });
-                } else {
-                    newsContainer.innerHTML = '<p>Could not load news.</p>';
-                }
-            } catch (error) {
-                newsContainer.innerHTML = '<p>Error loading news.</p>';
-            }
-        }
-
-        /* Payment Section Styles */
-.payment-section {
-    background: linear-gradient(135deg, rgba(37,99,235,0.1), rgba(124,58,237,0.1));
-    border: 2px solid var(--primary);
-    border-radius: 20px;
-    padding: 30px;
-    margin-top: 30px;
-}
-
-.payment-tab-btn {
-    padding: 10px 20px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 30px;
-    color: var(--text);
-    cursor: pointer;
-    transition: all 0.3s;
-    font-weight: 500;
-}
-
-.payment-tab-btn:hover,
-.payment-tab-btn.active {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-}
-
-.payment-form {
-    margin-top: 20px;
-    animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.payment-input {
-    width: 100%;
-    padding: 12px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    font-size: 14px;
-    transition: all 0.3s;
-}
-
-.payment-input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
-}
-
-.bank-details {
-    background: var(--bg);
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-}
-
-.bank-details p {
-    margin: 8px 0;
-}
-
-.info-box {
-    background: rgba(37,99,235,0.1);
-    padding: 12px;
-    border-radius: 8px;
-    margin-top: 10px;
-}
-
-.payment-header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid var(--border);
-}
-
-.payment-icon {
-    width: 50px;
-    height: 50px;
-    background: var(--primary);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: white;
-}
-        // Set initial theme
+        function toggleChat() { let w=document.getElementById('chatWindow'); w.style.display=w.style.display==='none'?'flex':'none'; }
+        async function sendSupport() { let msg=document.getElementById('chatInput').value; if(!msg) return; let msgs=document.getElementById('chatMessages'); msgs.innerHTML+=`<div class="message user">${msg}</div>`; document.getElementById('chatInput').value=''; await fetch(API+'/support/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})}); setTimeout(()=>{ msgs.innerHTML+=`<div class="message bot">Thanks! We'll respond within 24h.</div>`; msgs.scrollTop=msgs.scrollHeight; },1000); }
+        
+        async function logout() { await fetch(API+'/logout',{method:'POST'}); window.location.href='/'; }
+        function toggleTheme() { let h=document.documentElement; let t=h.getAttribute('data-theme')==='dark'?'light':'dark'; h.setAttribute('data-theme',t); localStorage.setItem('theme',t); if(document.getElementById('tv_chart')) loadChart('BTCUSD'); }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('visible'); }
+        
+        async function loadRealNews() { let c=document.getElementById('newsFeed'); if(!c) return; c.innerHTML='<div class="loading-spinner"></div>'; try { let r=await fetch('/api/news?category=business'); let d=await r.json(); if(d.success&&d.articles) { c.innerHTML=''; d.articles.forEach(a=>{ let ago='Just now'; if(a.publishedAt){ let m=Math.floor((new Date()-new Date(a.publishedAt))/60000); if(m<60) ago=`${m} min ago`; else if(m<1440) ago=`${Math.floor(m/60)} hours ago`; else ago=`${Math.floor(m/1440)} days ago`; } c.innerHTML+=`<div class="news-item" onclick="window.open('${a.url}','_blank')"><div class="news-source"><span><strong>${a.source||'News'}</strong></span><span>${ago}</span></div><div class="news-title">${a.title}</div></div>`; }); } else c.innerHTML='<p>Could not load news</p>'; } catch(e){ c.innerHTML='<p>Error loading news</p>'; } }
+        
         const savedTheme = localStorage.getItem('theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
-        document.querySelector('.theme-toggle i').className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-        
-        // Auto-refresh news every 5 minutes
-        setInterval(() => { if (document.getElementById('newsFeed')) loadRealNews(); }, 300000);
-        
-        
+        setInterval(()=>{ if(document.getElementById('newsFeed')) loadRealNews(); }, 300000);
         checkLogin();
     </script>
 </body>
