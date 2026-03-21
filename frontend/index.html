@@ -454,45 +454,91 @@
         }
         
         function showDashboard() {
-            document.getElementById('contentArea').innerHTML = `
+    document.getElementById('contentArea').innerHTML = `
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">${t('account') || 'Account Tier'}</span>
+                    <div class="stat-icon"><i class="fas fa-crown"></i></div>
+                </div>
+                <div class="stat-value">${tier === 'free_trial' ? 'FREE' : tier.toUpperCase()}</div>
+                <div class="stat-change">${tier === 'free_trial' ? '7 days trial' : 'Active'}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">${t('analyses') || 'Analyses'}</span>
+                    <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                </div>
+                <div class="stat-value">12</div>
+                <div class="stat-change">+3 today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">${t('accuracy') || 'AI Accuracy'}</span>
+                    <div class="stat-icon"><i class="fas fa-brain"></i></div>
+                </div>
+                <div class="stat-value">82%</div>
+                <div class="stat-change">+5% this week</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">${t('sources') || 'News Sources'}</span>
+                    <div class="stat-icon"><i class="fas fa-newspaper"></i></div>
+                </div>
+                <div class="stat-value">3</div>
+                <div class="stat-change">${t('active') || 'Active'}</div>
+            </div>
         </div>
+        
         <div class="two-column">
             <div class="card">
                 <div class="card-header">
-                    <h3><i class="fas fa-chart-line"></i> Market Overview</h3>
-                    <button class="btn-secondary" onclick="navigate('analysis')">View All</button>
+                    <h3><i class="fas fa-chart-line"></i> ${t('marketOverview') || 'Market Overview'}</h3>
+                    <button class="btn-secondary" onclick="navigate('analysis')">${t('viewAll') || 'View All'}</button>
                 </div>
                 <div class="card-body">
                     <table class="market-table">
                         <thead>
-                            <tr><th>Pair</th><th>Price</th><th>24h</th><th>Signal</th></tr>
-                        </thead>
-                        <tbody>
-                            <!-- Real prices will load here -->
+                            <tr><th>${t('pair') || 'Pair'}</th><th>${t('price') || 'Price'}</th><th>24h</th><th>${t('signal') || 'Signal'}</th></thead>
+                        <tbody id="marketTableBody">
                             <tr><td colspan="4"><div class="loading-spinner"></div></td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-newspaper"></i> ${t('latestNews') || 'Latest News'}</h3>
+                    <button class="btn-secondary" onclick="navigate('sources')">${t('manage') || 'Manage'}</button>
+                </div>
+                <div class="card-body news-feed" id="newsFeed">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="three-column">
+            <div class="card" onclick="navigate('analysis')" style="cursor:pointer;">
+                <div class="card-header"><h3><i class="fas fa-chart-line"></i> ${t('advancedAnalysis') || 'Advanced Analysis'}</h3></div>
+                <div class="card-body"><p>${t('analysisDesc') || 'Professional market analysis'}</p></div>
+            </div>
+            <div class="card" onclick="navigate('ai')" style="cursor:pointer;">
+                <div class="card-header"><h3><i class="fas fa-robot"></i> AI ${t('news') || 'News'}</h3></div>
+                <div class="card-body"><p>${t('aiDesc') || 'AI-powered news insights'}</p></div>
+            </div>
+            <div class="card" onclick="showUpgrade()" style="cursor:pointer;">
+                <div class="card-header"><h3><i class="fas fa-crown"></i> ${t('upgrade') || 'Upgrade'}</h3></div>
+                <div class="card-body"><p>${t('upgradeDesc') || 'Unlock premium features'}</p></div>
+            </div>
+        </div>
+    `;
     
-                <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-header"><span class="stat-title">Account Tier</span><div class="stat-icon"><i class="fas fa-crown"></i></div></div><div class="stat-value">${tier==='free_trial'?'FREE':tier.toUpperCase()}</div><div class="stat-change">${tier==='free_trial'?'7 days trial':'Active'}</div></div>
-                    <div class="stat-card"><div class="stat-header"><span class="stat-title">Analyses</span><div class="stat-icon"><i class="fas fa-chart-line"></i></div></div><div class="stat-value">12</div><div class="stat-change">+3 today</div></div>
-                    <div class="stat-card"><div class="stat-header"><span class="stat-title">AI Accuracy</span><div class="stat-icon"><i class="fas fa-brain"></i></div></div><div class="stat-value">82%</div><div class="stat-change">+5% this week</div></div>
-                    <div class="stat-card"><div class="stat-header"><span class="stat-title">News Sources</span><div class="stat-icon"><i class="fas fa-newspaper"></i></div></div><div class="stat-value">3</div><div class="stat-change">Active</div></div>
-                </div>
-                <div class="two-column">
-                    <div class="card"><div class="card-header"><h3><i class="fas fa-chart-line"></i> Market Overview</h3><button class="btn-secondary" onclick="navigate('analysis')">View All</button></div><div class="card-body"><table class="market-table"><tr><th>Pair</th><th>Price</th><th>24h</th><th>Signal</th></tr><tr><td><div class="pair-info"><div class="pair-icon">₿</div>BTC/USD</div></td><td class="price up">$73,452</td><td class="price up">+2.3%</td><td><span class="signal buy">BUY</span></td></tr><tr><td><div class="pair-info"><div class="pair-icon">Ξ</div>ETH/USD</div></td><td class="price up">$3,892</td><td class="price down">-1.2%</td><td><span class="signal wait">WAIT</span></td></tr></table></div></div>
-                    <div class="card"><div class="card-header"><h3><i class="fas fa-newspaper"></i> Latest News</h3><button class="btn-secondary" onclick="navigate('sources')">Manage</button></div><div class="card-body news-feed" id="newsFeed"><div class="news-item"><div class="news-source"><span>Loading news...</span></div></div></div></div>
-                </div>
-                <div class="three-column">
-                    <div class="card" onclick="navigate('analysis')"><div class="card-header"><h3><i class="fas fa-chart-line"></i> Advanced Analysis</h3></div><div class="card-body"><p>Professional market analysis</p></div></div>
-                    <div class="card" onclick="navigate('ai')"><div class="card-header"><h3><i class="fas fa-robot"></i> AI News</h3></div><div class="card-body"><p>AI-powered news insights</p></div></div>
-                    <div class="card" onclick="showUpgrade()"><div class="card-header"><h3><i class="fas fa-crown"></i> Upgrade</h3></div><div class="card-body"><p>Unlock premium features</p></div></div>
-                </div>`;
-            loadRealNews();
-            setTimeout(() => loadRealPrices(), 500);
-        }
+    // Load real prices after dashboard renders
+    setTimeout(() => loadRealPrices(), 500);
+    // Load real news
+    loadRealNews();
+}
 
         function showAnalysis() {
     document.getElementById('contentArea').innerHTML = `
