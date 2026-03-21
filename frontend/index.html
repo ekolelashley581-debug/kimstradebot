@@ -384,6 +384,87 @@
     transform: translateY(-2px);
     background: var(--hover);
 }
+        /* Price fluctuation animations */
+@keyframes priceUp {
+    0% { background-color: transparent; color: var(--success); }
+    50% { background-color: rgba(16,185,129,0.2); transform: scale(1.05); }
+    100% { background-color: transparent; color: var(--success); }
+}
+
+@keyframes priceDown {
+    0% { background-color: transparent; color: var(--danger); }
+    50% { background-color: rgba(239,68,68,0.2); transform: scale(1.05); }
+    100% { background-color: transparent; color: var(--danger); }
+}
+
+.price-up {
+    animation: priceUp 0.5s ease;
+}
+
+.price-down {
+    animation: priceDown 0.5s ease;
+}
+
+/* Live ticker */
+.live-ticker {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 0;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    z-index: 99;
+}
+
+.ticker-scroll {
+    display: inline-block;
+    animation: scrollTicker 30s linear infinite;
+    white-space: nowrap;
+}
+
+@keyframes scrollTicker {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+}
+
+.ticker-item {
+    display: inline-block;
+    margin: 0 20px;
+    font-size: 13px;
+}
+
+.ticker-symbol {
+    font-weight: bold;
+    color: var(--text);
+}
+
+.ticker-price {
+    margin-left: 8px;
+}
+
+.ticker-change {
+    margin-left: 8px;
+    font-weight: 500;
+}
+
+.ticker-change.up { color: var(--success); }
+.ticker-change.down { color: var(--danger); }
+
+/* Indicators grid */
+.indicators-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.indicator-card {
+    transition: all 0.3s ease;
+}
+
+.indicator-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
     </style>
 </head>
 <body>
@@ -655,102 +736,104 @@ setInterval(() => loadRealPrices(), 30000); // Refresh every 30 seconds
     loadRealNews();
 }
 
-        function showAnalysis() {
+        async function showAnalysis() {
     document.getElementById('contentArea').innerHTML = `
-        <!-- AI Branding Header -->
-        <div class="ai-branding-header" style="background: linear-gradient(135deg, rgba(37,99,235,0.1), rgba(124,58,237,0.1)); border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid var(--border);">
-            <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary), #7c3aed); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-brain" style="font-size: 40px; color: white;"></i>
-                </div>
-                <div style="flex: 1;">
-                    <h2 style="color: var(--text); margin-bottom: 10px;">🤖 AI-Powered Market Analysis</h2>
-                    <p style="color: var(--text-light);">Powered by advanced machine learning algorithms and real-time market data</p>
-                </div>
-                <div>
-                    <span class="status-badge" style="background: rgba(16,185,129,0.2); color: var(--success); padding: 8px 16px; border-radius: 30px;">
-                        <i class="fas fa-circle" style="font-size: 8px; margin-right: 8px;"></i> LIVE
-                    </span>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Analysis Grid -->
-        <div class="analysis-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px;">
-            <!-- AI Sentiment Card -->
-            <div class="card">
-                <div class="card-header">
-                    <h3><i class="fas fa-chart-simple"></i> Market Sentiment</h3>
-                    <i class="fas fa-robot" style="color: var(--primary);"></i>
-                </div>
-                <div class="card-body">
-                    <div id="sentimentMeter" style="margin-bottom: 20px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <span>Bearish</span>
-                            <span id="sentimentValue">Neutral</span>
-                            <span>Bullish</span>
-                        </div>
-                        <div style="height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;">
-                            <div id="sentimentBar" style="width: 50%; height: 100%; background: linear-gradient(90deg, var(--danger), var(--warning), var(--success)); border-radius: 4px;"></div>
-                        </div>
-                    </div>
-                    <div id="sentimentAnalysis">
-                        <p style="color: var(--text-light);"><i class="fas fa-chart-line"></i> Analyzing market data...</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Top Gainers/Losers Card -->
-            <div class="card">
-                <div class="card-header">
-                    <h3><i class="fas fa-arrow-trend-up"></i> Top Movers</h3>
-                    <i class="fas fa-fire" style="color: var(--warning);"></i>
-                </div>
-                <div class="card-body">
-                    <div id="topMovers">
-                        <div class="loading-spinner"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Technical Indicators Card -->
-        <div class="card" style="margin-bottom: 30px;">
+        <!-- Live Indicators Card -->
+        <div class="card" style="margin-bottom: 20px;">
             <div class="card-header">
-                <h3><i class="fas fa-waveform"></i> Technical Indicators</h3>
-                <button class="btn-secondary" onclick="refreshIndicators()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                <h3><i class="fas fa-waveform"></i> Live Technical Indicators</h3>
+                <span class="live-indicator"></span>
+                <small style="color: var(--success);">REAL-TIME</small>
             </div>
             <div class="card-body">
-                <div id="indicatorsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div id="indicatorsContainer" class="indicators-grid">
                     <div class="loading-spinner"></div>
                 </div>
             </div>
         </div>
         
-        <!-- AI Analysis Result -->
+        <!-- AI Analysis Card -->
         <div class="card">
             <div class="card-header">
-                <h3><i class="fas fa-microchip"></i> Deep Analysis</h3>
+                <h3><i class="fas fa-microchip"></i> AI Market Analysis</h3>
                 <button class="btn-primary" onclick="runAdvancedAnalysis()">
                     <i class="fas fa-play"></i> Run Analysis
                 </button>
             </div>
             <div class="card-body">
-                <div id="analysisResult" class="analysis-result">
+                <div id="analysisResult">
                     <div class="ai-welcome" style="text-align: center; padding: 40px;">
                         <i class="fas fa-robot" style="font-size: 48px; color: var(--primary); margin-bottom: 20px;"></i>
-                        <h3 style="color: var(--text);">Ready to Analyze</h3>
-                        <p style="color: var(--text-light);">Click "Run Analysis" to get AI-powered market insights</p>
+                        <h3 style="color: var(--text);">AI Analysis Ready</h3>
+                        <p style="color: var(--text-light);">Click "Run Analysis" for real-time market insights</p>
                     </div>
                 </div>
             </div>
         </div>
     `;
     
-    // Load analysis data
-    loadMarketSentiment();
-    loadTopMovers();
-    loadTechnicalIndicators();
+    // Load real indicators
+    loadLiveIndicators();
+    setInterval(() => loadLiveIndicators(), 30000);
+}
+
+async function loadLiveIndicators() {
+    const container = document.getElementById('indicatorsContainer');
+    if (!container) return;
+    
+    try {
+        const res = await fetch(API + '/technical-indicators');
+        const data = await res.json();
+        
+        if (data.success && data.indicators) {
+            const ind = data.indicators;
+            container.innerHTML = `
+                <div class="indicator-card" style="background: var(--bg); border-radius: 12px; padding: 15px; border: 1px solid var(--border);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span><i class="fas fa-chart-line"></i> RSI (14)</span>
+                        <span style="color: var(--${ind.rsi_color}); font-weight: bold;">${ind.rsi}</span>
+                    </div>
+                    <small style="color: var(--text-light);">${ind.rsi_signal}</small>
+                    <div style="margin-top: 8px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;">
+                        <div style="width: ${ind.rsi}%; height: 100%; background: linear-gradient(90deg, var(--danger), var(--warning), var(--success)); border-radius: 2px;"></div>
+                    </div>
+                </div>
+                
+                <div class="indicator-card" style="background: var(--bg); border-radius: 12px; padding: 15px; border: 1px solid var(--border);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span><i class="fas fa-waveform"></i> MACD</span>
+                        <span style="color: var(--${ind.macd.color}); font-weight: bold;">${ind.macd.trend}</span>
+                    </div>
+                    <small style="color: var(--text-light);">Signal: ${ind.macd.signal}</small>
+                    <div style="margin-top: 8px;">
+                        <small>Value: ${ind.macd.value}</small>
+                    </div>
+                </div>
+                
+                <div class="indicator-card" style="background: var(--bg); border-radius: 12px; padding: 15px; border: 1px solid var(--border);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span><i class="fas fa-chart-simple"></i> Moving Averages</span>
+                        <span style="color: var(--${ind.moving_averages.color}); font-weight: bold;">${ind.moving_averages.signal}</span>
+                    </div>
+                    <small>MA50: $${ind.moving_averages.ma_50.toLocaleString()}</small><br>
+                    <small>MA200: $${ind.moving_averages.ma_200.toLocaleString()}</small>
+                </div>
+                
+                <div class="indicator-card" style="background: var(--bg); border-radius: 12px; padding: 15px; border: 1px solid var(--border);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span><i class="fas fa-chart-column"></i> Bollinger Bands</span>
+                        <span style="color: var(--${ind.bollinger_bands.color}); font-weight: bold;">${ind.bollinger_bands.position}</span>
+                    </div>
+                    <small>Upper: $${ind.bollinger_bands.upper.toLocaleString()}</small><br>
+                    <small>Middle: $${ind.bollinger_bands.middle.toLocaleString()}</small><br>
+                    <small>Lower: $${ind.bollinger_bands.lower.toLocaleString()}</small>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.log('Error loading indicators:', error);
+        container.innerHTML = '<p style="text-align:center;">Loading indicators...</p>';
+    }
 }
 
 // New analysis functions
@@ -1621,13 +1704,14 @@ async function submitPaymentRequest() {
 // REAL PRICES FROM COINGECKO (ADD THIS FUNCTION)
 // ========================================
 
+// Store previous prices to animate changes
+let previousPrices = {};
+
 async function loadRealPrices() {
     try {
-        // Get real crypto prices from CoinGecko via your backend
         const cryptoRes = await fetch(API + '/market-prices');
         const cryptoData = await cryptoRes.json();
         
-        // Get real forex prices from ExchangeRate API via your backend
         const forexRes = await fetch(API + '/forex-prices');
         const forexData = await forexRes.json();
         
@@ -1636,58 +1720,51 @@ async function loadRealPrices() {
         
         let allPrices = [];
         
-        // Add crypto prices if available
-        if (cryptoData.success && cryptoData.prices && cryptoData.prices.length > 0) {
+        if (cryptoData.success && cryptoData.prices) {
             allPrices = allPrices.concat(cryptoData.prices);
-            console.log('✅ Real crypto prices loaded:', cryptoData.source);
         }
         
-        // Add forex prices if available
-        if (forexData.success && forexData.prices && forexData.prices.length > 0) {
+        if (forexData.success && forexData.prices) {
             allPrices = allPrices.concat(forexData.prices);
-            console.log('✅ Real forex prices loaded');
         }
         
-        // If we have real data, display it
         if (allPrices.length > 0) {
+            // Check for price changes and add animation class
+            allPrices.forEach(item => {
+                const symbol = item.symbol;
+                const oldPrice = previousPrices[symbol];
+                const newPrice = item.price;
+                
+                if (oldPrice && newPrice !== oldPrice) {
+                    const animationClass = newPrice > oldPrice ? 'price-up' : 'price-down';
+                    item.animation = animationClass;
+                }
+                previousPrices[symbol] = newPrice;
+            });
+            
             tableBody.innerHTML = allPrices.map(item => {
-                // Calculate signal based on price change
                 let signal = 'WAIT';
                 let signalClass = 'wait';
                 const change = item.change_24h || 0;
-                if (change > 2) { 
-                    signal = 'BUY'; 
-                    signalClass = 'buy'; 
-                } else if (change < -2) { 
-                    signal = 'SELL'; 
-                    signalClass = 'sell'; 
-                }
+                if (change > 2) { signal = 'BUY'; signalClass = 'buy'; }
+                else if (change < -2) { signal = 'SELL'; signalClass = 'sell'; }
                 
-                // Determine color for price change
                 const priceColor = change > 0 ? 'up' : change < 0 ? 'down' : '';
                 const changeSymbol = change > 0 ? '+' : '';
                 
-                // Format price based on value
                 let formattedPrice = item.price;
                 if (item.price < 1 && item.price > 0) {
                     formattedPrice = item.price.toFixed(4);
-                } else if (item.price < 10 && item.price > 0) {
-                    formattedPrice = item.price.toFixed(3);
                 } else if (item.price > 1000) {
-                    formattedPrice = item.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    formattedPrice = item.price.toLocaleString();
                 } else {
                     formattedPrice = item.price.toFixed(2);
                 }
                 
-                // Add currency symbol
-                let priceDisplay = formattedPrice;
-                if (item.symbol === 'BTC' || item.symbol === 'ETH' || item.symbol === 'XRP' || item.symbol === 'SOL' || item.symbol === 'ADA') {
-                    priceDisplay = `$${formattedPrice}`;
-                } else if (item.symbol === 'XAUUSD') {
-                    priceDisplay = `$${formattedPrice}`;
-                } else if (item.symbol === 'XAGUSD') {
-                    priceDisplay = `$${formattedPrice}`;
-                }
+                const currencySymbol = (item.symbol === 'BTC' || item.symbol === 'ETH' || item.symbol === 'XRP' || item.symbol === 'SOL' || item.symbol === 'ADA' || item.symbol === 'XAUUSD') ? '$' : '';
+                const priceDisplay = currencySymbol ? `${currencySymbol}${formattedPrice}` : formattedPrice;
+                
+                const animationClass = item.animation || '';
                 
                 return `
                     <tr class="price-row" data-symbol="${item.symbol}" data-price="${item.price}">
@@ -1698,7 +1775,7 @@ async function loadRealPrices() {
                             </div>
                             <small style="color: var(--text-light);">Current Price</small>
                         </td>
-                        <td class="price ${priceColor}" style="font-weight: 700; font-size: 18px;">
+                        <td class="price ${priceColor} ${animationClass}" style="font-weight: 700; font-size: 18px;">
                             ${priceDisplay}
                         </td>
                         <td class="${priceColor}">
@@ -1711,88 +1788,50 @@ async function loadRealPrices() {
                 `;
             }).join('');
             
-            // Add timestamp to show when data was last updated
-            const timestamp = new Date().toLocaleTimeString();
-            let updateNote = document.querySelector('.price-update-note');
-            if (!updateNote) {
-                updateNote = document.createElement('div');
-                updateNote.className = 'price-update-note';
-                updateNote.style.cssText = 'text-align: right; font-size: 11px; color: var(--text-light); margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border);';
-                tableBody.parentElement.parentElement.appendChild(updateNote);
-            }
-            updateNote.innerHTML = `<i class="fas fa-sync-alt"></i> Real-time prices updated: ${timestamp} | Source: ${cryptoData.source || 'Market Data'}`;
+            // Update live ticker
+            updateLiveTicker(allPrices);
             
-            console.log('✅ Dashboard updated with real market data');
         } else {
-            // Fallback to mock data if no real data
             useMockPrices();
         }
-        
     } catch (error) {
         console.log('Error loading real prices:', error);
         useMockPrices();
     }
 }
 
-// Helper function to get icons for different symbols
-function getIconForSymbol(symbol) {
-    const icons = {
-        'BTC': '₿',
-        'ETH': 'Ξ',
-        'XRP': 'X',
-        'SOL': 'S',
-        'ADA': 'A',
-        'EURUSD': '€',
-        'GBPUSD': '£',
-        'USDJPY': '¥',
-        'USDCAD': 'C$',
-        'AUDUSD': 'A$',
-        'NZDUSD': 'NZ$',
-        'XAUUSD': '👑',
-        'XAGUSD': '🥈'
-    };
-    return icons[symbol] || symbol.charAt(0);
-}
-
-// Fallback mock prices (only used if APIs fail)
-function useMockPrices() {
-    const tableBody = document.getElementById('marketTableBody');
-    if (!tableBody) return;
+// Live ticker function
+function updateLiveTicker(prices) {
+    let tickerContainer = document.querySelector('.live-ticker');
+    if (!tickerContainer) {
+        tickerContainer = document.createElement('div');
+        tickerContainer.className = 'live-ticker';
+        const topHeader = document.querySelector('.top-header');
+        if (topHeader && topHeader.parentNode) {
+            topHeader.parentNode.insertBefore(tickerContainer, topHeader.nextSibling);
+        }
+    }
     
-    tableBody.innerHTML = `
-        <tr data-symbol="BTC" data-price="66800">
-            <td><div class="pair-info"><div class="pair-icon">₿</div><strong>BTC/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
-            <td class="price up" style="font-weight: 700; font-size: 18px;">$66,800</td>
-            <td class="up">+1.2%</td>
-            <td><span class="signal wait">WAIT</span></td>
-        </tr>
-        <tr data-symbol="ETH" data-price="3350">
-            <td><div class="pair-info"><div class="pair-icon">Ξ</div><strong>ETH/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
-            <td class="price up" style="font-weight: 700; font-size: 18px;">$3,350</td>
-            <td class="up">+0.8%</td>
-            <td><span class="signal wait">WAIT</span></td>
-        </tr>
-        <tr data-symbol="EURUSD" data-price="1.0892">
-            <td><div class="pair-info"><div class="pair-icon">€</div><strong>EUR/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
-            <td class="price up" style="font-weight: 700; font-size: 18px;">1.0892</td>
-            <td class="up">+0.15%</td>
-            <td><span class="signal wait">WAIT</span></td>
-        </tr>
-        <tr data-symbol="GBPUSD" data-price="1.2654">
-            <td><div class="pair-info"><div class="pair-icon">£</div><strong>GBP/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
-            <td class="price up" style="font-weight: 700; font-size: 18px;">1.2654</td>
-            <td class="up">+0.08%</td>
-            <td><span class="signal wait">WAIT</span></td>
-        </tr>
-        <tr data-symbol="XAUUSD" data-price="2350.50">
-            <td><div class="pair-info"><div class="pair-icon">👑</div><strong>XAU/USD (Gold)</strong></div><small style="color: var(--text-light);">Current Price</small></td>
-            <td class="price up" style="font-weight: 700; font-size: 18px;">$2,350.50</td>
-            <td class="up">+0.45%</td>
-            <td><span class="signal wait">WAIT</span></td>
-        </tr>
+    const tickerHtml = `
+        <div class="ticker-scroll">
+            ${prices.map(p => `
+                <span class="ticker-item">
+                    <span class="ticker-symbol">${p.symbol}</span>
+                    <span class="ticker-price">${p.symbol.includes('USD') && !p.symbol.startsWith('USD') ? '$' : ''}${p.price.toLocaleString()}</span>
+                    <span class="ticker-change ${p.change_24h > 0 ? 'up' : 'down'}">${p.change_24h > 0 ? '+' : ''}${p.change_24h.toFixed(2)}%</span>
+                </span>
+            `).join('')}
+            ${prices.map(p => `
+                <span class="ticker-item">
+                    <span class="ticker-symbol">${p.symbol}</span>
+                    <span class="ticker-price">${p.symbol.includes('USD') && !p.symbol.startsWith('USD') ? '$' : ''}${p.price.toLocaleString()}</span>
+                    <span class="ticker-change ${p.change_24h > 0 ? 'up' : 'down'}">${p.change_24h > 0 ? '+' : ''}${p.change_24h.toFixed(2)}%</span>
+                </span>
+            `).join('')}
+        </div>
     `;
     
-    console.log('⚠️ Using mock price data (real APIs unavailable)');
+    tickerContainer.innerHTML = tickerHtml;
 }
     </script>
 </body>
