@@ -358,41 +358,33 @@ import requests
 def get_market_prices():
     """Get real-time crypto prices from CoinGecko"""
     try:
-        # CoinGecko API - free, no API key needed
         url = "https://api.coingecko.com/api/v3/simple/price"
         params = {
             'ids': 'bitcoin,ethereum,ripple,solana,cardano',
             'vs_currencies': 'usd',
-            'include_24hr_change': 'true',
-            'include_last_updated_at': 'true'
+            'include_24hr_change': 'true'
         }
         
         response = requests.get(url, params=params, timeout=10)
         
         if response.status_code == 200:
             data = response.json()
-            
             prices = []
             for coin, info in data.items():
                 prices.append({
                     'symbol': coin.upper(),
                     'name': coin.capitalize(),
                     'price': info.get('usd', 0),
-                    'change_24h': info.get('usd_24h_change', 0),
-                    'last_updated': info.get('last_updated_at', 0)
+                    'change_24h': info.get('usd_24h_change', 0)
                 })
-            
             return jsonify({'success': True, 'prices': prices})
         else:
-            # Return mock data if API fails
             return get_mock_prices()
-            
     except Exception as e:
         print(f"Price API error: {e}")
         return get_mock_prices()
 
 def get_mock_prices():
-    """Return mock price data when API fails"""
     return jsonify({
         'success': True,
         'prices': [
@@ -403,7 +395,6 @@ def get_mock_prices():
             {'symbol': 'ADA', 'name': 'Cardano', 'price': 0.45, 'change_24h': -0.3}
         ]
     })
-
 @app.route('/api/technical-indicators', methods=['GET'])
 def get_technical_indicators():
     """Get technical indicators from real price data"""
