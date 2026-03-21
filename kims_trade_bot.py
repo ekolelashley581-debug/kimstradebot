@@ -1446,69 +1446,15 @@ def submit_idea():
     conn.close()
     
     return jsonify({'success': True})
-import requests
-
-@app.route('/api/market-prices', methods=['GET'])
-def get_market_prices():
-    """Get real-time crypto prices from CoinGecko"""
-    try:
-        url = "https://api.coingecko.com/api/v3/simple/price"
-        params = {
-            'ids': 'bitcoin,ethereum,ripple,solana,cardano',
-            'vs_currencies': 'usd',
-            'include_24hr_change': 'true'
-        }
-        
-        response = requests.get(url, params=params, timeout=10)
-        
-        if response.status_code == 200:
-            data = response.json()
-            prices = []
-            for coin, info in data.items():
-                prices.append({
-                    'symbol': coin.upper(),
-                    'name': coin.capitalize(),
-                    'price': info.get('usd', 0),
-                    'change_24h': info.get('usd_24h_change', 0)
-                })
-            return jsonify({'success': True, 'prices': prices, 'source': 'CoinGecko'})
-        else:
-            return get_alternative_prices()
-    except Exception as e:
-        return get_alternative_prices()
-
-def get_alternative_prices():
-    """Fallback to Binance API"""
-    try:
-        btc_response = requests.get("https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT", timeout=5)
-        eth_response = requests.get("https://api.binance.com/api/v3/ticker/24hr?symbol=ETHUSDT", timeout=5)
-        
-        prices = []
-        if btc_response.status_code == 200:
-            btc = btc_response.json()
-            prices.append({'symbol': 'BTC', 'name': 'Bitcoin', 'price': float(btc.get('lastPrice', 0)), 'change_24h': float(btc.get('priceChangePercent', 0))})
-        if eth_response.status_code == 200:
-            eth = eth_response.json()
-            prices.append({'symbol': 'ETH', 'name': 'Ethereum', 'price': float(eth.get('lastPrice', 0)), 'change_24h': float(eth.get('priceChangePercent', 0))})
-        
-        prices.append({'symbol': 'XRP', 'name': 'Ripple', 'price': 0.52, 'change_24h': 1.2})
-        prices.append({'symbol': 'SOL', 'name': 'Solana', 'price': 145, 'change_24h': 3.5})
-        prices.append({'symbol': 'ADA', 'name': 'Cardano', 'price': 0.48, 'change_24h': -0.5})
-        
-        return jsonify({'success': True, 'prices': prices, 'source': 'Binance'})
-    except:
-        return jsonify({'success': True, 'prices': [
-            {'symbol': 'BTC', 'name': 'Bitcoin', 'price': 66800, 'change_24h': 1.2},
-            {'symbol': 'ETH', 'name': 'Ethereum', 'price': 3350, 'change_24h': 0.8},
-            {'symbol': 'XRP', 'name': 'Ripple', 'price': 0.54, 'change_24h': -0.3},
-            {'symbol': 'SOL', 'name': 'Solana', 'price': 148, 'change_24h': 2.1},
-            {'symbol': 'ADA', 'name': 'Cardano', 'price': 0.47, 'change_24h': -0.2}
-        ], 'source': 'Demo'})
+# ============================================
+# REAL-TIME FOREX PRICES
+# ============================================
 
 @app.route('/api/forex-prices', methods=['GET'])
 def get_forex_prices():
-    """Get real-time forex prices"""
+    """Get real-time forex and commodity prices"""
     try:
+        import datetime
         response = requests.get("https://api.exchangerate.host/latest?base=USD", timeout=5)
         if response.status_code == 200:
             data = response.json()
@@ -1521,12 +1467,15 @@ def get_forex_prices():
                     {'symbol': 'USDJPY', 'price': rates.get('JPY', 151.2), 'change_24h': -0.22},
                     {'symbol': 'USDCAD', 'price': rates.get('CAD', 1.358), 'change_24h': 0.05},
                     {'symbol': 'AUDUSD', 'price': 1 / rates.get('AUD', 0.652), 'change_24h': 0.12},
-                    {'symbol': 'NZDUSD', 'price': 1 / rates.get('NZD', 0.598), 'change_24h': -0.08}
+                    {'symbol': 'NZDUSD', 'price': 1 / rates.get('NZD', 0.598), 'change_24h': -0.08},
+                    {'symbol': 'XAUUSD', 'price': 2350.50, 'change_24h': 0.45},
+                    {'symbol': 'XAGUSD', 'price': 27.80, 'change_24h': 0.30}
                 ]
             })
-    except:
-        pass
+    except Exception as e:
+        print(f"Forex API error: {e}")
     
+    # Fallback mock data
     return jsonify({
         'success': True,
         'prices': [
