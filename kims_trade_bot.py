@@ -165,13 +165,7 @@ def init_db():
                   status TEXT DEFAULT 'unread', 
                   created_at TEXT)''')
     
-    c.execute('''CREATE TABLE IF NOT EXISTS user_sources
-                 (id INTEGER PRIMARY KEY, 
-                  user_id INTEGER, 
-                  source_name TEXT,
-                  source_url TEXT,
-                  category TEXT,
-                  added_at TEXT)''')
+   
     
     c.execute('''CREATE TABLE IF NOT EXISTS admin_transfers
                  (id INTEGER PRIMARY KEY,
@@ -974,6 +968,7 @@ def user_sources():
     conn.close()
     return jsonify({'sources': [{'name': s[0], 'url': s[1], 'category': s[2]} for s in sources]})
 
+
 # ============================================
 # REAL-TIME NEWS FROM API
 # ============================================
@@ -1601,27 +1596,7 @@ def get_forex_prices():
 # USER SOURCES
 # ============================================
 
-@app.route('/api/user/sources', methods=['GET', 'POST'])
-@login_required
-def user_sources():
-    if request.method == 'POST':
-        data = request.json
-        conn = sqlite3.connect(config.DB_PATH)
-        c = conn.cursor()
-        c.execute('''INSERT INTO user_sources (user_id, source_name, source_url, category, added_at)
-                     VALUES (?, ?, ?, ?, ?)''',
-                  (session['user_id'], data['name'], data['url'], data.get('category', 'custom'),
-                   datetime.now().isoformat()))
-        conn.commit()
-        conn.close()
-        return jsonify({'success': True})
-    
-    conn = sqlite3.connect(config.DB_PATH)
-    c = conn.cursor()
-    c.execute('''SELECT source_name, source_url, category FROM user_sources WHERE user_id=?''', (session['user_id'],))
-    sources = c.fetchall()
-    conn.close()
-    return jsonify({'sources': [{'name': s[0], 'url': s[1], 'category': s[2]} for s in sources]})
+
 
 if __name__ == '__main__':
     # This code ONLY runs when you execute python directly (local development)
