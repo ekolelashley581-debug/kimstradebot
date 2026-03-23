@@ -16,6 +16,9 @@ import requests
 import threading
 import time
 import uuid
+import sys
+print("Python version:", sys.version)
+print("Starting app...", flush=True)
 
 app = Flask(__name__)
 app.secret_key = "5ee54608761f4af8a367f550af2c86d9"
