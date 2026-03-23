@@ -1582,19 +1582,6 @@ def get_forex_prices():
             {'symbol': 'XAGUSD', 'price': 27.80, 'change_24h': 0.30}
         ]
     })
-# ============================================
-# FOR RENDER - COMMENT OUT LOCAL DEVELOPMENT SECTION
-# ============================================
-
-# The following section is for LOCAL DEVELOPMENT only
-# On Render, gunicorn serves the app directly
-
-# ============================================
-# FOR RENDER - FIXED VERSION
-# ============================================
-# ============================================
-# USER SOURCES
-# ============================================
 
 
 
