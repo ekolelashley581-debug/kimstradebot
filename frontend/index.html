@@ -1833,6 +1833,69 @@ function updateLiveTicker(prices) {
     
     tickerContainer.innerHTML = tickerHtml;
 }
+        // ========================================
+// GET ICON FOR SYMBOL (ADD THIS)
+// ========================================
+
+function getIconForSymbol(symbol) {
+    const icons = {
+        'BTC': '₿',
+        'ETH': 'Ξ',
+        'XRP': 'X',
+        'SOL': 'S',
+        'ADA': 'A',
+        'EURUSD': '€',
+        'GBPUSD': '£',
+        'USDJPY': '¥',
+        'USDCAD': 'C$',
+        'AUDUSD': 'A$',
+        'NZDUSD': 'NZ$',
+        'XAUUSD': '👑',
+        'XAGUSD': '🥈'
+    };
+    return icons[symbol] || symbol.charAt(0);
+}
+        // ========================================
+// USE MOCK PRICES (ADD THIS)
+// ========================================
+
+function useMockPrices() {
+    const tableBody = document.getElementById('marketTableBody');
+    if (!tableBody) return;
+    
+    tableBody.innerHTML = `
+        <tr data-symbol="BTC" data-price="66800">
+            <td><div class="pair-info"><div class="pair-icon">₿</div><strong>BTC/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
+            <td class="price up" style="font-weight: 700; font-size: 18px;">$66,800</td>
+            <td class="up">+1.2%</td>
+            <td><span class="signal wait">WAIT</span></td>
+        </tr>
+        <tr data-symbol="ETH" data-price="3350">
+            <td><div class="pair-info"><div class="pair-icon">Ξ</div><strong>ETH/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
+            <td class="price up" style="font-weight: 700; font-size: 18px;">$3,350</td>
+            <td class="up">+0.8%</td>
+            <td><span class="signal wait">WAIT</span></td>
+        </tr>
+        <tr data-symbol="EURUSD" data-price="1.0892">
+            <td><div class="pair-info"><div class="pair-icon">€</div><strong>EUR/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
+            <td class="price up" style="font-weight: 700; font-size: 18px;">1.0892</td>
+            <td class="up">+0.15%</td>
+            <td><span class="signal wait">WAIT</span></td>
+        </tr>
+        <tr data-symbol="GBPUSD" data-price="1.2654">
+            <td><div class="pair-info"><div class="pair-icon">£</div><strong>GBP/USD</strong></div><small style="color: var(--text-light);">Current Price</small></td>
+            <td class="price up" style="font-weight: 700; font-size: 18px;">1.2654</td>
+            <td class="up">+0.08%</td>
+            <td><span class="signal wait">WAIT</span></td>
+        </tr>
+        <tr data-symbol="XAUUSD" data-price="2350.50">
+            <td><div class="pair-info"><div class="pair-icon">👑</div><strong>XAU/USD (Gold)</strong></div><small style="color: var(--text-light);">Current Price</small></td>
+            <td class="price up" style="font-weight: 700; font-size: 18px;">$2,350.50</td>
+            <td class="up">+0.45%</td>
+            <td><span class="signal wait">WAIT</span></td>
+         </tr>
+    `;
+}
     </script>
 </body>
 </html>
