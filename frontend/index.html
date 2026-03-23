@@ -1092,8 +1092,12 @@ function refreshIndicators() {
     // Load default chart
     setTimeout(() => loadChart('BTCUSD'), 100);
     
-    // Load real-time prices for summary
-    loadChartPrices();
+       // Only load chart prices if the price elements exist on the page
+    setTimeout(() => {
+        if (document.getElementById('btc-price')) {
+            loadChartPrices();
+        }
+    }, 500);
     
     // Refresh prices every 30 seconds
     setInterval(() => loadChartPrices(), 30000);
