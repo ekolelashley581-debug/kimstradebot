@@ -737,8 +737,8 @@
         <div class="nav-item" onclick="navigate('ideas')"><i class="fas fa-lightbulb"></i><span>Market Ideas</span></div>
         
         <div class="nav-divider"></div>
-        <div class="nav-item" onclick="window.location.href='/profile.html'"><i class="fas fa-user"></i><span>Profile</span></div>
-        <div class="nav-item" id="adminNav" onclick="window.location.href='/admin.html'" style="display:none;"><i class="fas fa-cog"></i><span>Admin</span></div>
+        <div class="nav-item" onclick="closeSidebarAndGo('/profile.html')"><i class="fas fa-user"></i> <span>Profile</span></div>
+        <div class="nav-item" id="adminNav" onclick="closeSidebarAndGo('/admin.html')" style="display:none;"><i class="fas fa-cog"></i> <span>Admin</span></div>
         
         <div class="sidebar-footer">
             <div class="user-info" id="userInfo">
@@ -748,7 +748,7 @@
                     <p id="userTier">Free Trial</p>
                 </div>
             </div>
-            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+           <button class="logout-btn" onclick="logoutAndClose()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </div>
 
@@ -883,17 +883,23 @@
             else { let d=await res.json(); alert(d.error); }
         }
         
-        function navigate(page) {
-            document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            document.getElementById('pageTitle').innerText = page.charAt(0).toUpperCase() + page.slice(1);
-            if(page==='dashboard') showDashboard();
-            else if(page==='analysis') showAnalysis();
-            else if(page==='charts') showCharts();
-            else if(page==='ai') showAINews();
-            else if(page==='sources') showSources();
-            else if(page==='ideas') showIdeas();
-        }
+      function navigate(page) {
+    // CLOSE SIDEBAR ON MOBILE - ADD THIS LINE
+    if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.remove('visible');
+    }
+    
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    document.getElementById('pageTitle').innerText = page.charAt(0).toUpperCase() + page.slice(1);
+    
+    if (page === 'dashboard') showDashboard();
+    else if (page === 'analysis') showAnalysis();
+    else if (page === 'charts') showCharts();
+    else if (page === 'ai') showAINews();
+    else if (page === 'sources') showSources();
+    else if (page === 'ideas') showIdeas();
+}
         
         function showDashboard() {
     document.getElementById('contentArea').innerHTML = `
@@ -2121,6 +2127,26 @@ function useMockPrices() {
             <td><span class="signal wait">WAIT</span></td>
          </tr>
     `;
+}
+        // Helper function for Profile and Admin links
+function closeSidebarAndGo(url) {
+    if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.remove('visible');
+    }
+    window.location.href = url;
+}
+
+// Helper function for Logout button
+async function logoutAndClose() {
+    if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.remove('visible');
+    }
+    try {
+        await fetch(API + '/logout', { method: 'POST' });
+    } catch (e) {
+        console.log('Logout error:', e);
+    }
+    window.location.href = '/';
 }
     </script>
 </body>
