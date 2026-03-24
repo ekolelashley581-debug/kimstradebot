@@ -157,6 +157,15 @@ def init_db():
                   plan TEXT,
                   created_at TEXT,
                   completed_at TEXT)''')
+
+    # Add this table inside init_db()
+c.execute('''CREATE TABLE IF NOT EXISTS idea_replies
+             (id INTEGER PRIMARY KEY,
+              idea_id INTEGER,
+              user_id INTEGER,
+              user_email TEXT,
+              content TEXT,
+              created_at TEXT)''')
     
     c.execute('''CREATE TABLE IF NOT EXISTS support_messages
                  (id INTEGER PRIMARY KEY, 
@@ -1776,6 +1785,101 @@ def check_asset_access():
         'required_tier': required_tier,
         'user_tier': access_level
     })
+
+# ============================================
+# IDEA REPLIES
+# ============================================
+
+@app.route('/api/ideas/<int:idea_id>/replies', methods=['GET'])
+def get_idea_replies(idea_id):
+    """Get all replies for a specific idea"""
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    
+    c.execute('''SELECT id, user_email, content, created_at 
+                 FROM idea_replies 
+                 WHERE idea_id = ? 
+                 ORDER BY created_at ASC''', (idea_id,))
+    rows = c.fetchall()
+    conn.close()
+    
+    replies = []
+    for row in rows:
+        replies.append({
+            'id': row[0],
+            'user_email': row[1],
+            'content': row[2],
+            'created_at': row[3]
+        })
+    
+    return jsonify({'replies': replies})
+
+@app.route('/api/ideas/<int:idea_id>/reply', methods=['POST'])
+@login_required
+def add_reply(idea_id):
+    """Add a reply to an idea"""
+    from datetime import datetime
+    
+    data = request.json
+    content = data.get('content')
+    
+    if not content:
+        return jsonify({'error': 'Reply content required'}), 400
+    
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    
+    # Check if idea exists
+    c.execute("SELECT id FROM market_ideas WHERE id = ?", (idea_id,))
+    if not c.fetchone():
+        conn.close()
+        return jsonify({'error': 'Idea not found'}), 404
+    
+    # Add reply
+    c.execute('''INSERT INTO idea_replies (idea_id, user_id, user_email, content, created_at)
+                 VALUES (?, ?, ?, ?, ?)''',
+              (idea_id, session['user_id'], session['email'], content, datetime.now().isoformat()))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/ideas/<int:idea_id>/like', methods=['POST'])
+@login_required
+def like_idea(idea_id):
+    """Like an idea"""
+    from datetime import datetime
+    
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    
+    # Create likes table if not exists
+    c.execute('''CREATE TABLE IF NOT EXISTS idea_likes
+                 (id INTEGER PRIMARY KEY,
+                  idea_id INTEGER,
+                  user_id INTEGER,
+                  created_at TEXT)''')
+    
+    # Check if already liked
+    c.execute("SELECT id FROM idea_likes WHERE idea_id = ? AND user_id = ?", (idea_id, session['user_id']))
+    existing = c.fetchone()
+    
+    if existing:
+        # Unlike
+        c.execute("DELETE FROM idea_likes WHERE id = ?", (existing[0],))
+    else:
+        # Like
+        c.execute("INSERT INTO idea_likes (idea_id, user_id, created_at) VALUES (?, ?, ?)",
+                  (idea_id, session['user_id'], datetime.now().isoformat()))
+    
+    # Get total likes
+    c.execute("SELECT COUNT(*) FROM idea_likes WHERE idea_id = ?", (idea_id,))
+    likes_count = c.fetchone()[0]
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True, 'likes_count': likes_count})
 
 if __name__ == '__main__':
     # This code ONLY runs when you execute python directly (local development)
