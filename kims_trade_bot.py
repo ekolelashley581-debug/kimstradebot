@@ -1466,6 +1466,8 @@ def get_ideas():
 @login_required
 def submit_idea():
     """Submit a new market idea"""
+    from datetime import datetime  # Make sure this is imported
+    
     data = request.json
     title = data.get('title')
     description = data.get('description')
@@ -1473,11 +1475,9 @@ def submit_idea():
     if not title or not description:
         return jsonify({'error': 'Title and description required'}), 400
     
-    # Ensure the table exists before inserting
     conn = sqlite3.connect(config.DB_PATH)
     c = conn.cursor()
     try:
-        # Create table if it doesn't exist (good practice)
         c.execute('''CREATE TABLE IF NOT EXISTS market_ideas
                      (id INTEGER PRIMARY KEY,
                       user_id INTEGER,
@@ -1486,7 +1486,6 @@ def submit_idea():
                       description TEXT,
                       created_at TEXT)''')
         
-        # Insert the new idea
         c.execute('''INSERT INTO market_ideas (user_id, user_email, title, description, created_at)
                      VALUES (?, ?, ?, ?, ?)''',
                   (session['user_id'], session['email'], title, description, datetime.now().isoformat()))
