@@ -1064,120 +1064,108 @@ def user_sources():
 # REAL-TIME NEWS FROM API
 # ============================================
 
+# ============================================
+# REAL NEWS FROM RSS FEEDS (FREE, NO API KEY)
+# ============================================
+
+import feedparser
+
 @app.route('/api/news', methods=['GET'])
 def get_news():
-    """Get real-time news from NewsAPI"""
-    from datetime import datetime  # ← ADD THIS
+    """Get real-time news from free RSS feeds"""
+    from datetime import datetime
     
     category = request.args.get('category', 'business')
-    lang = request.args.get('lang', 'en')
     
-    # Try to get API key from environment
-    NEWS_API_KEY = os.environ.get('NEWS_API_KEY', '')
+    all_articles = []
     
-    # If no API key, return mock data
-    if not NEWS_API_KEY or NEWS_API_KEY == 'YOUR_API_KEY_HERE':
-        # Return mock news data
-        mock_news = {
-            'success': True,
-            'articles': [
-                {'title': 'Bitcoin Shows Strong Momentum', 'source': 'Crypto News', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Market sentiment positive'},
-                {'title': 'Fed Signals Cautious Approach', 'source': 'Reuters', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Rate decisions pending data'},
-                {'title': 'Global Markets Mixed', 'source': 'Bloomberg', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Earnings season underway'},
-                {'title': 'Oil Prices Steady', 'source': 'CNBC', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Supply concerns ease'},
-                {'title': 'Tech Stocks Rally', 'source': 'Financial Times', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'AI optimism drives gains'}
-            ]
-        }
-        return jsonify(mock_news)
-    
-    try:
-        url = "https://newsapi.org/v2/top-headlines"
-        params = {
-            'category': category,
-            'language': lang,
-            'apiKey': NEWS_API_KEY,
-            'pageSize': 10
-        }
-        
-        response = requests.get(url, params=params, timeout=10)
-        
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('status') == 'ok':
-                articles = []
-                for article in data.get('articles', []):
-                    articles.append({
-                        'title': article.get('title', ''),
-                        'source': article.get('source', {}).get('name', 'News'),
-                        'url': article.get('url', '#'),
-                        'publishedAt': article.get('publishedAt', datetime.now().isoformat()),
-                        'description': article.get('description', '')
-                    })
-                return jsonify({'success': True, 'articles': articles})
-            else:
-                # API returned error, use mock data
-                return get_mock_news()
-        else:
-            # API request failed, use mock data
-            return get_mock_news()
-            
-    except Exception as e:
-        print(f"News API error: {e}")
-        # Return mock data on error
-        return get_mock_news()
-
-def get_mock_news():
-    """Return mock news data when API fails"""
-    from datetime import datetime  # ← ADD THIS
-    
-    mock_news = {
-        'success': True,
-        'articles': [
-            {'title': 'Bitcoin Shows Strong Momentum', 'source': 'Crypto News', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Market sentiment positive'},
-            {'title': 'Fed Signals Cautious Approach', 'source': 'Reuters', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Rate decisions pending data'},
-            {'title': 'Global Markets Mixed', 'source': 'Bloomberg', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Earnings season underway'},
-            {'title': 'Oil Prices Steady', 'source': 'CNBC', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Supply concerns ease'},
-            {'title': 'Tech Stocks Rally', 'source': 'Financial Times', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'AI optimism drives gains'}
+    # RSS FEEDS (Free, no API key needed)
+    rss_feeds = {
+        'business': [
+            'http://feeds.reuters.com/reuters/businessNews',
+            'https://www.cnbc.com/id/10001147/device/rss/rss.html',
+            'https://feeds.bloomberg.com/markets/news.rss'
+        ],
+        'crypto': [
+            'https://cointelegraph.com/rss',
+            'https://cryptoslate.com/feed/',
+            'https://www.coindesk.com/arc/outboundfeeds/rss/'
+        ],
+        'technology': [
+            'https://techcrunch.com/feed/',
+            'https://www.wired.com/feed/rss'
         ]
     }
-    return jsonify(mock_news)
+    
+    # Get feeds based on category
+    feed_urls = rss_feeds.get(category, rss_feeds['business'])
+    
+    for feed_url in feed_urls[:3]:
+        try:
+            feed = feedparser.parse(feed_url)
+            for entry in feed.entries[:5]:
+                all_articles.append({
+                    'title': entry.get('title', ''),
+                    'source': feed.feed.get('title', 'News'),
+                    'url': entry.get('link', '#'),
+                    'publishedAt': entry.get('published', datetime.now().isoformat()),
+                    'description': entry.get('summary', '')[:200]
+                })
+        except Exception as e:
+            print(f"RSS error for {feed_url}: {e}")
+    
+    # Remove duplicates
+    seen = set()
+    unique = []
+    for a in all_articles:
+        if a['title'] not in seen:
+            seen.add(a['title'])
+            unique.append(a)
+    
+    unique.sort(key=lambda x: x.get('publishedAt', ''), reverse=True)
+    
+    if unique:
+        return jsonify({'success': True, 'articles': unique[:15]})
+    else:
+        return jsonify({
+            'success': True,
+            'articles': [
+                {'title': 'Unable to fetch live news. Check your connection.', 'source': 'System', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Refresh to try again.'}
+            ]
+        })
+
 @app.route('/api/news/search', methods=['POST'])
 def search_news():
-    """Search for news by keyword"""
+    """Search for news by keyword using Google News RSS"""
+    from datetime import datetime
+    import feedparser
+    
     data = request.json
     query = data.get('query', '')
     
     if not query:
-        return jsonify({'success': False, 'error': 'No search query'})
+        return jsonify({'success': False, 'error': 'No search query'}), 400
     
-    url = "https://newsapi.org/v2/everything"
-    params = {
-        'q': query,
-        'apiKey': NEWS_API_KEY,
-        'pageSize': 10
-    }
+    all_articles = []
     
     try:
-        response = requests.get(url, params=params)
-        data = response.json()
-        
-        if data.get('status') == 'ok':
-            articles = []
-            for article in data.get('articles', []):
-                articles.append({
-                    'title': article.get('title', ''),
-                    'source': article.get('source', {}).get('name', ''),
-                    'url': article.get('url', ''),
-                    'publishedAt': article.get('publishedAt', ''),
-                    'description': article.get('description', '')
-                })
-            return jsonify({'success': True, 'articles': articles})
-        else:
-            return jsonify({'success': False, 'error': data.get('message', 'API error')})
-    
+        search_url = f"https://news.google.com/rss/search?q={query}&hl=en-US"
+        feed = feedparser.parse(search_url)
+        for entry in feed.entries[:15]:
+            all_articles.append({
+                'title': entry.get('title', ''),
+                'source': 'Google News',
+                'url': entry.get('link', '#'),
+                'publishedAt': entry.get('published', datetime.now().isoformat()),
+                'description': entry.get('summary', '')[:200]
+            })
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
-
+        print(f"Google News search error: {e}")
+    
+    if all_articles:
+        return jsonify({'success': True, 'articles': all_articles})
+    else:
+        return jsonify({'success': False, 'articles': [], 'error': 'No news found for this query'})
 # ============================================
 # RSS FEED FETCHER
 # ============================================
