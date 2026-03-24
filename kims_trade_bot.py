@@ -443,7 +443,7 @@ def get_alternative_prices():
         return get_current_market_prices()
 
 def get_current_market_prices():
-    from datetime import datetime  # ← CORRECT
+    from datetime import datetime  # ← CHANGE THIS
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     return jsonify({
@@ -459,7 +459,6 @@ def get_current_market_prices():
         'updated_at': current_time,
         'note': 'Prices are updated from market data'
     })
-    
    
 # ============================================
 # REAL TECHNICAL INDICATORS
