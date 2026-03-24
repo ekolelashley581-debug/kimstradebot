@@ -1897,6 +1897,15 @@ async function loadIdeas() {
                             <i class="far fa-comment"></i> <span id="reply-count-${idea.id}">${replies.length}</span>
                         </button>
                     </div>
+
+                        <div style="display: flex; gap: 15px; margin-bottom: 15px; border-top: 1px solid var(--border); padding-top: 10px;">
+        <button class="like-btn" onclick="likeIdea(${idea.id})" style="background: none; border: none; color: var(--text-light); cursor: pointer;">
+            <i class="far fa-heart"></i> <span id="likes-${idea.id}">0</span>
+        </button>
+        <button class="reply-btn" onclick="toggleReplyForm(${idea.id})" style="background: none; border: none; color: var(--text-light); cursor: pointer;">
+            <i class="far fa-comment"></i> <span id="reply-count-${idea.id}">${replies.length}</span>
+        </button>
+    </div>
                     
                     <div id="replies-${idea.id}" style="margin-left: 20px; margin-top: 10px;">
                         ${replies.map(reply => `
@@ -1914,6 +1923,7 @@ async function loadIdeas() {
                         <button onclick="toggleReplyForm(${idea.id})" class="btn-secondary" style="padding: 8px 16px;">Cancel</button>
                     </div>
                 `;
+
                 
                 container.appendChild(ideaDiv);
             }
@@ -1991,6 +2001,85 @@ async function likeIdea(ideaId) {
     } catch (error) {
         console.log('Like error:', error);
     }
+}
+        // ========================================
+// SHARING FUNCTIONS
+// ========================================
+
+function shareIdea(ideaId, title, description) {
+    const url = `${window.location.origin}/idea.html?id=${ideaId}`;
+    const text = `${title}\n\n${description.substring(0, 100)}...\n\nRead more: ${url}`;
+    
+    // Try to use Web Share API (mobile)
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            text: description.substring(0, 100),
+            url: url
+        }).catch(err => console.log('Share cancelled'));
+    } else {
+        // Fallback: show share options
+        showShareOptions(url, title);
+    }
+}
+
+function shareWhatsApp(ideaId, title) {
+    const url = `${window.location.origin}/idea.html?id=${ideaId}`;
+    const text = `📊 Check out this trading idea: ${title}\n\n${url}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(whatsappUrl, '_blank');
+}
+
+function copyLink(ideaId) {
+    const url = `${window.location.origin}/idea.html?id=${ideaId}`;
+    navigator.clipboard.writeText(url).then(() => {
+        // Show temporary notification
+        const notification = document.createElement('div');
+        notification.textContent = '✅ Link copied to clipboard!';
+        notification.style.cssText = 'position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--success); color: white; padding: 10px 20px; border-radius: 8px; z-index: 10000;';
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 2000);
+    }).catch(() => {
+        alert('Could not copy link. Please copy manually.');
+    });
+}
+
+function showShareOptions(url, title) {
+    // Create modal for share options
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center;';
+    modal.innerHTML = `
+        <div style="background: var(--card); border-radius: 20px; padding: 30px; max-width: 300px; width: 90%; text-align: center;">
+            <h3 style="color: var(--text); margin-bottom: 20px;">Share this idea</h3>
+            <button onclick="shareWhatsAppManual('${url}')" style="width: 100%; padding: 12px; margin-bottom: 10px; background: #25D366; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                <i class="fab fa-whatsapp"></i> WhatsApp
+            </button>
+            <button onclick="shareTwitterManual('${url}')" style="width: 100%; padding: 12px; margin-bottom: 10px; background: #1DA1F2; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                <i class="fab fa-twitter"></i> Twitter
+            </button>
+            <button onclick="copyLinkManual('${url}')" style="width: 100%; padding: 12px; margin-bottom: 10px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                <i class="fas fa-link"></i> Copy Link
+            </button>
+            <button onclick="this.parentElement.parentElement.remove()" style="width: 100%; padding: 12px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; cursor: pointer;">
+                Cancel
+            </button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function shareWhatsAppManual(url) {
+    window.open(`https://wa.me/?text=${encodeURIComponent(url)}`, '_blank');
+}
+
+function shareTwitterManual(url) {
+    window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=Check out this trading idea!`, '_blank');
+}
+
+function copyLinkManual(url) {
+    navigator.clipboard.writeText(url).then(() => {
+        alert('✅ Link copied!');
+    });
 }
         function toggleReplyForm(ideaId) {
     const form = document.getElementById(`reply-form-${ideaId}`);
