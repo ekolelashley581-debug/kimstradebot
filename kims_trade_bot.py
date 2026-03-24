@@ -484,7 +484,7 @@ def get_current_market_prices():
                 {'symbol': 'XAUUSD', 'price': 2350.50, 'change_24h': 0.45},
                 {'symbol': 'XAGUSD', 'price': 27.80, 'change_24h': 0.30}
             ],
-            'updated_at': datetime.datetime.now().isoformat()
+            'updated_at': datetime.now().isoformat()
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -568,7 +568,7 @@ def get_simulated_indicators():
                 'position': bb_position,
                 'color': bb_color
             },
-            'updated_at': datetime.datetime.now().isoformat()
+            'updated_at': datetime.now().isoformat()
         }
     })
 # ============================================
