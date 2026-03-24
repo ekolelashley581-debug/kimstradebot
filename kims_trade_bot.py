@@ -1536,7 +1536,93 @@ def get_forex_prices():
         ]
     })
 
+# ============================================
+# ASSET DATABASE (For Tier-Based Access)
+# ============================================
 
+@app.route('/api/assets', methods=['GET'])
+def get_assets():
+    """Get all available assets with their tier requirements"""
+    assets = [
+        # FREE ASSETS (4 assets)
+        {'symbol': 'BTC', 'name': 'Bitcoin', 'category': 'crypto', 'tier': 'free', 'price': 0},
+        {'symbol': 'ETH', 'name': 'Ethereum', 'category': 'crypto', 'tier': 'free', 'price': 0},
+        {'symbol': 'SPX', 'name': 'S&P 500', 'category': 'index', 'tier': 'free', 'price': 0},
+        {'symbol': 'XAU', 'name': 'Gold', 'category': 'commodity', 'tier': 'free', 'price': 0},
+        
+        # PREMIUM ASSETS
+        {'symbol': 'SOL', 'name': 'Solana', 'category': 'crypto', 'tier': 'premium', 'price': 5000},
+        {'symbol': 'XRP', 'name': 'Ripple', 'category': 'crypto', 'tier': 'premium', 'price': 5000},
+        {'symbol': 'ADA', 'name': 'Cardano', 'category': 'crypto', 'tier': 'premium', 'price': 5000},
+        {'symbol': 'DOGE', 'name': 'Dogecoin', 'category': 'crypto', 'tier': 'premium', 'price': 5000},
+        {'symbol': 'EURUSD', 'name': 'Euro/US Dollar', 'category': 'forex', 'tier': 'premium', 'price': 5000},
+        {'symbol': 'GBPUSD', 'name': 'British Pound/US Dollar', 'category': 'forex', 'tier': 'premium', 'price': 5000},
+        {'symbol': 'USDJPY', 'name': 'US Dollar/Japanese Yen', 'category': 'forex', 'tier': 'premium', 'price': 5000},
+        {'symbol': 'TSLA', 'name': 'Tesla', 'category': 'stock', 'tier': 'premium', 'price': 5000},
+        {'symbol': 'AAPL', 'name': 'Apple', 'category': 'stock', 'tier': 'premium', 'price': 5000},
+        {'symbol': 'NVDA', 'name': 'Nvidia', 'category': 'stock', 'tier': 'premium', 'price': 5000},
+        {'symbol': 'MSFT', 'name': 'Microsoft', 'category': 'stock', 'tier': 'premium', 'price': 5000},
+        {'symbol': 'XAG', 'name': 'Silver', 'category': 'commodity', 'tier': 'premium', 'price': 5000},
+        {'symbol': 'USOIL', 'name': 'WTI Crude Oil', 'category': 'commodity', 'tier': 'premium', 'price': 5000},
+        {'symbol': 'NAS100', 'name': 'NASDAQ 100', 'category': 'index', 'tier': 'premium', 'price': 5000},
+        
+        # PRO ASSETS
+        {'symbol': 'AMZN', 'name': 'Amazon', 'category': 'stock', 'tier': 'pro', 'price': 15000},
+        {'symbol': 'GOOGL', 'name': 'Google', 'category': 'stock', 'tier': 'pro', 'price': 15000},
+        {'symbol': 'META', 'name': 'Meta', 'category': 'stock', 'tier': 'pro', 'price': 15000},
+        {'symbol': 'NFLX', 'name': 'Netflix', 'category': 'stock', 'tier': 'pro', 'price': 15000},
+        {'symbol': 'AUDUSD', 'name': 'Australian Dollar/US Dollar', 'category': 'forex', 'tier': 'pro', 'price': 15000},
+        {'symbol': 'USDCAD', 'name': 'US Dollar/Canadian Dollar', 'category': 'forex', 'tier': 'pro', 'price': 15000},
+        {'symbol': 'NZDUSD', 'name': 'New Zealand Dollar/US Dollar', 'category': 'forex', 'tier': 'pro', 'price': 15000},
+        {'symbol': 'UK100', 'name': 'FTSE 100', 'category': 'index', 'tier': 'pro', 'price': 15000},
+        {'symbol': 'GER40', 'name': 'DAX 40', 'category': 'index', 'tier': 'pro', 'price': 15000},
+        {'symbol': 'FRA40', 'name': 'CAC 40', 'category': 'index', 'tier': 'pro', 'price': 15000},
+        {'symbol': 'JPN225', 'name': 'Nikkei 225', 'category': 'index', 'tier': 'pro', 'price': 15000},
+        {'symbol': 'HK50', 'name': 'Hang Seng', 'category': 'index', 'tier': 'pro', 'price': 15000},
+    ]
+    return jsonify({'assets': assets})
+
+@app.route('/api/asset/access', methods=['POST'])
+def check_asset_access():
+    """Check if user can access a specific asset"""
+    data = request.json
+    symbol = data.get('symbol')
+    user_tier = session.get('tier', 'free_trial')
+    
+    # Convert tier to access level
+    if user_tier == 'pro':
+        access_level = 'pro'
+    elif user_tier in ['premium', 'premium_trial']:
+        access_level = 'premium'
+    else:
+        access_level = 'free'
+    
+    # Asset tier mapping (simplified)
+    asset_tiers = {
+        'BTC': 'free', 'ETH': 'free', 'SPX': 'free', 'XAU': 'free',
+        'SOL': 'premium', 'XRP': 'premium', 'ADA': 'premium', 'DOGE': 'premium',
+        'EURUSD': 'premium', 'GBPUSD': 'premium', 'USDJPY': 'premium',
+        'TSLA': 'premium', 'AAPL': 'premium', 'NVDA': 'premium', 'MSFT': 'premium',
+        'AMZN': 'pro', 'GOOGL': 'pro', 'META': 'pro', 'NFLX': 'pro'
+    }
+    
+    required_tier = asset_tiers.get(symbol, 'pro')
+    
+    # Check access
+    if required_tier == 'free':
+        allowed = True
+    elif required_tier == 'premium' and access_level in ['premium', 'pro']:
+        allowed = True
+    elif required_tier == 'pro' and access_level == 'pro':
+        allowed = True
+    else:
+        allowed = False
+    
+    return jsonify({
+        'allowed': allowed,
+        'required_tier': required_tier,
+        'user_tier': access_level
+    })
 
 if __name__ == '__main__':
     # This code ONLY runs when you execute python directly (local development)
