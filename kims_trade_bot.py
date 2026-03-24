@@ -465,7 +465,7 @@ def get_current_market_prices():
 # ============================================
 
 import random
-import datetime
+from datetime import datetime
 
 @app.route('/api/technical-indicators', methods=['GET'])
 def get_technical_indicators():
