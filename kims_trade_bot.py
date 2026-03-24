@@ -137,6 +137,7 @@ def init_db():
                   created_at TEXT,
                   last_login TEXT)''')
     
+    
     c.execute('''CREATE TABLE IF NOT EXISTS user_sources
              (id INTEGER PRIMARY KEY,
               user_id INTEGER,
@@ -144,6 +145,7 @@ def init_db():
               source_url TEXT,
               category TEXT,
               added_at TEXT)''')
+    
     
     c.execute('''CREATE TABLE IF NOT EXISTS payments
                  (id INTEGER PRIMARY KEY, 
@@ -157,15 +159,22 @@ def init_db():
                   plan TEXT,
                   created_at TEXT,
                   completed_at TEXT)''')
-
+    
     # Add this table inside init_db()
-c.execute('''CREATE TABLE IF NOT EXISTS idea_replies
+    c.execute('''CREATE TABLE IF NOT EXISTS idea_replies
              (id INTEGER PRIMARY KEY,
               idea_id INTEGER,
               user_id INTEGER,
               user_email TEXT,
               content TEXT,
               created_at TEXT)''')
+    
+    
+    c.execute('''CREATE TABLE IF NOT EXISTS idea_likes
+                 (id INTEGER PRIMARY KEY,
+                  idea_id INTEGER,
+                  user_id INTEGER,
+                  created_at TEXT)''')
     
     c.execute('''CREATE TABLE IF NOT EXISTS support_messages
                  (id INTEGER PRIMARY KEY, 
@@ -175,7 +184,6 @@ c.execute('''CREATE TABLE IF NOT EXISTS idea_replies
                   created_at TEXT)''')
     
    
-    
     c.execute('''CREATE TABLE IF NOT EXISTS admin_transfers
                  (id INTEGER PRIMARY KEY,
                   amount INTEGER,
