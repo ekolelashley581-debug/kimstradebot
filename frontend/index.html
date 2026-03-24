@@ -1956,22 +1956,31 @@ async function submitReply(ideaId) {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     btn.disabled = true;
     
+    // Detect mentions (@username)
+    const mentionRegex = /@(\w+)/g;
+    const mentions = [...content.matchAll(mentionRegex)].map(m => m[1]);
+    
     try {
         const res = await fetch(API + `/ideas/${ideaId}/reply`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content: content.trim() })
+            body: JSON.stringify({ 
+                content: content.trim(),
+                mentions: mentions 
+            })
         });
         
         const data = await res.json();
         
         if (data.success) {
-            // Clear the textarea
             document.getElementById(`reply-content-${ideaId}`).value = '';
-            // Hide the form
             toggleReplyForm(ideaId);
-            // Reload ideas to show new reply
             loadIdeas();
+            
+            // Show success message if mentions detected
+            if (mentions.length > 0) {
+                alert(`✅ Reply posted! You mentioned: ${mentions.join(', ')}`);
+            }
         } else {
             alert(data.error || 'Failed to post reply');
         }
@@ -1982,7 +1991,6 @@ async function submitReply(ideaId) {
         btn.disabled = false;
     }
 }
-
 async function likeIdea(ideaId) {
     try {
         const res = await fetch(API + `/ideas/${ideaId}/like`, {
