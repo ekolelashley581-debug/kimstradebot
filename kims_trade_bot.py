@@ -319,24 +319,29 @@ def check_session():
 def get_profile():
     conn = sqlite3.connect(config.DB_PATH)
     c = conn.cursor()
-    c.execute('''SELECT email, phone, country, lang, tier, created_at, trial_end, subscription_end
-                 FROM users WHERE id=?''', (session['user_id'],))
-    user = c.fetchone()
-    conn.close()
-    
-    if not user:
-        return jsonify({'error': 'User not found'}), 404
-    
-    return jsonify({
-        'email': user[0],
-        'phone': user[1] or '',
-        'country': user[2],
-        'lang': user[3],
-        'tier': user[4],
-        'joined': user[5],
-        'trial_end': user[6],
-        'subscription_end': user[7]
-    })
+    try:
+        c.execute('''SELECT email, phone, country, lang, tier, created_at, trial_end, subscription_end
+                     FROM users WHERE id=?''', (session['user_id'],))
+        user = c.fetchone()
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        return jsonify({
+            'email': user[0],
+            'phone': user[1] or '',
+            'country': user[2],
+            'lang': user[3],
+            'tier': user[4],
+            'joined': user[5],
+            'trial_end': user[6],
+            'subscription_end': user[7]
+        })
+    except Exception as e:
+        print(f"Profile error: {e}")
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
 
 @app.route('/api/user/update', methods=['POST'])
 @login_required
