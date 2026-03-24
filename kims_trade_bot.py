@@ -1473,23 +1473,30 @@ def submit_idea():
     if not title or not description:
         return jsonify({'error': 'Title and description required'}), 400
     
+    # Ensure the table exists before inserting
     conn = sqlite3.connect(config.DB_PATH)
     c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS market_ideas
-                 (id INTEGER PRIMARY KEY,
-                  user_id INTEGER,
-                  user_email TEXT,
-                  title TEXT,
-                  description TEXT,
-                  created_at TEXT)''')
-    
-    c.execute('''INSERT INTO market_ideas (user_id, user_email, title, description, created_at)
-                 VALUES (?, ?, ?, ?, ?)''',
-              (session['user_id'], session['email'], title, description, datetime.now().isoformat()))
-    conn.commit()
-    conn.close()
-    
-    return jsonify({'success': True})
+    try:
+        # Create table if it doesn't exist (good practice)
+        c.execute('''CREATE TABLE IF NOT EXISTS market_ideas
+                     (id INTEGER PRIMARY KEY,
+                      user_id INTEGER,
+                      user_email TEXT,
+                      title TEXT,
+                      description TEXT,
+                      created_at TEXT)''')
+        
+        # Insert the new idea
+        c.execute('''INSERT INTO market_ideas (user_id, user_email, title, description, created_at)
+                     VALUES (?, ?, ?, ?, ?)''',
+                  (session['user_id'], session['email'], title, description, datetime.now().isoformat()))
+        conn.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Error submitting idea: {e}")
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
 # ============================================
 # REAL-TIME FOREX PRICES
 # ============================================
