@@ -1441,26 +1441,39 @@ def reject_payment():
 @app.route('/api/ideas', methods=['GET'])
 def get_ideas():
     """Get all market ideas from users"""
+    from datetime import datetime
+    
     conn = sqlite3.connect(config.DB_PATH)
     c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS market_ideas
-                 (id INTEGER PRIMARY KEY,
-                  user_id INTEGER,
-                  user_email TEXT,
-                  title TEXT,
-                  description TEXT,
-                  created_at TEXT)''')
-    c.execute("SELECT id, user_email, title, description, created_at FROM market_ideas ORDER BY created_at DESC")
-    ideas = c.fetchall()
-    conn.close()
-    
-    return jsonify({'ideas': [{
-        'id': i[0],
-        'user_email': i[1],
-        'title': i[2],
-        'description': i[3],
-        'created_at': i[4]
-    } for i in ideas]})
+    try:
+        c.execute('''CREATE TABLE IF NOT EXISTS market_ideas
+                     (id INTEGER PRIMARY KEY,
+                      user_id INTEGER,
+                      user_email TEXT,
+                      title TEXT,
+                      description TEXT,
+                      created_at TEXT)''')
+        
+        c.execute("SELECT id, user_email, title, description, created_at FROM market_ideas ORDER BY created_at DESC")
+        rows = c.fetchall()
+        
+        ideas = []
+        for row in rows:
+            ideas.append({
+                'id': row[0],
+                'user_email': row[1] if row[1] else 'Anonymous',
+                'title': row[2] if row[2] else 'No title',
+                'description': row[3] if row[3] else '',
+                'created_at': row[4] if row[4] else datetime.now().isoformat()
+            })
+        
+        return jsonify({'ideas': ideas})
+        
+    except Exception as e:
+        print(f"Error getting ideas: {e}")
+        return jsonify({'ideas': [], 'error': str(e)})
+    finally:
+        conn.close()
 
 @app.route('/api/ideas/submit', methods=['POST'])
 @login_required
