@@ -447,7 +447,7 @@ def get_current_market_prices():
     """Return current approximate market prices (updated regularly)"""
     # These should be updated periodically or fetched from a free API
     import datetime
-    current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     return jsonify({
         'success': True,
