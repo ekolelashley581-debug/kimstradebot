@@ -669,19 +669,7 @@ def ai_market_analysis():
         conn.commit()
         conn.close()
         
-        # ========== 1. GET REAL PRICE DATA ==========
-        try:
-            price_res = requests.get(f"{request.host_url}api/technical-indicators", timeout=5)
-            if price_res.status_code == 200:
-                indicators_data = price_res.json()
-                technical_indicators = indicators_data.get('indicators', [])
-            else:
-                technical_indicators = []
-        except Exception as e:
-            print(f"Technical indicators error: {e}")
-            technical_indicators = []
-        
-        # ========== 2. GET NEWS ==========
+        # ========== 1. GET NEWS ==========
         news_articles = []
         try:
             news_response = requests.get(f"{request.host_url}api/news?category=business", timeout=5)
@@ -692,25 +680,29 @@ def ai_market_analysis():
         except Exception as e:
             print(f"News fetch error: {e}")
         
-        # Mock news if none
+        # Mock news if none (safe fallback)
         if not news_articles:
             news_articles = [
-                {'title': 'Bitcoin Surges Past $73,000', 'description': 'Strong institutional demand drives prices higher'},
-                {'title': 'Fed Signals Rate Cuts Coming', 'description': 'Markets rally on dovish comments'},
-                {'title': 'Ethereum ETF Flows Hit Record', 'description': 'Institutional interest growing'}
+                {'title': 'Bitcoin Shows Strong Momentum', 'description': 'Market participants optimistic'},
+                {'title': 'Fed Signals Cautious Approach', 'description': 'Rate decisions pending data'},
+                {'title': 'Global Markets Mixed', 'description': 'Earnings season underway'}
             ]
         
-        # ========== 3. GET USER IDEAS ==========
+        # ========== 2. GET USER IDEAS ==========
         conn = sqlite3.connect(config.DB_PATH)
         c = conn.cursor()
         try:
             c.execute("SELECT title, description FROM market_ideas ORDER BY created_at DESC LIMIT 20")
-            user_ideas = [{'title': row[0], 'description': row[1]} for row in c.fetchall()]
+            rows = c.fetchall()
+            user_ideas = []
+            for row in rows:
+                if row[0] and row[1]:
+                    user_ideas.append({'title': str(row[0]), 'description': str(row[1])})
         except:
             user_ideas = []
         conn.close()
         
-        # ========== 4. ANALYZE NEWS SENTIMENT ==========
+        # ========== 3. ANALYZE NEWS SENTIMENT ==========
         bullish_keywords = ['bull', 'up', 'rise', 'gain', 'surge', 'rally', 'soar', 'high', 'positive', 'growth', 'breakout']
         bearish_keywords = ['bear', 'down', 'fall', 'drop', 'decline', 'crash', 'low', 'negative', 'risk', 'fear', 'dump']
         
@@ -718,7 +710,15 @@ def ai_market_analysis():
         key_points = []
         
         for article in news_articles[:10]:
-            text = f"{article.get('title', '')} {article.get('description', '')}".lower()
+            # SAFE: handle both string and dict
+            if isinstance(article, dict):
+                title = article.get('title', '')
+                description = article.get('description', '')
+            else:
+                title = str(article)
+                description = ''
+            
+            text = f"{title} {description}".lower()
             
             for word in bullish_keywords:
                 if word in text:
@@ -744,36 +744,7 @@ def ai_market_analysis():
             sentiment_text = 'neutral'
             sentiment_confidence = 65
         
-        # ========== 5. ANALYZE TECHNICAL DATA ==========
-        tech_score = 0
-        top_gainers = []
-        top_losers = []
-        
-        for indicator in technical_indicators:
-            change = indicator.get('change_24h', 0)
-            symbol = indicator.get('symbol', '')
-            
-            if change > 0:
-                tech_score += 0.5
-                top_gainers.append(f"{symbol}: +{change}%")
-            elif change < 0:
-                tech_score -= 0.5
-                top_losers.append(f"{symbol}: {change}%")
-            
-            # Check MACD and RSI
-            if indicator.get('macd') == 'Bullish':
-                tech_score += 0.3
-            elif indicator.get('macd') == 'Bearish':
-                tech_score -= 0.3
-            
-            if indicator.get('moving_average') in ['Buy', 'Strong Buy']:
-                tech_score += 0.2
-            elif indicator.get('moving_average') == 'Sell':
-                tech_score -= 0.2
-        
-        tech_score = max(-3, min(3, tech_score))
-        
-        # ========== 6. ANALYZE USER IDEAS ==========
+        # ========== 4. ANALYZE USER IDEAS ==========
         bullish_count = 0
         bearish_count = 0
         for idea in user_ideas:
@@ -784,58 +755,55 @@ def ai_market_analysis():
                 bearish_count += 1
         
         user_consensus = 'bullish' if bullish_count > bearish_count else 'bearish' if bearish_count > bullish_count else 'mixed'
-        user_score = 1 if user_consensus == 'bullish' else -1 if user_consensus == 'bearish' else 0
         
-        # ========== 7. COMBINE ALL SCORES ==========
-        # Weights: News 40%, Technical 40%, Community 20%
-        total_score = (sentiment_score * 2) + (tech_score * 1.5) + (user_score * 1)
+        # ========== 5. GENERATE RECOMMENDATION ==========
+        overall_score = 0
+        if sentiment_text == 'bullish':
+            overall_score += 2
+        elif sentiment_text == 'bearish':
+            overall_score -= 2
         
-        # ========== 8. GENERATE RECOMMENDATION ==========
-        if total_score >= 3:
-            recommendation = "STRONG BUY"
+        if user_consensus == 'bullish':
+            overall_score += 1
+        elif user_consensus == 'bearish':
+            overall_score -= 1
+        
+        if overall_score >= 2:
+            recommendation = "STRONG BUY SIGNALS"
             color = "success"
-            confidence = min(sentiment_confidence + 20, 98)
-        elif total_score >= 1.5:
-            recommendation = "BUY"
+            confidence = min(sentiment_confidence + 15, 95)
+        elif overall_score >= 1:
+            recommendation = "BUY BIAS"
             color = "success"
-            confidence = min(sentiment_confidence + 10, 95)
-        elif total_score <= -3:
-            recommendation = "STRONG SELL"
+            confidence = min(sentiment_confidence + 5, 90)
+        elif overall_score <= -2:
+            recommendation = "STRONG SELL SIGNALS"
             color = "danger"
-            confidence = min(sentiment_confidence + 20, 98)
-        elif total_score <= -1.5:
-            recommendation = "SELL"
+            confidence = min(sentiment_confidence + 15, 95)
+        elif overall_score <= -1:
+            recommendation = "SELL BIAS"
             color = "danger"
-            confidence = min(sentiment_confidence + 10, 95)
+            confidence = min(sentiment_confidence + 5, 90)
         else:
-            recommendation = "HOLD / WAIT"
+            recommendation = "NEUTRAL / WAIT"
             color = "warning"
             confidence = sentiment_confidence
         
-        # ========== 9. GENERATE ANALYSIS TEXT ==========
-        # Format top gainers/losers
-        gainers_text = ', '.join(top_gainers[:3]) if top_gainers else 'No major gainers'
-        losers_text = ', '.join(top_losers[:3]) if top_losers else 'No major losers'
-        
+        # ========== 6. GENERATE ANALYSIS TEXT ==========
         analysis_text = f"""
-📊 REAL MARKET DATA (CoinGecko):
-Top Gainers: {gainers_text}
-Top Losers: {losers_text}
+📊 MARKET OVERVIEW:
+Based on {len(news_articles)} news articles and {len(user_ideas)} community ideas:
 
 📰 NEWS SENTIMENT: {sentiment_text.upper()} (Confidence: {sentiment_confidence:.0f}%)
 Key topics: {', '.join(key_points[:5]) if key_points else 'Market analysis complete'}
-
-📈 TECHNICAL INDICATORS:
-- 24h Price Change Score: {tech_score:.1f} points
-- RSI levels indicate {'overbought' if tech_score > 1 else 'oversold' if tech_score < -1 else 'neutral'} conditions
-- MACD signals: {'bullish' if tech_score > 0.5 else 'bearish' if tech_score < -0.5 else 'mixed'}
 
 👥 COMMUNITY INSIGHTS: {len(user_ideas)} ideas submitted
 Community consensus: {user_consensus.upper()}
 {bullish_count} bullish vs {bearish_count} bearish
 
-🎯 FINAL RECOMMENDATION: {recommendation}
-Total Score: {total_score:.1f} points
+🎯 ANALYSIS SUMMARY: {recommendation}
+
+⚠️ This is AI-generated analysis for educational purposes. Always do your own research.
 """
         
         return jsonify({
@@ -844,31 +812,14 @@ Total Score: {total_score:.1f} points
             'color': color,
             'confidence': confidence,
             'analysis': analysis_text,
-            'total_score': total_score,
-            'news_sentiment': {
-                'sentiment': sentiment_text,
-                'confidence': sentiment_confidence,
-                'score': sentiment_score,
-                'key_points': key_points[:5]
-            },
-            'technical': {
-                'score': tech_score,
-                'top_gainers': top_gainers[:3],
-                'top_losers': top_losers[:3],
-                'indicators': technical_indicators[:3]
-            },
-            'user_analysis': {
-                'consensus': user_consensus,
-                'bullish_count': bullish_count,
-                'bearish_count': bearish_count
-            }
+            'sentiment': sentiment_text,
+            'user_consensus': user_consensus
         })
         
     except Exception as e:
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)})
-
 # ============================================
 # MARKET ANALYSIS (C++ Bot - Hidden from UI)
 # ============================================
