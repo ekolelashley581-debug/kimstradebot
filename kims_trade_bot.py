@@ -324,7 +324,6 @@ def get_profile():
     user = c.fetchone()
     conn.close()
     
-    # ADD THIS NULL CHECK
     if not user:
         return jsonify({'error': 'User not found'}), 404
     
