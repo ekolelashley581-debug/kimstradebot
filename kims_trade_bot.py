@@ -927,6 +927,8 @@ def user_sources():
 @app.route('/api/news', methods=['GET'])
 def get_news():
     """Get real-time news from NewsAPI"""
+    from datetime import datetime  # ← ADD THIS
+    
     category = request.args.get('category', 'business')
     lang = request.args.get('lang', 'en')
     
@@ -939,11 +941,11 @@ def get_news():
         mock_news = {
             'success': True,
             'articles': [
-                {'title': 'Bitcoin Surges Past $73,000', 'source': 'Crypto News', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Strong institutional demand drives prices higher'},
-                {'title': 'Fed Signals Rate Cuts Coming', 'source': 'Reuters', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Markets rally on dovish comments'},
-                {'title': 'Ethereum ETF Flows Hit Record', 'source': 'Bloomberg', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Institutional interest growing'},
-                {'title': 'Global Markets Rally on Tech Earnings', 'source': 'CNBC', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Strong earnings drive optimism'},
-                {'title': 'Dollar Weakens as Rate Cut Bets Increase', 'source': 'Financial Times', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Traders pricing in September cut'}
+                {'title': 'Bitcoin Shows Strong Momentum', 'source': 'Crypto News', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Market sentiment positive'},
+                {'title': 'Fed Signals Cautious Approach', 'source': 'Reuters', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Rate decisions pending data'},
+                {'title': 'Global Markets Mixed', 'source': 'Bloomberg', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Earnings season underway'},
+                {'title': 'Oil Prices Steady', 'source': 'CNBC', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Supply concerns ease'},
+                {'title': 'Tech Stocks Rally', 'source': 'Financial Times', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'AI optimism drives gains'}
             ]
         }
         return jsonify(mock_news)
@@ -986,18 +988,19 @@ def get_news():
 
 def get_mock_news():
     """Return mock news data when API fails"""
+    from datetime import datetime  # ← ADD THIS
+    
     mock_news = {
         'success': True,
         'articles': [
-            {'title': 'Bitcoin Surges Past $73,000', 'source': 'Crypto News', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Strong institutional demand drives prices higher'},
-            {'title': 'Fed Signals Rate Cuts Coming', 'source': 'Reuters', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Markets rally on dovish comments'},
-            {'title': 'Ethereum ETF Flows Hit Record', 'source': 'Bloomberg', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Institutional interest growing'},
-            {'title': 'Global Markets Rally on Tech Earnings', 'source': 'CNBC', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Strong earnings drive optimism'},
-            {'title': 'Dollar Weakens as Rate Cut Bets Increase', 'source': 'Financial Times', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Traders pricing in September cut'}
+            {'title': 'Bitcoin Shows Strong Momentum', 'source': 'Crypto News', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Market sentiment positive'},
+            {'title': 'Fed Signals Cautious Approach', 'source': 'Reuters', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Rate decisions pending data'},
+            {'title': 'Global Markets Mixed', 'source': 'Bloomberg', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Earnings season underway'},
+            {'title': 'Oil Prices Steady', 'source': 'CNBC', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'Supply concerns ease'},
+            {'title': 'Tech Stocks Rally', 'source': 'Financial Times', 'url': '#', 'publishedAt': datetime.now().isoformat(), 'description': 'AI optimism drives gains'}
         ]
     }
     return jsonify(mock_news)
-
 @app.route('/api/news/search', methods=['POST'])
 def search_news():
     """Search for news by keyword"""
