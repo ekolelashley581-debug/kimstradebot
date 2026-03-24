@@ -1705,29 +1705,30 @@ async function submitIdea() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ title, description })
         });
+        
+        // Check if the response is ok (status 200-299)
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.error || `HTTP ${res.status}`);
+        }
+        
         const data = await res.json();
         if (data.success) {
             alert('Idea submitted successfully!');
             document.getElementById('ideaTitle').value = '';
             document.getElementById('ideaDesc').value = '';
-            loadIdeas();
+            loadIdeas(); // Refresh the list of ideas
         } else {
             alert(data.error || 'Failed to submit idea');
         }
     } catch (error) {
-        alert('Network error. Please try again.');
+        console.error('Submit idea error:', error);
+        alert('Error submitting idea: ' + error.message);
     } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
     }
 }
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
 // ========================================
 // UPGRADE FUNCTIONS - REPLACE YOUR EXISTING showUpgrade() AND ADD THESE
 // ========================================
