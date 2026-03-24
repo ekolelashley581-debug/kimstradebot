@@ -735,6 +735,7 @@
         <div class="nav-item" onclick="navigate('ai')"><i class="fas fa-robot"></i><span>AI News</span><span class="badge" id="aiBadge">PREMIUM</span></div>
         <div class="nav-item" onclick="navigate('sources')"><i class="fas fa-newspaper"></i><span>News Sources</span></div>
         <div class="nav-item" onclick="navigate('ideas')"><i class="fas fa-lightbulb"></i><span>Market Ideas</span></div>
+        <div class="nav-item" onclick="navigate('asset-analyzer')"> <i class="fas fa-chart-line"></i> <span>Asset Analyzer</span></div>
         
         <div class="nav-divider"></div>
         <div class="nav-item" onclick="closeSidebarAndGo('/profile.html')"><i class="fas fa-user"></i> <span>Profile</span></div>
@@ -899,6 +900,7 @@
     else if (page === 'ai') showAINews();
     else if (page === 'sources') showSources();
     else if (page === 'ideas') showIdeas();
+    else if (page === 'asset-analyzer') showAssetAnalyzer();
 }
         
         function showDashboard() {
@@ -1037,6 +1039,186 @@ setInterval(() => loadRealPrices(), 30000); // Refresh every 30 seconds
     setInterval(() => loadLiveIndicators(), 30000);
 }
 
+function showAssetAnalyzer() {
+    // Fetch available assets
+    fetch(API + '/assets')
+        .then(r => r.json())
+        .then(data => {
+            const assets = data.assets;
+            
+            // Group assets by category
+            const freeAssets = assets.filter(a => a.tier === 'free');
+            const premiumAssets = assets.filter(a => a.tier === 'premium');
+            const proAssets = assets.filter(a => a.tier === 'pro');
+            
+            document.getElementById('contentArea').innerHTML = `
+                <!-- Asset Selector -->
+                <div class="card" style="margin-bottom: 20px;">
+                    <div class="card-header">
+                        <h3><i class="fas fa-search"></i> Select Asset to Analyze</h3>
+                        <div class="live-indicator"></div>
+                    </div>
+                    <div class="card-body">
+                        <div class="asset-search" style="margin-bottom: 20px;">
+                            <input type="text" id="assetSearch" placeholder="Search asset (e.g., BTC, TSLA, EURUSD)..." 
+                                   style="width: 100%; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text);"
+                                   onkeyup="filterAssets()">
+                        </div>
+                        
+                        <div id="freeAssetsSection" class="category-section" style="margin-bottom: 20px;">
+                            <h4 style="color: var(--text); margin-bottom: 10px;">🟢 Free Assets</h4>
+                            <div class="asset-grid" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                ${freeAssets.map(a => `
+                                    <button class="asset-btn" onclick="selectAsset('${a.symbol}', '${a.tier}')" 
+                                            data-symbol="${a.symbol}"
+                                            style="padding: 8px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; cursor: pointer;">
+                                        ${a.symbol}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div id="premiumAssetsSection" class="category-section" style="margin-bottom: 20px;">
+                            <h4 style="color: var(--text); margin-bottom: 10px;">⭐ Premium Assets <span style="font-size: 12px; color: gold;">(Upgrade to access)</span></h4>
+                            <div class="asset-grid" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                ${premiumAssets.map(a => `
+                                    <button class="asset-btn premium-locked" onclick="selectAsset('${a.symbol}', '${a.tier}')" 
+                                            data-symbol="${a.symbol}"
+                                            style="padding: 8px 16px; background: var(--bg); border: 1px solid gold; border-radius: 20px; cursor: pointer;">
+                                        ${a.symbol} 🔒
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div id="proAssetsSection" class="category-section">
+                            <h4 style="color: var(--text); margin-bottom: 10px;">👑 Pro Assets <span style="font-size: 12px; color: gold;">(Upgrade to access)</span></h4>
+                            <div class="asset-grid" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                ${proAssets.map(a => `
+                                    <button class="asset-btn pro-locked" onclick="selectAsset('${a.symbol}', '${a.tier}')" 
+                                            data-symbol="${a.symbol}"
+                                            style="padding: 8px 16px; background: var(--bg); border: 1px solid gold; border-radius: 20px; cursor: pointer;">
+                                        ${a.symbol} 🔒
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Analysis Result -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-line"></i> Analysis Result</h3>
+                        <button class="btn-primary" id="runAnalysisBtn" onclick="runAssetAnalysis()" disabled>
+                            <i class="fas fa-play"></i> Select Asset First
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="analysisResult">
+                            <div class="ai-welcome" style="text-align: center; padding: 40px;">
+                                <i class="fas fa-chart-line" style="font-size: 48px; color: var(--primary); margin-bottom: 20px;"></i>
+                                <h3 style="color: var(--text);">Select an Asset to Analyze</h3>
+                                <p style="color: var(--text-light);">Choose from the assets above to get detailed market analysis</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+}
+
+// Store selected asset
+let selectedAsset = null;
+let selectedAssetTier = null;
+
+function selectAsset(symbol, tier) {
+    selectedAsset = symbol;
+    selectedAssetTier = tier;
+    
+    // Update UI - highlight selected button
+    document.querySelectorAll('.asset-btn').forEach(btn => {
+        btn.style.background = 'var(--bg)';
+        btn.style.color = 'var(--text)';
+    });
+    event.currentTarget.style.background = 'var(--primary)';
+    event.currentTarget.style.color = 'white';
+    
+    // Check if user has access
+    fetch(API + '/asset/access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol: symbol })
+    })
+    .then(r => r.json())
+    .then(data => {
+        const runBtn = document.getElementById('runAnalysisBtn');
+        if (data.allowed) {
+            runBtn.disabled = false;
+            runBtn.innerHTML = `<i class="fas fa-play"></i> Analyze ${symbol}`;
+            runBtn.style.background = 'var(--primary)';
+            runBtn.style.color = 'white';
+            runBtn.onclick = function() { runAssetAnalysis(); };
+        } else {
+            runBtn.disabled = false;
+            runBtn.innerHTML = `<i class="fas fa-crown"></i> Upgrade to ${data.required_tier.toUpperCase()} to Analyze ${symbol}`;
+            runBtn.style.background = 'gold';
+            runBtn.style.color = 'black';
+            runBtn.onclick = function() { showUpgrade(); };
+        }
+    });
+}
+
+function filterAssets() {
+    const searchTerm = document.getElementById('assetSearch').value.toLowerCase();
+    const allButtons = document.querySelectorAll('.asset-btn');
+    
+    allButtons.forEach(btn => {
+        const symbol = btn.getAttribute('data-symbol').toLowerCase();
+        if (symbol.includes(searchTerm)) {
+            btn.style.display = 'inline-block';
+        } else {
+            btn.style.display = 'none';
+        }
+    });
+}
+
+function runAssetAnalysis() {
+    if (!selectedAsset) {
+        alert('Please select an asset first');
+        return;
+    }
+    
+    const resultDiv = document.getElementById('analysisResult');
+    resultDiv.innerHTML = '<div class="loading-spinner"></div><p style="text-align:center;">Analyzing ' + selectedAsset + '...</p>';
+    
+    fetch(API + '/ai-market-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ asset: selectedAsset })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            resultDiv.innerHTML = `
+                <div class="analysis-output">
+                    <div style="background: ${data.color === 'success' ? 'rgba(16,185,129,0.1)' : data.color === 'danger' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)'}; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                        <h2 style="color: var(--${data.color});">${selectedAsset}: ${data.recommendation}</h2>
+                        <div>Confidence: ${data.confidence}%</div>
+                    </div>
+                    <pre style="white-space: pre-wrap;">${data.analysis}</pre>
+                </div>
+            `;
+        } else {
+            resultDiv.innerHTML = `<div style="text-align:center; padding:40px;"><i class="fas fa-exclamation-triangle"></i><h3>Error</h3><p>${data.error}</p><button class="btn-primary" onclick="runAssetAnalysis()">Try Again</button></div>`;
+        }
+    })
+    .catch(error => {
+        console.error('Analysis error:', error);
+        resultDiv.innerHTML = `<div style="text-align:center; padding:40px;"><i class="fas fa-chart-line"></i><h3>Analysis Ready</h3><p>Click Analyze to get insights</p><button class="btn-primary" onclick="runAssetAnalysis()">Analyze ${selectedAsset}</button></div>`;
+    });
+}
+        
 async function loadLiveIndicators() {
     const container = document.getElementById('indicatorsContainer');
     if (!container) return;
