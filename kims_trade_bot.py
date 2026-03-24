@@ -1487,11 +1487,16 @@ def submit_idea():
 # REAL-TIME FOREX PRICES
 # ============================================
 
+# ============================================
+# REAL-TIME FOREX PRICES
+# ============================================
+
 @app.route('/api/forex-prices', methods=['GET'])
 def get_forex_prices():
     """Get real-time forex and commodity prices"""
+    from datetime import datetime
+    
     try:
-        import datetime
         response = requests.get("https://api.exchangerate.host/latest?base=USD", timeout=5)
         if response.status_code == 200:
             data = response.json()
