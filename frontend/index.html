@@ -655,6 +655,71 @@
         padding: 15px;
     }
 }
+        /* Responsive Styles - CORRECT VERSION */
+@media (max-width: 768px) {
+    /* Mobile styles - sidebar hidden by default */
+    .sidebar {
+        transform: translateX(-100%);
+        position: fixed;
+        transition: transform 0.3s ease;
+        z-index: 1000;
+    }
+    .sidebar.visible {
+        transform: translateX(0);
+    }
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+    .top-header i.fa-bars {
+        display: block !important;
+        cursor: pointer;
+    }
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    .two-column, .three-column, .pricing-grid {
+        grid-template-columns: 1fr;
+    }
+    .ai-grid {
+        grid-template-columns: 1fr;
+    }
+    .chart-controls {
+        flex-wrap: wrap;
+    }
+    .chart-btn {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+}
+
+/* Desktop styles - sidebar always visible */
+@media (min-width: 769px) {
+    .sidebar {
+        transform: translateX(0) !important;
+        position: fixed;
+        width: var(--sidebar-width);
+    }
+    .main-content {
+        margin-left: var(--sidebar-width);
+        width: calc(100% - var(--sidebar-width));
+    }
+    .top-header i.fa-bars {
+        display: none !important;
+    }
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    .two-column {
+        grid-template-columns: 2fr 1fr;
+    }
+    .three-column {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .ai-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
     </style>
 </head>
 <body>
