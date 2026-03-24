@@ -544,130 +544,150 @@
         // LOAD PROFILE
         // ========================================
         
-        async function loadProfile() {
-            let res = await fetch(API + '/user/profile');
-            let data = await res.json();
-            userData = data;
-            
-            let joinDate = new Date(data.joined).toLocaleDateString();
-            let trialEnd = data.trial_end ? new Date(data.trial_end).toLocaleDateString() : 'N/A';
-            let subEnd = data.subscription_end ? new Date(data.subscription_end).toLocaleDateString() : 'N/A';
-            
-            document.getElementById('contentArea').innerHTML = `
-                <div class="profile-container">
-                    <div class="profile-card">
-                        <div class="profile-cover"></div>
-                        <div class="profile-avatar" id="profileAvatar">${data.email.charAt(0).toUpperCase()}</div>
-                        
-                        <div class="profile-header">
-                            <div class="profile-name">${data.email.split('@')[0]}</div>
-                            <div class="profile-email">${data.email}</div>
-                            <span class="profile-badge" id="profileTier">${data.tier === 'free_trial' ? 'FREE TRIAL' : data.tier.toUpperCase()}</span>
-                        </div>
-                        
-                        <div class="profile-body">
-                            <div class="info-grid">
-                                <div class="info-section">
-                                    <div class="info-title"><i class="fas fa-user-circle"></i> Personal Information</div>
-                                    <div class="info-row">
-                                        <span class="info-label">Phone Number</span>
-                                        <span class="info-value" id="displayPhone">${data.phone || 'Not set'}</span>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="info-label">Country</span>
-                                        <span class="info-value" id="displayCountry">${data.country || 'CM'}</span>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="info-label">Language</span>
-                                        <span class="info-value" id="displayLang">${data.lang === 'fr' ? 'Français' : 'English'}</span>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="info-label">Member Since</span>
-                                        <span class="info-value">${joinDate}</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="info-section">
-                                    <div class="info-title"><i class="fas fa-crown"></i> Subscription</div>
-                                    <div class="info-row">
-                                        <span class="info-label">Current Plan</span>
-                                        <span class="info-value">${data.tier === 'free_trial' ? 'Free Trial' : data.tier.toUpperCase()}</span>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="info-label">Trial Ends</span>
-                                        <span class="info-value">${trialEnd}</span>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="info-label">Subscription Ends</span>
-                                        <span class="info-value">${subEnd}</span>
-                                    </div>
-                                    <div class="info-row">
-                                        <span class="info-label">Status</span>
-                                        <span class="info-value" style="color:var(--success);">Active</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div style="display:flex; gap:15px; justify-content:flex-end;">
-                                <button class="edit-btn" onclick="showEditForm()">
-                                    <i class="fas fa-edit"></i> Edit Profile
-                                </button>
-                                ${data.tier === 'free_trial' ? `
-                                    <button class="save-btn" onclick="window.location.href='/?upgrade'">
-                                        <i class="fas fa-crown"></i> Upgrade Now
-                                    </button>
-                                ` : ''}
-                            </div>
-                            
-                            <!-- Edit Form -->
-                            <div id="editForm" class="edit-form">
-                                <h3 style="color:var(--text); margin:30px 0 20px;">Edit Information</h3>
-                                
-                                <div class="form-group">
-                                    <label>Phone Number</label>
-                                    <input type="tel" id="editPhone" value="${data.phone || ''}" placeholder="67XXXXXX">
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label>Language</label>
-                                    <select id="editLang">
-                                        <option value="en" ${data.lang === 'en' ? 'selected' : ''}>English</option>
-                                        <option value="fr" ${data.lang === 'fr' ? 'selected' : ''}>Français</option>
-                                    </select>
-                                </div>
-                                
-                                <div style="display:flex; gap:15px;">
-                                    <button class="save-btn" onclick="saveProfile()">Save Changes</button>
-                                    <button class="cancel-btn" onclick="hideEditForm()">Cancel</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Payment History -->
-                    <div class="payment-history">
-                        <div class="payment-header">
-                            <h3><i class="fas fa-history" style="margin-right:10px; color:var(--primary);"></i> Payment History</h3>
-                        </div>
-                        <table class="payment-table" id="paymentTable">
-                            <thead>
-                                <tr><th>Date</th><th>Amount</th><th>Plan</th><th>Status</th></tr>
-                            </thead>
-                            <tbody id="paymentBody">
-                                <tr><td colspan="4" style="text-align:center; color:var(--text-light);">Loading payments...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <button class="back-btn" onclick="window.location.href='/'">
-                        <i class="fas fa-arrow-left"></i> Back to Dashboard
-                    </button>
-                </div>
-            `;
-            
-            loadPayments();
+       async function loadProfile() {
+    try {
+        const res = await fetch(API + '/user/profile');
+        
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
         }
         
+        const data = await res.json();
+        
+        // Check if data exists
+        if (!data || !data.email) {
+            console.error('No user data received');
+            document.getElementById('userName').innerText = 'User';
+            document.getElementById('userEmail').innerText = 'Not available';
+            return;
+        }
+        
+        let joinDate = data.joined ? new Date(data.joined).toLocaleDateString() : 'N/A';
+        let trialEnd = data.trial_end ? new Date(data.trial_end).toLocaleDateString() : 'N/A';
+        let subEnd = data.subscription_end ? new Date(data.subscription_end).toLocaleDateString() : 'N/A';
+        
+        document.getElementById('contentArea').innerHTML = `
+            <div class="profile-container">
+                <div class="profile-card">
+                    <div class="profile-cover"></div>
+                    <div class="profile-avatar" id="profileAvatar">${data.email ? data.email.charAt(0).toUpperCase() : 'U'}</div>
+                    
+                    <div class="profile-header">
+                        <div class="profile-name">${data.email ? data.email.split('@')[0] : 'User'}</div>
+                        <div class="profile-email">${data.email || 'No email'}</div>
+                        <span class="profile-badge" id="profileTier">${data.tier === 'free_trial' ? 'FREE TRIAL' : (data.tier ? data.tier.toUpperCase() : 'FREE')}</span>
+                    </div>
+                    
+                    <div class="profile-body">
+                        <div class="info-grid">
+                            <div class="info-section">
+                                <div class="info-title"><i class="fas fa-user-circle"></i> Personal Information</div>
+                                <div class="info-row">
+                                    <span class="info-label">Phone Number</span>
+                                    <span class="info-value" id="displayPhone">${data.phone || 'Not set'}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Country</span>
+                                    <span class="info-value" id="displayCountry">${data.country || 'CM'}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Language</span>
+                                    <span class="info-value" id="displayLang">${data.lang === 'fr' ? 'Français' : 'English'}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Member Since</span>
+                                    <span class="info-value">${joinDate}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="info-section">
+                                <div class="info-title"><i class="fas fa-crown"></i> Subscription</div>
+                                <div class="info-row">
+                                    <span class="info-label">Current Plan</span>
+                                    <span class="info-value">${data.tier === 'free_trial' ? 'Free Trial' : (data.tier ? data.tier.toUpperCase() : 'Free')}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Trial Ends</span>
+                                    <span class="info-value">${trialEnd}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Subscription Ends</span>
+                                    <span class="info-value">${subEnd}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Status</span>
+                                    <span class="info-value" style="color:var(--success);">Active</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="display:flex; gap:15px; justify-content:flex-end;">
+                            <button class="edit-btn" onclick="showEditForm()">
+                                <i class="fas fa-edit"></i> Edit Profile
+                            </button>
+                            ${data.tier === 'free_trial' ? `
+                                <button class="save-btn" onclick="window.location.href='/?upgrade'">
+                                    <i class="fas fa-crown"></i> Upgrade Now
+                                </button>
+                            ` : ''}
+                        </div>
+                        
+                        <div id="editForm" class="edit-form">
+                            <h3 style="color:var(--text); margin:30px 0 20px;">Edit Information</h3>
+                            
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="tel" id="editPhone" value="${data.phone || ''}" placeholder="67XXXXXX">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Language</label>
+                                <select id="editLang">
+                                    <option value="en" ${data.lang === 'en' ? 'selected' : ''}>English</option>
+                                    <option value="fr" ${data.lang === 'fr' ? 'selected' : ''}>Français</option>
+                                </select>
+                            </div>
+                            
+                            <div style="display:flex; gap:15px;">
+                                <button class="save-btn" onclick="saveProfile()">Save Changes</button>
+                                <button class="cancel-btn" onclick="hideEditForm()">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="payment-history">
+                    <div class="payment-header">
+                        <h3><i class="fas fa-history" style="margin-right:10px; color:var(--primary);"></i> Payment History</h3>
+                    </div>
+                    <table class="payment-table" id="paymentTable">
+                        <thead>
+                            <tr><th>Date</th><th>Amount</th><th>Plan</th><th>Status</th> </thead>
+                        <tbody id="paymentBody">
+                            <tr><td colspan="4" style="text-align:center; color:var(--text-light);">Loading payments...</td> </tbody>
+                     </table>
+                </div>
+                
+                <button class="back-btn" onclick="window.location.href='/'">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </button>
+            </div>
+        `;
+        
+        loadPayments();
+        
+    } catch (error) {
+        console.error('Error loading profile:', error);
+        document.getElementById('contentArea').innerHTML = `
+            <div style="text-align: center; padding: 50px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: var(--danger);"></i>
+                <h3>Error Loading Profile</h3>
+                <p>${error.message}</p>
+                <button class="btn-primary" onclick="location.reload()">Try Again</button>
+            </div>
+        `;
+    }
+}
         // ========================================
         // LOAD PAYMENTS
         // ========================================
