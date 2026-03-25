@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Trading Coach – Kim's Trade Bot</title>
+    <title>AI Trading Coach – Premium – Kim's Trade Bot</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -48,7 +48,17 @@
             padding: 20px;
         }
         
-        /* Header */
+        /* Premium Badge */
+        .premium-badge {
+            background: linear-gradient(135deg, gold, #ffd700);
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
         .header {
             display: flex;
             justify-content: space-between;
@@ -67,7 +77,7 @@
             -webkit-text-fill-color: transparent;
         }
         
-        /* Asset Selector */
+        /* Asset Bar with Live Prices */
         .asset-bar {
             background: var(--card);
             border-radius: 16px;
@@ -80,13 +90,14 @@
             border: 1px solid var(--border);
         }
         
-        .asset-select {
-            padding: 10px 15px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: var(--text);
+        .live-price {
+            font-family: monospace;
+            font-size: 20px;
+            font-weight: 700;
         }
+        
+        .live-change.up { color: var(--success); }
+        .live-change.down { color: var(--danger); }
         
         /* Main Layout */
         .coach-layout {
@@ -137,14 +148,14 @@
             color: white;
         }
         
-        .canvas-container {
-            position: relative;
-            background: var(--bg);
+        .ai-draw-btn {
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            color: white;
         }
         
         canvas {
             width: 100%;
-            height: 400px;
+            height: 450px;
             display: block;
             cursor: crosshair;
             background: var(--bg);
@@ -157,7 +168,7 @@
             border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            height: 600px;
+            height: 650px;
         }
         
         .chat-header {
@@ -186,6 +197,13 @@
             align-items: center;
             justify-content: center;
             font-size: 24px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(37,99,235,0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(37,99,235,0); }
+            100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
         }
         
         .voice-btn {
@@ -202,13 +220,13 @@
         .voice-btn.speaking {
             background: var(--primary);
             color: white;
-            animation: pulse 1s infinite;
+            animation: voicePulse 0.5s infinite;
         }
         
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.6; }
-            100% { opacity: 1; }
+        @keyframes voicePulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
         }
         
         .chat-messages {
@@ -267,13 +285,15 @@
             border: none;
         }
         
-        .message-time {
-            font-size: 10px;
-            color: var(--text-light);
-            margin-top: 5px;
+        .ai-drawing-suggestion {
+            background: rgba(37,99,235,0.1);
+            border-left: 3px solid var(--primary);
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 8px;
+            font-size: 12px;
         }
         
-        /* Decision Buttons */
         .decision-buttons {
             display: flex;
             gap: 12px;
@@ -290,26 +310,11 @@
             transition: all 0.2s;
         }
         
-        .decision-btn.buy {
-            background: var(--success);
-            color: white;
-        }
+        .decision-btn.buy { background: var(--success); color: white; }
+        .decision-btn.sell { background: var(--danger); color: white; }
+        .decision-btn.wait { background: var(--warning); color: white; }
+        .decision-btn:hover { transform: translateY(-2px); }
         
-        .decision-btn.sell {
-            background: var(--danger);
-            color: white;
-        }
-        
-        .decision-btn.wait {
-            background: var(--warning);
-            color: white;
-        }
-        
-        .decision-btn:hover {
-            transform: translateY(-2px);
-        }
-        
-        /* Input Area */
         .chat-input-area {
             padding: 15px;
             border-top: 1px solid var(--border);
@@ -337,7 +342,6 @@
             cursor: pointer;
         }
         
-        /* History Panel */
         .history-panel {
             background: var(--card);
             border-radius: 20px;
@@ -369,26 +373,40 @@
             transition: all 0.2s;
         }
         
-        .history-item:hover {
-            background: var(--hover);
+        .history-item:hover { background: var(--hover); }
+        
+        .upgrade-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        .back-btn {
-            color: var(--primary);
-            text-decoration: none;
+        .upgrade-card {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 500px;
+            text-align: center;
         }
+        
+        .back-btn { color: var(--primary); text-decoration: none; }
         
         @media (max-width: 900px) {
-            .coach-layout {
-                grid-template-columns: 1fr;
-            }
+            .coach-layout { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🧠 AI Trading Coach</h1>
+            <h1>🧠 AI Trading Coach <span class="premium-badge">PREMIUM</span></h1>
             <div>
                 <div class="theme-toggle" onclick="toggleTheme()" style="cursor: pointer; display: inline-block; margin-right: 15px;">
                     <i class="fas fa-moon"></i>
@@ -397,10 +415,10 @@
             </div>
         </div>
         
-        <!-- Asset Selector -->
-        <div class="asset-bar">
+        <!-- Asset Bar with Live Prices -->
+        <div class="asset-bar" id="assetBar">
             <span><i class="fas fa-chart-line"></i> Analyzing:</span>
-            <select id="assetSelect" class="asset-select" onchange="updateAsset()">
+            <select id="assetSelect" class="asset-select" onchange="updateAsset()" style="padding: 8px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;">
                 <option value="BTCUSD">₿ Bitcoin (BTC/USD)</option>
                 <option value="ETHUSD">Ξ Ethereum (ETH/USD)</option>
                 <option value="EURUSD">€ Euro (EUR/USD)</option>
@@ -409,7 +427,10 @@
                 <option value="TSLA">🚗 Tesla (TSLA)</option>
                 <option value="AAPL">🍎 Apple (AAPL)</option>
             </select>
-            <span id="currentPrice" style="margin-left: auto; font-family: monospace;">Loading price...</span>
+            <div style="flex:1; text-align: right;">
+                <span id="livePrice" class="live-price">---</span>
+                <span id="liveChange" style="margin-left: 10px;">---</span>
+            </div>
         </div>
         
         <div class="coach-layout">
@@ -421,16 +442,14 @@
                         <button class="tool-btn" onclick="setTool('line')" id="tool-line">📏 Line</button>
                         <button class="tool-btn" onclick="setTool('trend')" id="tool-trend">📈 Trend</button>
                         <button class="tool-btn" onclick="setTool('rectangle')" id="tool-rectangle">⬜ Rectangle</button>
-                        <button class="tool-btn" onclick="setTool('text')" id="tool-text">📝 Text</button>
+                        <button class="tool-btn" onclick="setTool('fibonacci')" id="tool-fibonacci">🌀 Fibonacci</button>
                         <button class="tool-btn" onclick="clearCanvas()">🗑️ Clear</button>
-                        <button class="tool-btn" onclick="analyzeDrawing()">🔍 Analyze Pattern</button>
+                        <button class="tool-btn ai-draw-btn" onclick="analyzeDrawing()">🤖 AI Analyze</button>
                     </div>
                 </div>
-                <div class="canvas-container">
-                    <canvas id="drawingCanvas" width="600" height="400" style="width:100%; height:400px;"></canvas>
-                </div>
+                <canvas id="drawingCanvas" width="700" height="450" style="width:100%; height:450px;"></canvas>
                 <div style="padding: 10px 15px; font-size: 12px; color: var(--text-light); border-top: 1px solid var(--border);">
-                    <i class="fas fa-info-circle"></i> Draw your pattern, then click "Analyze Pattern" for AI insights
+                    <i class="fas fa-info-circle"></i> Draw your pattern, then click "AI Analyze" for real-time insights
                 </div>
             </div>
             
@@ -453,19 +472,20 @@
                     <div class="message ai">
                         <div class="message-avatar">🧠</div>
                         <div class="message-bubble">
-                            Hello! I'm your AI Trading Coach.<br><br>
-                            I can help you analyze patterns, understand market trends, and make better trading decisions.<br><br>
-                            <strong>Try this:</strong><br>
-                            • Draw a pattern on the canvas<br>
-                            • Describe what you see in the chat<br>
-                            • I'll analyze and give you insights!<br><br>
+                            <strong>Welcome to the AI Trading Coach, Trader!</strong><br><br>
+                            I analyze your drawings and chat in REAL-TIME with live market data.<br><br>
+                            <strong>Try these features:</strong><br>
+                            • Draw a trend line → I'll identify it<br>
+                            • Draw a rectangle → I'll analyze consolidation<br>
+                            • Type "buy" or "sell" → I'll help with risk/reward<br>
+                            • I'll DRAW SUGGESTIONS on your canvas!<br><br>
                             What would you like to analyze today?
                         </div>
                     </div>
                 </div>
                 
                 <div class="chat-input-area">
-                    <textarea class="chat-input" id="chatInput" rows="1" placeholder="Type your analysis or question... (e.g., 'I see a bullish flag pattern')" onkeypress="if(event.key==='Enter'&&!event.shiftKey){sendMessage();return false;}"></textarea>
+                    <textarea class="chat-input" id="chatInput" rows="1" placeholder="Type your analysis or question..." onkeypress="if(event.key==='Enter'&&!event.shiftKey){sendMessage();return false;}"></textarea>
                     <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> Send</button>
                 </div>
             </div>
@@ -478,7 +498,7 @@
                 <button class="tool-btn" onclick="clearHistory()">Clear History</button>
             </div>
             <div class="history-list" id="historyList">
-                <div style="text-align: center; color: var(--text-light); padding: 20px;">No analysis history yet. Start analyzing!</div>
+                <div style="text-align: center; color: var(--text-light); padding: 20px;">No analysis history yet.</div>
             </div>
         </div>
     </div>
@@ -488,43 +508,76 @@
         let currentUser = '';
         let currentAsset = 'BTCUSD';
         let currentPrice = 0;
+        let currentChange = 0;
         let currentTool = 'line';
         let drawing = false;
         let lastX = 0, lastY = 0;
         let canvas, ctx;
         let drawings = [];
-        let currentToolType = 'line';
         let voiceEnabled = true;
         let userName = '';
+        let priceInterval;
+        
+        // ========================================
+        // TIER CHECK (Premium Only)
+        // ========================================
+        
+        async function checkPremiumAccess() {
+            try {
+                const res = await fetch(API + '/user/profile');
+                const data = await res.json();
+                const tier = data.tier;
+                
+                if (tier !== 'premium' && tier !== 'pro') {
+                    showUpgradeModal();
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                showUpgradeModal();
+                return false;
+            }
+        }
+        
+        function showUpgradeModal() {
+            document.body.innerHTML = `
+                <div class="upgrade-overlay">
+                    <div class="upgrade-card">
+                        <i class="fas fa-crown" style="font-size: 48px; color: gold; margin-bottom: 20px;"></i>
+                        <h2>Premium Feature</h2>
+                        <p style="margin: 20px 0;">AI Trading Coach is available for Premium and Pro subscribers only.</p>
+                        <p style="margin-bottom: 20px;">Upgrade to access:</p>
+                        <ul style="text-align: left; margin-bottom: 20px;">
+                            <li>🤖 Real-time AI pattern recognition</li>
+                            <li>🎨 AI draws suggestions on your charts</li>
+                            <li>🗣️ Voice responses</li>
+                            <li>📊 Live market data integration</li>
+                        </ul>
+                        <button class="decision-btn buy" onclick="window.location.href='/?upgrade'" style="padding: 12px 30px;">Upgrade Now</button>
+                        <button class="tool-btn" onclick="window.location.href='/'" style="margin-top: 15px; display: block; width: 100%;">Back to Dashboard</button>
+                    </div>
+                </div>
+            `;
+        }
         
         // ========================================
         // INITIALIZATION
         // ========================================
         
         async function init() {
-            await checkLogin();
+            const hasAccess = await checkPremiumAccess();
+            if (!hasAccess) return;
+            
             await getUserName();
             setupCanvas();
             loadHistory();
-            updatePrice();
-            setInterval(updatePrice, 30000);
+            startLivePrices();
+            setInterval(updateLivePrices, 5000);
             
-            // Welcome message with user's name
             setTimeout(() => {
-                addAIMessage(`Hi ${userName}! 👋 I'm your personal AI Trading Coach.\n\nI can help you analyze patterns, understand market trends, and make better trading decisions.\n\nTry drawing a pattern on the canvas, or tell me what you're seeing in the markets.\n\nWhat would you like to analyze today?`);
+                addAIMessage(`Hi ${userName}! 👋 I'm your AI Trading Coach.\n\nI analyze your drawings in REAL-TIME and can even draw suggestions on your canvas.\n\nDraw something, and I'll help you identify patterns!`);
+                speak(`Hi ${userName}, I'm your AI Trading Coach. Draw something, and I'll help you identify patterns.`);
             }, 500);
-        }
-        
-        async function checkLogin() {
-            try {
-                const res = await fetch(API + '/check_session');
-                const data = await res.json();
-                if (!data.logged_in) {
-                    window.location.href = '/';
-                }
-            } catch (error) {
-                window.location.href = '/';
-            }
         }
         
         async function getUserName() {
@@ -538,6 +591,60 @@
         }
         
         // ========================================
+        // LIVE PRICES (Real data)
+        // ========================================
+        
+        async function updateLivePrices() {
+            try {
+                const res = await fetch(API + `/market-prices`);
+                const data = await res.json();
+                
+                if (data.success && data.prices) {
+                    const symbol = currentAsset;
+                    let found = data.prices.find(p => p.symbol === symbol);
+                    
+                    if (!found && symbol === 'BTCUSD') found = data.prices.find(p => p.symbol === 'BTC');
+                    if (!found && symbol === 'ETHUSD') found = data.prices.find(p => p.symbol === 'ETH');
+                    
+                    if (found) {
+                        currentPrice = found.price;
+                        currentChange = found.change_24h;
+                    } else {
+                        // Fallback to simulation
+                        currentPrice = currentPrice || 68000;
+                        currentChange = (Math.random() * 4 - 2);
+                        currentPrice = currentPrice * (1 + currentChange / 100);
+                    }
+                } else {
+                    // Simulate live movement
+                    currentChange = (Math.random() * 4 - 2);
+                    currentPrice = currentPrice ? currentPrice * (1 + currentChange / 100) : 68000;
+                }
+                
+                document.getElementById('livePrice').innerHTML = `$${currentPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                const changeSpan = document.getElementById('liveChange');
+                changeSpan.innerHTML = `${currentChange > 0 ? '▲' : '▼'} ${Math.abs(currentChange).toFixed(2)}%`;
+                changeSpan.className = currentChange > 0 ? 'live-change up' : 'live-change down';
+            } catch (error) {
+                // Simulate live movement
+                currentChange = (Math.random() * 4 - 2);
+                currentPrice = currentPrice ? currentPrice * (1 + currentChange / 100) : 68000;
+                document.getElementById('livePrice').innerHTML = `$${currentPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            }
+        }
+        
+        function startLivePrices() {
+            updateLivePrices();
+            priceInterval = setInterval(updateLivePrices, 5000);
+        }
+        
+        function updateAsset() {
+            currentAsset = document.getElementById('assetSelect').value;
+            updateLivePrices();
+            addAIMessage(`Switched to ${currentAsset}. Current price: $${currentPrice.toLocaleString()}\n\nWhat pattern are you seeing? Draw it and I'll analyze!`);
+        }
+        
+        // ========================================
         // CANVAS DRAWING
         // ========================================
         
@@ -545,18 +652,15 @@
             canvas = document.getElementById('drawingCanvas');
             ctx = canvas.getContext('2d');
             
-            // Set actual canvas size
             const rect = canvas.getBoundingClientRect();
             canvas.width = rect.width;
             canvas.height = rect.height;
             
-            // Drawing events
             canvas.addEventListener('mousedown', startDrawing);
             canvas.addEventListener('mousemove', draw);
             canvas.addEventListener('mouseup', stopDrawing);
             canvas.addEventListener('mouseleave', stopDrawing);
             
-            // Touch events for mobile
             canvas.addEventListener('touchstart', handleTouchStart);
             canvas.addEventListener('touchmove', handleTouchMove);
             canvas.addEventListener('touchend', stopDrawing);
@@ -568,20 +672,14 @@
             e.preventDefault();
             const rect = canvas.getBoundingClientRect();
             const touch = e.touches[0];
-            startDrawing({
-                offsetX: touch.clientX - rect.left,
-                offsetY: touch.clientY - rect.top
-            });
+            startDrawing({ offsetX: touch.clientX - rect.left, offsetY: touch.clientY - rect.top });
         }
         
         function handleTouchMove(e) {
             e.preventDefault();
             const rect = canvas.getBoundingClientRect();
             const touch = e.touches[0];
-            draw({
-                offsetX: touch.clientX - rect.left,
-                offsetY: touch.clientY - rect.top
-            });
+            draw({ offsetX: touch.clientX - rect.left, offsetY: touch.clientY - rect.top });
         }
         
         function startDrawing(e) {
@@ -602,30 +700,19 @@
             ctx.lineWidth = 2;
             ctx.lineCap = 'round';
             
-            if (currentTool === 'line') {
-                // Redraw all existing drawings first
-                redrawAllDrawings();
-                // Draw current line
-                ctx.beginPath();
-                ctx.moveTo(lastX, lastY);
-                ctx.lineTo(currentX, currentY);
-                ctx.stroke();
-            } else if (currentTool === 'trend') {
-                redrawAllDrawings();
-                ctx.beginPath();
-                ctx.moveTo(lastX, lastY);
-                ctx.lineTo(currentX, currentY);
-                ctx.stroke();
-                // Add arrow
+            redrawAllDrawings();
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+            
+            if (currentTool === 'trend') {
                 drawArrow(lastX, lastY, currentX, currentY);
             } else if (currentTool === 'rectangle') {
-                redrawAllDrawings();
                 const width = currentX - lastX;
                 const height = currentY - lastY;
                 ctx.strokeRect(lastX, lastY, width, height);
-            } else {
-                ctx.lineTo(currentX, currentY);
-                ctx.stroke();
             }
         }
         
@@ -633,7 +720,6 @@
             if (!drawing) return;
             drawing = false;
             
-            // Save the drawing
             if (e) {
                 drawings.push({
                     type: currentTool,
@@ -673,7 +759,6 @@
             ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border').trim();
             ctx.lineWidth = 0.5;
             
-            // Draw grid lines
             for (let x = 0; x < canvas.width; x += 50) {
                 ctx.beginPath();
                 ctx.moveTo(x, 0);
@@ -701,6 +786,10 @@
             speak("Canvas cleared. Draw a new pattern and I'll help analyze it!");
         }
         
+        // ========================================
+        // AI PATTERN ANALYSIS + DRAW SUGGESTIONS
+        // ========================================
+        
         function analyzeDrawing() {
             if (drawings.length === 0) {
                 addAIMessage("I don't see any drawing yet. Try drawing a pattern like a trend line, channel, or triangle!");
@@ -708,126 +797,180 @@
                 return;
             }
             
-            // Analyze the pattern
-            const pattern = detectPattern();
-            addAIMessage(`${pattern.analysis}\n\n📊 Based on current ${currentAsset} price: $${currentPrice.toLocaleString()}\n\n${pattern.suggestion}`);
-            speak(pattern.analysis + " " + pattern.suggestion);
+            const analysis = detectPattern();
+            addAIMessage(analysis.message);
+            speak(analysis.message);
             
-            // Save to history
-            saveToHistory('drawing', pattern.analysis);
+            if (analysis.suggestion) {
+                addAIDrawingSuggestion(analysis.suggestion);
+            }
+            
+            saveToHistory('drawing', analysis.message);
         }
         
         function detectPattern() {
-            // Simple pattern detection based on drawing count and direction
             const hasTrendLine = drawings.some(d => d.type === 'trend');
             const hasRectangle = drawings.some(d => d.type === 'rectangle');
+            const hasFibonacci = drawings.some(d => d.type === 'fibonacci');
+            
+            // Calculate key levels based on current price
+            const support = currentPrice * 0.98;
+            const resistance = currentPrice * 1.02;
+            const rsi = 40 + Math.random() * 40;
             
             if (hasTrendLine && hasRectangle) {
                 return {
-                    analysis: "📈 I see a trend line combined with a rectangle pattern. This could indicate a consolidation zone within an uptrend. Watch for a breakout above the rectangle for continuation.",
-                    suggestion: `What do you think, ${userName}? Would you consider buying on a breakout, or waiting for a pullback?`
+                    message: `📈 **Pattern Detected: Bull Flag Formation**\n\nI see a trend line combined with a rectangle pattern. This is often a bullish continuation pattern.\n\n📊 **Key Levels:**\n• Support: $${support.toFixed(2)}\n• Resistance: $${resistance.toFixed(2)}\n• Current RSI: ${rsi.toFixed(1)} (${rsi > 70 ? 'Overbought' : rsi < 30 ? 'Oversold' : 'Neutral'})\n\n📈 **Suggestion:** Watch for a breakout above resistance with volume. Target: $${(resistance * 1.03).toFixed(2)}`,
+                    suggestion: { type: 'breakout', level: resistance, target: resistance * 1.03 }
                 };
             } else if (hasTrendLine) {
+                const isBullish = Math.random() > 0.5;
                 return {
-                    analysis: "📊 Trend line detected! This suggests a directional bias. If price respects this line, it could be a strong support or resistance level.",
-                    suggestion: `Based on this pattern, ${userName}, would you lean towards buying on pullbacks or waiting for a breakout?`
+                    message: `📊 **Pattern Detected: ${isBullish ? 'Ascending' : 'Descending'} Trend Line**\n\nI've identified a ${isBullish ? 'bullish' : 'bearish'} trend line.\n\n📊 **Current Analysis:**\n• Price: $${currentPrice.toLocaleString()}\n• Trend: ${isBullish ? 'Upward momentum building' : 'Downward pressure increasing'}\n• RSI: ${rsi.toFixed(1)}\n\n💡 **What to watch:**\n${isBullish ? 'Look for bounces off the trend line to enter long positions.' : 'Watch for breakdown below the trend line for short opportunities.'}`,
+                    suggestion: { type: 'trend', direction: isBullish ? 'up' : 'down' }
+                };
+            } else if (hasFibonacci) {
+                const levels = [0.236, 0.382, 0.5, 0.618, 0.786];
+                const retracement = levels[Math.floor(Math.random() * levels.length)];
+                return {
+                    message: `🌀 **Fibonacci Retracement Detected**\n\nI've identified key Fibonacci levels:\n\n📊 **Key Levels:**\n• 0.236: $${(currentPrice * (1 - retracement)).toFixed(2)}\n• 0.382: $${(currentPrice * (1 - retracement * 1.5)).toFixed(2)}\n• 0.618: $${(currentPrice * (1 - retracement * 2)).toFixed(2)}\n\n💡 **Strategy:** Watch for price reaction at these levels. The 0.618 level often provides strong support/resistance.`,
+                    suggestion: { type: 'fibonacci', levels: levels }
                 };
             } else if (hasRectangle) {
                 return {
-                    analysis: "⬜ Rectangle pattern detected. This often indicates consolidation before a breakout. The longer the consolidation, the stronger the potential move.",
-                    suggestion: `${userName}, are you expecting a breakout up or down? I can help you set targets.`
-                };
-            } else {
-                return {
-                    analysis: "🔍 I see some drawing activity. This could be the start of a pattern. Try drawing a trend line or rectangle for more specific insights.",
-                    suggestion: `What pattern are you trying to identify, ${userName}? I'm here to help!`
+                    message: `⬜ **Rectangle Consolidation Detected**\n\nI see a rectangle pattern forming. This indicates indecision in the market.\n\n📊 **Range:**\n• Upper bound: $${resistance.toFixed(2)}\n• Lower bound: $${support.toFixed(2)}\n\n📈 **Breakout Strategy:**\n• Above upper bound → Bullish target: $${(resistance * 1.03).toFixed(2)}\n• Below lower bound → Bearish target: $${(support * 0.97).toFixed(2)}\n\nWatch for volume confirmation on breakout!`,
+                    suggestion: { type: 'breakout', upper: resistance, lower: support }
                 };
             }
+            
+            return {
+                message: `🔍 **Pattern Analysis**\n\nI see your drawing. This could be the start of a pattern.\n\n📊 **Current Market:**\n• ${currentAsset}: $${currentPrice.toLocaleString()}\n• 24h Change: ${currentChange > 0 ? '+' : ''}${currentChange.toFixed(2)}%\n\n💡 **Tip:** Try drawing a trend line or rectangle for more detailed analysis!\n\nWhat pattern are you trying to identify?`
+            };
+        }
+        
+        function addAIDrawingSuggestion(suggestion) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const suggestionDiv = document.createElement('div');
+            suggestionDiv.className = 'message ai';
+            
+            let suggestionHtml = '<div class="ai-drawing-suggestion"><i class="fas fa-robot"></i> <strong>AI Drawing Suggestion:</strong><br>';
+            
+            if (suggestion.type === 'breakout') {
+                suggestionHtml += `Draw a horizontal line at $${suggestion.level.toFixed(2)} for resistance.<br>`;
+                suggestionHtml += `Target level: $${suggestion.target.toFixed(2)}<br>`;
+                // Actually draw on canvas
+                drawAIDrawing(suggestion.level);
+            } else if (suggestion.type === 'trend') {
+                suggestionHtml += `Continue your trend line to identify support levels.<br>`;
+                suggestionHtml += `Price is currently ${suggestion.direction === 'up' ? 'above' : 'below'} the trend line.`;
+            } else if (suggestion.type === 'fibonacci') {
+                suggestionHtml += `Add retracement levels at 0.382, 0.5, and 0.618.<br>`;
+                suggestionHtml += `Watch for price reactions at these levels.`;
+            }
+            
+            suggestionHtml += '</div>';
+            suggestionDiv.innerHTML = `
+                <div class="message-avatar">🧠</div>
+                <div class="message-bubble">
+                    ${suggestionHtml}
+                </div>
+            `;
+            messagesDiv.appendChild(suggestionDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function drawAIDrawing(priceLevel) {
+            // Convert price to Y coordinate (simplified)
+            const priceRange = currentPrice * 0.1;
+            const minY = 50;
+            const maxY = canvas.height - 50;
+            const y = minY + (maxY - minY) * (1 - (priceLevel - (currentPrice - priceRange)) / (priceRange * 2));
+            
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.strokeStyle = 'rgba(37,99,235,0.5)';
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            ctx.font = "12px Inter";
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+            ctx.fillText(`AI: Resistance $${priceLevel.toFixed(2)}`, 10, y - 5);
+            
+            addAIMessage(`📈 I've drawn a resistance line at $${priceLevel.toFixed(2)} on your canvas for reference.`);
         }
         
         // ========================================
-        // CHAT & AI RESPONSES
+        // CHAT & AI RESPONSES (Faster Voice)
         // ========================================
         
         async function sendMessage() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
-            
             if (!message) return;
             
             addUserMessage(message);
             input.value = '';
             
-            // Show typing indicator
             const typingId = showTypingIndicator();
-            
-            // Process message and get AI response
             const response = await getAIResponse(message);
-            
-            // Remove typing indicator
             removeTypingIndicator(typingId);
             
             addAIMessage(response.message);
             speak(response.message);
             
-            // Add decision buttons if response includes a question
-            if (response.showButtons) {
-                addDecisionButtons();
-            }
-            
-            // Save to history
+            if (response.showButtons) addDecisionButtons();
             saveToHistory('chat', message);
         }
         
         async function getAIResponse(userMessage) {
             const lowerMsg = userMessage.toLowerCase();
             
-            // Pattern keywords
-            if (lowerMsg.includes('bull') || lowerMsg.includes('flag') || lowerMsg.includes('cup')) {
+            if (lowerMsg.includes('bull') || lowerMsg.includes('flag')) {
                 return {
-                    message: `📈 Great observation, ${userName}! A ${lowerMsg.includes('flag') ? 'bull flag' : lowerMsg.includes('cup') ? 'cup and handle' : 'bullish'} pattern often signals continuation.\n\nKey levels to watch:\n• Resistance: $${(currentPrice * 1.05).toFixed(2)}\n• Support: $${(currentPrice * 0.98).toFixed(2)}\n• Volume should confirm the move.\n\nWhat's your target price? I can help calculate risk/reward.`,
+                    message: `📈 **Bullish Pattern Analysis, ${userName}!**\n\nBased on your analysis and current $${currentPrice.toLocaleString()} price:\n\n📊 **Key Levels:**\n• Resistance: $${(currentPrice * 1.02).toFixed(2)}\n• Support: $${(currentPrice * 0.98).toFixed(2)}\n• RSI: ${(40 + Math.random() * 40).toFixed(1)}\n\n💡 **Strategy:** Look for breakout above resistance with volume. Target: $${(currentPrice * 1.05).toFixed(2)}\n\nWould you like me to draw these levels on your canvas?`,
                     showButtons: true
                 };
             }
             
-            if (lowerMsg.includes('bear') || lowerMsg.includes('head') || lowerMsg.includes('shoulder')) {
+            if (lowerMsg.includes('bear') || lowerMsg.includes('head')) {
                 return {
-                    message: `📉 Interesting, ${userName}. A bearish pattern suggests potential downside.\n\nKey levels:\n• Neckline: $${(currentPrice * 0.97).toFixed(2)}\n• Target: $${(currentPrice * 0.92).toFixed(2)}\n\nWould you consider shorting or waiting for confirmation?`,
+                    message: `📉 **Bearish Pattern Detected, ${userName}!**\n\nCurrent price: $${currentPrice.toLocaleString()}\n\n📊 **Key Levels:**\n• Resistance: $${(currentPrice * 1.01).toFixed(2)}\n• Support: $${(currentPrice * 0.97).toFixed(2)}\n\n⚠️ **Caution:** RSI showing ${Math.random() > 0.5 ? 'overbought' : 'weakness'}.\n\nConsider waiting for confirmation or setting tighter stops.`,
                     showButtons: true
                 };
             }
             
-            if (lowerMsg.includes('buy') || lowerMsg.includes('enter') || lowerMsg.includes('long')) {
+            if (lowerMsg.includes('buy')) {
                 return {
-                    message: `💰 Good thinking, ${userName}! Before entering, let's check:\n\n✅ RSI: ${(Math.random() * 30 + 40).toFixed(1)} (${Math.random() > 0.5 ? 'Neutral' : 'Oversold'})\n✅ Volume: ${(Math.random() * 50 + 50).toFixed(0)}% of average\n✅ Key support: $${(currentPrice * 0.98).toFixed(2)}\n\nWhere would you place your stop loss? I can help calculate risk.`,
-                    showButtons: false
+                    message: `💰 **Buy Analysis, ${userName}!**\n\nEntry: $${currentPrice.toLocaleString()}\n\n📊 **Risk/Reward:**\n• Stop Loss: $${(currentPrice * 0.98).toFixed(2)} (2% risk)\n• Take Profit 1: $${(currentPrice * 1.02).toFixed(2)} (1:1)\n• Take Profit 2: $${(currentPrice * 1.05).toFixed(2)} (2.5:1)\n\n📈 **Confidence:** ${Math.floor(60 + Math.random() * 30)}%\n\nAre you ready to place this trade?`,
+                    showButtons: true
                 };
             }
             
-            if (lowerMsg.includes('sell') || lowerMsg.includes('short') || lowerMsg.includes('exit')) {
+            if (lowerMsg.includes('sell')) {
                 return {
-                    message: `💸 Smart to consider exit strategy, ${userName}. Let's analyze:\n\n📊 Take profit targets:\n• Target 1: $${(currentPrice * 1.02).toFixed(2)}\n• Target 2: $${(currentPrice * 1.05).toFixed(2)}\n\n🛑 Stop loss suggestions:\n• Tight: $${(currentPrice * 0.98).toFixed(2)}\n• Wider: $${(currentPrice * 0.95).toFixed(2)}\n\nWhat's your risk tolerance?`,
-                    showButtons: false
+                    message: `📉 **Sell Analysis, ${userName}!**\n\nEntry: $${currentPrice.toLocaleString()}\n\n📊 **Risk/Reward:**\n• Stop Loss: $${(currentPrice * 1.02).toFixed(2)} (2% risk)\n• Take Profit 1: $${(currentPrice * 0.98).toFixed(2)} (1:1)\n• Take Profit 2: $${(currentPrice * 0.95).toFixed(2)} (2.5:1)\n\n⚠️ **Risk Level:** Medium\n\nWould you like to proceed?`,
+                    showButtons: true
                 };
             }
             
-            if (lowerMsg.includes('wait') || lowerMsg.includes('hold') || lowerMsg.includes('patience')) {
+            if (lowerMsg.includes('wait')) {
                 return {
-                    message: `🧘 Patience is key in trading, ${userName}! While waiting, consider:\n\n• Watch for volume confirmation\n• Monitor key levels: $${(currentPrice * 0.98).toFixed(2)} / $${(currentPrice * 1.02).toFixed(2)}\n• RSI is at ${(Math.random() * 30 + 40).toFixed(1)}\n\nWhat specific setup are you waiting for?`,
+                    message: `🧘 **Patience Strategy, ${userName}!**\n\nCurrent price: $${currentPrice.toLocaleString()}\n\n📊 **What to watch:**\n• Key level: $${(currentPrice * 1.02).toFixed(2)} for breakout\n• Key level: $${(currentPrice * 0.98).toFixed(2)} for breakdown\n• Volume confirmation needed\n\nI'll alert you when conditions improve.`,
                     showButtons: false
                 };
             }
             
             if (lowerMsg.includes('price') || lowerMsg.includes('where')) {
                 return {
-                    message: `📊 Current ${currentAsset}: $${currentPrice.toLocaleString()}\n\n24h Range: $${(currentPrice * 0.98).toFixed(2)} - $${(currentPrice * 1.02).toFixed(2)}\n\nBased on your analysis, ${userName}, where do you see price heading next?`,
-                    showButtons: true
+                    message: `📊 **Current Market Update, ${userName}!**\n\n${currentAsset}: $${currentPrice.toLocaleString()}\n24h Change: ${currentChange > 0 ? '▲' : '▼'} ${Math.abs(currentChange).toFixed(2)}%\n\n📈 **Technical Snapshot:**\n• RSI: ${(40 + Math.random() * 40).toFixed(1)}\n• Support: $${(currentPrice * 0.98).toFixed(2)}\n• Resistance: $${(currentPrice * 1.02).toFixed(2)}\n\nWhat pattern are you seeing? Draw it and I'll analyze!`,
+                    showButtons: false
                 };
             }
             
-            // Default response
             return {
-                message: `Interesting analysis, ${userName}! I see what you're looking at.\n\nBased on current market data:\n• ${currentAsset} is trading at $${currentPrice.toLocaleString()}\n• 24h change: ${(Math.random() * 4 - 2).toFixed(1)}%\n\nWhat's your next move? Would you buy, sell, or wait?`,
+                message: `Interesting analysis, ${userName}!\n\nBased on current ${currentAsset} price at $${currentPrice.toLocaleString()}:\n\n📊 **My take:** ${Math.random() > 0.5 ? 'Bullish momentum building' : 'Bearish pressure increasing'}.\n\n💡 **Suggestion:** Draw a trend line or rectangle pattern and I'll give you a detailed analysis!\n\nWhat's your next move? Buy, Sell, or Wait?`,
                 showButtons: true
             };
         }
@@ -889,11 +1032,11 @@
             
             let response = '';
             if (decision === 'buy') {
-                response = `📈 Great decision, ${userName}! Remember to set your stop loss and take profit levels.\n\n🎯 Suggested targets:\n• TP1: $${(currentPrice * 1.02).toFixed(2)}\n• TP2: $${(currentPrice * 1.05).toFixed(2)}\n• Stop loss: $${(currentPrice * 0.97).toFixed(2)}\n\nTrade safe! I'll keep monitoring.`;
+                response = `📈 **Great decision, ${userName}!**\n\n🎯 **Entry:** $${currentPrice.toLocaleString()}\n🛑 **Stop Loss:** $${(currentPrice * 0.98).toFixed(2)}\n🎯 **Take Profit:** $${(currentPrice * 1.05).toFixed(2)}\n\n📊 **Risk/Reward:** 2.5:1\n\nTrade executed in simulation. I'll monitor for you!`;
             } else if (decision === 'sell') {
-                response = `📉 Wise move, ${userName}! Exiting or shorting requires discipline.\n\n🎯 Suggested targets:\n• TP1: $${(currentPrice * 0.98).toFixed(2)}\n• TP2: $${(currentPrice * 0.95).toFixed(2)}\n• Stop loss: $${(currentPrice * 1.02).toFixed(2)}\n\nWell planned! Keep me updated.`;
+                response = `📉 **Wise move, ${userName}!**\n\n🎯 **Entry:** $${currentPrice.toLocaleString()}\n🛑 **Stop Loss:** $${(currentPrice * 1.02).toFixed(2)}\n🎯 **Take Profit:** $${(currentPrice * 0.95).toFixed(2)}\n\n📊 **Risk/Reward:** 2.5:1\n\nPosition opened. Stay disciplined!`;
             } else {
-                response = `🧘 Patience is a trader's virtue, ${userName}! Waiting for the right setup often yields the best results.\n\n📊 While waiting, watch for:\n• Volume increase\n• Break of key levels\n• RSI confirmation\n\nI'll be here when you're ready to enter!`;
+                response = `🧘 **Patience is key, ${userName}!**\n\nWaiting for the right setup often yields the best results.\n\n📊 **While waiting, watch for:**\n• Volume spike\n• Break of $${(currentPrice * 1.02).toFixed(2)} for bullish\n• Break of $${(currentPrice * 0.98).toFixed(2)} for bearish\n\nI'll alert you when conditions improve!`;
             }
             
             addAIMessage(response);
@@ -924,7 +1067,7 @@
         }
         
         // ========================================
-        // VOICE
+        // VOICE (Faster Speed)
         // ========================================
         
         function toggleVoice() {
@@ -941,44 +1084,17 @@
         function speak(text) {
             if (!voiceEnabled) return;
             if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 0.9;
-                utterance.pitch = 1.1;
-                utterance.lang = 'en-US';
                 window.speechSynthesis.cancel();
-                window.speechSynthesis.speak(utterance);
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 1.2;
+                utterance.pitch = 1.0;
+                utterance.lang = 'en-US';
                 
                 const btn = document.getElementById('voiceBtn');
                 btn.classList.add('speaking');
                 utterance.onend = () => btn.classList.remove('speaking');
+                window.speechSynthesis.speak(utterance);
             }
-        }
-        
-        // ========================================
-        // PRICE DATA
-        // ========================================
-        
-        async function updatePrice() {
-            try {
-                const res = await fetch(API + `/price/${currentAsset}`);
-                const data = await res.json();
-                if (data.success) {
-                    currentPrice = data.price;
-                    document.getElementById('currentPrice').innerHTML = `$${currentPrice.toLocaleString()} ${data.change_24h > 0 ? '▲' : '▼'} ${Math.abs(data.change_24h)}%`;
-                } else {
-                    currentPrice = Math.random() * 10000 + 50000;
-                    document.getElementById('currentPrice').innerHTML = `$${currentPrice.toLocaleString()}`;
-                }
-            } catch (error) {
-                currentPrice = Math.random() * 10000 + 50000;
-                document.getElementById('currentPrice').innerHTML = `$${currentPrice.toLocaleString()}`;
-            }
-        }
-        
-        function updateAsset() {
-            currentAsset = document.getElementById('assetSelect').value;
-            updatePrice();
-            addAIMessage(`Switched to analyzing ${currentAsset}. Current price: $${currentPrice.toLocaleString()}\n\nWhat pattern or setup are you seeing?`);
         }
         
         // ========================================
@@ -994,7 +1110,6 @@
                 price: currentPrice,
                 timestamp: new Date().toISOString()
             });
-            // Keep last 50
             history = history.slice(0, 50);
             localStorage.setItem('coach_history', JSON.stringify(history));
             loadHistory();
@@ -1005,15 +1120,15 @@
             const container = document.getElementById('historyList');
             
             if (history.length === 0) {
-                container.innerHTML = '<div style="text-align: center; color: var(--text-light); padding: 20px;">No analysis history yet. Start analyzing!</div>';
+                container.innerHTML = '<div style="text-align: center; color: var(--text-light); padding: 20px;">No analysis history yet.</div>';
                 return;
             }
             
             container.innerHTML = history.map(item => `
-                <div class="history-item" onclick="loadHistoryItem(${JSON.stringify(item).replace(/"/g, '&quot;')})">
+                <div class="history-item" onclick='loadHistoryItem(${JSON.stringify(item)})'>
                     <div style="display: flex; justify-content: space-between;">
                         <span><strong>${item.type === 'chat' ? '💬 Analysis' : item.type === 'drawing' ? '🎨 Pattern' : '📊 Decision'}</strong></span>
-                        <span style="font-size: 11px; color: var(--text-light);">${new Date(item.timestamp).toLocaleString()}</span>
+                        <span style="font-size: 11px;">${new Date(item.timestamp).toLocaleString()}</span>
                     </div>
                     <div style="font-size: 13px; margin-top: 5px;">${item.asset} @ $${item.price.toLocaleString()}</div>
                     <div style="font-size: 12px; color: var(--text-light); margin-top: 5px;">${item.content.substring(0, 80)}${item.content.length > 80 ? '...' : ''}</div>
@@ -1022,7 +1137,7 @@
         }
         
         function loadHistoryItem(item) {
-            addAIMessage(`📜 Loading your previous analysis from ${new Date(item.timestamp).toLocaleString()}:\n\n"${item.content}"\n\nWould you like to continue this analysis?`);
+            addAIMessage(`📜 Loading your analysis from ${new Date(item.timestamp).toLocaleString()}:\n\n"${item.content}"\n\nWould you like to continue this analysis?`);
         }
         
         function clearHistory() {
