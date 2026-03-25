@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Hub – Kim's Trade Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --text: #ffffff;
+            --text-light: #cbd5e1;
+            --border: #334155;
+            --card: #1e293b;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --text-light: #475569;
+            --border: #e2e8f0;
+            --card: #ffffff;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header-right {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        /* Notification Bell */
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+            font-size: 20px;
+            color: var(--text);
+        }
+        
+        .badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 10px;
+            display: none;
+        }
+        
+        /* Notifications Dropdown */
+        .notifications-dropdown {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            width: 350px;
+            max-height: 400px;
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 1000;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .notifications-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .notification-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+        
+        .notification-item.unread {
+            background: rgba(37,99,235,0.1);
+        }
+        
+        .notification-item:hover {
+            background: var(--hover);
+        }
+        
+        /* Create Post Form */
+        .create-post {
+            background: var(--card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .create-post input, .create-post textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 14px;
+        }
+        
+        .create-post textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        /* Post Card */
+        .post-card {
+            background: var(--card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .post-author {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .post-time {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        .post-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+        
+        .post-content {
+            color: var(--text-light);
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .post-actions {
+            display: flex;
+            gap: 15px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .post-actions button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .post-actions button:hover {
+            color: var(--primary);
+        }
+        
+        /* Replies Section */
+        .replies-section {
+            margin-top: 15px;
+            margin-left: 20px;
+            padding-left: 15px;
+            border-left: 2px solid var(--border);
+        }
+        
+        .reply {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .reply-author {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .reply-content {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+        
+        .mention {
+            color: var(--primary);
+            font-weight: 500;
+            background: rgba(37,99,235,0.1);
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        
+        .reply-form {
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .reply-form textarea {
+            width: 100%;
+            padding: 10px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .btn-secondary {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        
+        .loading-spinner {
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            .notifications-dropdown {
+                width: 300px;
+                right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💬 Community Hub</h1>
+            <div class="header-right">
+                <div class="notification-bell" onclick="toggleNotifications()">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge" id="notificationBadge">0</span>
+                </div>
+                <div class="theme-toggle" onclick="toggleTheme()" style="cursor: pointer;">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <a href="/" class="back-btn">← Dashboard</a>
+            </div>
+        </div>
+        
+        <!-- Notifications Dropdown -->
+        <div class="notifications-dropdown" id="notificationsDropdown">
+            <div class="notifications-header">
+                <strong>Notifications</strong>
+                <button onclick="markAllRead()" style="background: none; border: none; color: var(--primary); cursor: pointer;">Mark all read</button>
+            </div>
+            <div id="notificationsList">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+        
+        <!-- Create Post Form -->
+        <div class="create-post">
+            <input type="text" id="postTitle" placeholder="Post title (e.g., BTC Bullish Pattern)">
+            <textarea id="postContent" placeholder="Share your market analysis, trading idea, or question..."></textarea>
+            <button class="btn-primary" onclick="createPost()">📝 Post Idea</button>
+        </div>
+        
+        <!-- Posts Feed -->
+        <div id="postsFeed">
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+    
+    <script>
+        const API = '/api';
+        let currentUser = null;
+        
+        // ========================================
+        // INITIALIZATION
+        // ========================================
+        
+        async function init() {
+            await checkLogin();
+            await loadPosts();
+            await loadNotifications();
+            setInterval(loadNotifications, 30000);
+        }
+        
+        async function checkLogin() {
+            try {
+                const res = await fetch(API + '/check_session');
+                const data = await res.json();
+                if (data.logged_in) {
+                    currentUser = data.email;
+                } else {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                window.location.href = '/';
+            }
+        }
+        
+        // ========================================
+        // POSTS
+        // ========================================
+        
+        async function loadPosts() {
+            try {
+                const res = await fetch(API + '/ideas');
+                const data = await res.json();
+                const container = document.getElementById('postsFeed');
+                
+                if (data.ideas && data.ideas.length > 0) {
+                    container.innerHTML = '';
+                    
+                    for (const post of data.ideas) {
+                        // Fetch replies for this post
+                        const repliesRes = await fetch(API + `/ideas/${post.id}/replies`);
+                        const repliesData = await repliesRes.json();
+                        const replies = repliesData.replies || [];
+                        
+                        const postDiv = document.createElement('div');
+                        postDiv.className = 'post-card';
+                        postDiv.innerHTML = `
+                            <div class="post-header">
+                                <span class="post-author">${escapeHtml(post.user_email)}</span>
+                                <span class="post-time">${new Date(post.created_at).toLocaleString()}</span>
+                            </div>
+                            <div class="post-title">${escapeHtml(post.title)}</div>
+                            <div class="post-content">${escapeHtml(post.description)}</div>
+                            
+                            <div class="post-actions">
+                                <button onclick="likePost(${post.id}, this)">
+                                    <i class="far fa-heart"></i> <span class="like-count">0</span>
+                                </button>
+                                <button onclick="toggleReplyForm(${post.id})">
+                                    <i class="far fa-comment"></i> <span class="reply-count">${replies.length}</span>
+                                </button>
+                                <button onclick="sharePost(${post.id}, '${escapeHtml(post.title).replace(/'/g, "\\'")}')">
+                                    <i class="fas fa-share-alt"></i> Share
+                                </button>
+                            </div>
+                            
+                            <div class="replies-section" id="replies-${post.id}">
+                                ${replies.map(reply => `
+                                    <div class="reply">
+                                        <div class="reply-author">${escapeHtml(reply.user_email)}</div>
+                                        <div class="reply-content">${highlightMentions(escapeHtml(reply.content))}</div>
+                                        <div style="font-size: 11px; color: var(--text-light); margin-top: 5px;">${new Date(reply.created_at).toLocaleString()}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            
+                            <div class="reply-form" id="reply-form-${post.id}">
+                                <textarea id="reply-content-${post.id}" rows="2" placeholder="Write a reply... (Use @username to mention someone)"></textarea>
+                                <button class="btn-primary" onclick="submitReply(${post.id})">Post Reply</button>
+                                <button class="btn-secondary" onclick="toggleReplyForm(${post.id})">Cancel</button>
+                            </div>
+                        `;
+                        container.appendChild(postDiv);
+                    }
+                } else {
+                    container.innerHTML = '<p style="text-align: center; color: var(--text-light);">No posts yet. Be the first to share an idea!</p>';
+                }
+            } catch (error) {
+                console.error('Error loading posts:', error);
+                document.getElementById('postsFeed').innerHTML = '<p style="color: var(--danger);">Error loading posts</p>';
+            }
+        }
+        
+        async function createPost() {
+            const title = document.getElementById('postTitle').value;
+            const description = document.getElementById('postContent').value;
+            
+            if (!title || !description) {
+                alert('Please fill in both title and description');
+                return;
+            }
+            
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch(API + '/ideas/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    document.getElementById('postTitle').value = '';
+                    document.getElementById('postContent').value = '';
+                    await loadPosts();
+                } else {
+                    alert(data.error || 'Failed to post');
+                }
+            } catch (error) {
+                alert('Network error. Please try again.');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+        
+        // ========================================
+        // REPLIES WITH MENTIONS
+        // ========================================
+        
+        function toggleReplyForm(postId) {
+            const form = document.getElementById(`reply-form-${postId}`);
+            if (form) {
+                form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+        
+        async function submitReply(postId) {
+            const content = document.getElementById(`reply-content-${postId}`).value;
+            
+            if (!content.trim()) {
+                alert('Please enter a reply');
+                return;
+            }
+            
+            // Detect mentions (@username)
+            const mentionRegex = /@(\w+)/g;
+            const mentions = [...content.matchAll(mentionRegex)].map(m => m[1]);
+            
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch(API + `/ideas/${postId}/reply`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        content: content.trim(),
+                        mentions: mentions 
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    document.getElementById(`reply-content-${postId}`).value = '';
+                    toggleReplyForm(postId);
+                    await loadPosts();
+                    
+                    if (mentions.length > 0) {
+                        alert(`✅ Reply posted! You mentioned: ${mentions.join(', ')}`);
+                    }
+                } else {
+                    alert(data.error || 'Failed to post reply');
+                }
+            } catch (error) {
+                alert('Network error. Please try again.');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+        
+        function highlightMentions(text) {
+            return text.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
+        }
+        
+        // ========================================
+        // LIKES
+        // ========================================
+        
+        async function likePost(postId, button) {
+            try {
+                const res = await fetch(API + `/ideas/${postId}/like`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    const likeSpan = button.querySelector('.like-count');
+                    if (likeSpan) {
+                        likeSpan.innerText = data.likes_count || '0';
+                    }
+                }
+            } catch (error) {
+                console.log('Like error:', error);
+            }
+        }
+        
+        // ========================================
+        // SHARING
+        // ========================================
+        
+        function sharePost(postId, title) {
+            const url = `${window.location.origin}/idea.html?id=${postId}`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    url: url
+                });
+            } else {
+                // Fallback
+                const shareUrl = `https://wa.me/?text=${encodeURIComponent(`Check out: ${title}\n\n${url}`)}`;
+                window.open(shareUrl, '_blank');
+            }
+        }
+        
+        // ========================================
+        // NOTIFICATIONS
+        // ========================================
+        
+        let notifications = [];
+        let unreadCount = 0;
+        
+        async function loadNotifications() {
+            try {
+                const res = await fetch(API + '/notifications');
+                const data = await res.json();
+                
+                if (data.success) {
+                    notifications = data.notifications;
+                    unreadCount = notifications.filter(n => !n.is_read).length;
+                    
+                    const badge = document.getElementById('notificationBadge');
+                    if (badge) {
+                        if (unreadCount > 0) {
+                            badge.style.display = 'inline';
+                            badge.innerText = unreadCount > 99 ? '99+' : unreadCount;
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                    
+                    updateNotificationsList();
+                }
+            } catch (error) {
+                console.log('Error loading notifications:', error);
+            }
+        }
+        
+        function updateNotificationsList() {
+            const container = document.getElementById('notificationsList');
+            if (!container) return;
+            
+            if (notifications.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-light); padding: 20px;">No notifications</p>';
+                return;
+            }
+            
+            container.innerHTML = notifications.map(notif => `
+                <div class="notification-item ${!notif.is_read ? 'unread' : ''}" onclick="viewNotification(${notif.id}, ${notif.related_id})">
+                    <div style="font-size: 13px;">${escapeHtml(notif.content)}</div>
+                    <div style="font-size: 10px; color: var(--text-light); margin-top: 5px;">${new Date(notif.created_at).toLocaleString()}</div>
+                </div>
+            `).join('');
+        }
+        
+        function viewNotification(notifId, postId) {
+            // Mark as read
+            fetch(API + '/notifications/mark-read', { method: 'POST' });
+            // Close dropdown
+            document.getElementById('notificationsDropdown').style.display = 'none';
+            // Scroll to post
+            const post = document.querySelector(`.post-card`);
+            if (post) {
+                post.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+        
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notificationsDropdown');
+            if (dropdown) {
+                if (dropdown.style.display === 'none' || !dropdown.style.display) {
+                    dropdown.style.display = 'block';
+                    loadNotifications();
+                } else {
+                    dropdown.style.display = 'none';
+                }
+            }
+        }
+        
+        async function markAllRead() {
+            try {
+                await fetch(API + '/notifications/mark-read', { method: 'POST' });
+                loadNotifications();
+                const badge = document.getElementById('notificationBadge');
+                if (badge) badge.style.display = 'none';
+            } catch (error) {
+                console.log('Error marking read:', error);
+            }
+        }
+        
+        // ========================================
+        // UTILITIES
+        // ========================================
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function toggleTheme() {
+            let html = document.documentElement;
+            let current = html.getAttribute('data-theme');
+            let newTheme = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+        
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        init();
+    </script>
+</body>
+</html>
