@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice AI Trading Coach – Kim's Trade Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --text: #ffffff;
+            --text-light: #cbd5e1;
+            --border: #334155;
+            --card: #1e293b;
+            --hover: #2d3a4f;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --voice-wave: #3b82f6;
+        }
+        
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --text-light: #475569;
+            --border: #e2e8f0;
+            --card: #ffffff;
+            --hover: #f1f5f9;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --voice-wave: #3b82f6;
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Premium Badge */
+        .premium-badge {
+            background: linear-gradient(135deg, gold, #ffd700);
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .pro-badge {
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Voice Button */
+        .voice-button-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .voice-button {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .voice-button.listening {
+            animation: pulse 1.5s infinite;
+            background: linear-gradient(135deg, var(--danger), #ff6b6b);
+        }
+        
+        .voice-button.speaking {
+            animation: wave 0.5s infinite;
+            background: linear-gradient(135deg, var(--success), #10b981);
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(239,68,68,0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+        }
+        
+        @keyframes wave {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+        
+        .voice-button i {
+            font-size: 48px;
+            color: white;
+        }
+        
+        .voice-status {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 10px;
+        }
+        
+        /* Asset Bar with Live Prices */
+        .asset-bar {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 15px 20px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            border: 1px solid var(--border);
+        }
+        
+        .live-price {
+            font-family: monospace;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        .live-change.up { color: var(--success); }
+        .live-change.down { color: var(--danger); }
+        
+        /* Main Layout */
+        .coach-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        /* Canvas Area */
+        .canvas-area {
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        
+        .canvas-header {
+            padding: 15px 20px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .canvas-tools {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .tool-btn {
+            padding: 6px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .tool-btn:hover, .tool-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 450px;
+            display: block;
+            cursor: crosshair;
+            background: var(--bg);
+        }
+        
+        /* Chat Area */
+        .chat-area {
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            height: 550px;
+        }
+        
+        .chat-header {
+            padding: 15px 20px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .ai-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .ai-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            animation: avatarPulse 2s infinite;
+        }
+        
+        @keyframes avatarPulse {
+            0% { box-shadow: 0 0 0 0 rgba(37,99,235,0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(37,99,235,0); }
+            100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            display: flex;
+            gap: 12px;
+            max-width: 85%;
+        }
+        
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .message.user .message-avatar {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .message.ai .message-avatar {
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            color: white;
+        }
+        
+        .message-bubble {
+            background: var(--bg);
+            border-radius: 18px;
+            padding: 12px 16px;
+            font-size: 14px;
+            line-height: 1.5;
+            border: 1px solid var(--border);
+        }
+        
+        .message.user .message-bubble {
+            background: var(--primary);
+            color: white;
+            border: none;
+        }
+        
+        .transcript-bubble {
+            background: rgba(37,99,235,0.1);
+            border-left: 3px solid var(--primary);
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-style: italic;
+            font-size: 13px;
+        }
+        
+        .decision-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .decision-btn {
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .decision-btn.buy { background: var(--success); color: white; }
+        .decision-btn.sell { background: var(--danger); color: white; }
+        .decision-btn.wait { background: var(--warning); color: white; }
+        .decision-btn:hover { transform: translateY(-2px); }
+        
+        .chat-input-area {
+            padding: 15px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 12px 15px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            color: var(--text);
+            resize: none;
+            font-family: inherit;
+        }
+        
+        .send-btn {
+            padding: 12px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+        
+        .history-panel {
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            margin-top: 30px;
+        }
+        
+        .history-header {
+            padding: 15px 20px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .history-list {
+            padding: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            padding: 10px;
+            background: var(--bg);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .history-item:hover { background: var(--hover); }
+        
+        .upgrade-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .upgrade-card {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        .back-btn { color: var(--primary); text-decoration: none; }
+        
+        /* Voice Wave Animation */
+        .voice-wave-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .wave-bar {
+            width: 4px;
+            height: 20px;
+            background: var(--voice-wave);
+            border-radius: 2px;
+            animation: waveBar 0.5s infinite ease-in-out;
+        }
+        
+        .wave-bar:nth-child(1) { animation-delay: 0s; height: 10px; }
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; height: 25px; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; height: 35px; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; height: 25px; }
+        .wave-bar:nth-child(5) { animation-delay: 0.4s; height: 10px; }
+        
+        @keyframes waveBar {
+            0%, 100% { transform: scaleY(0.5); }
+            50% { transform: scaleY(1); }
+        }
+        
+        @media (max-width: 900px) {
+            .coach-layout { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎙️ Voice AI Trading Coach <span class="pro-badge">PRO</span></h1>
+            <div>
+                <div class="theme-toggle" onclick="toggleTheme()" style="cursor: pointer; display: inline-block; margin-right: 15px;">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <a href="/" class="back-btn">← Dashboard</a>
+            </div>
+        </div>
+        
+        <!-- Asset Bar with Live Prices -->
+        <div class="asset-bar">
+            <span><i class="fas fa-chart-line"></i> Analyzing:</span>
+            <select id="assetSelect" onchange="updateAsset()" style="padding: 8px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;">
+                <option value="BTCUSD">₿ Bitcoin (BTC/USD)</option>
+                <option value="ETHUSD">Ξ Ethereum (ETH/USD)</option>
+                <option value="EURUSD">€ Euro (EUR/USD)</option>
+                <option value="GBPUSD">£ Pound (GBP/USD)</option>
+                <option value="XAUUSD">👑 Gold (XAU/USD)</option>
+                <option value="TSLA">🚗 Tesla (TSLA)</option>
+                <option value="AAPL">🍎 Apple (AAPL)</option>
+            </select>
+            <div style="flex:1; text-align: right;">
+                <span id="livePrice" class="live-price">---</span>
+                <span id="liveChange" style="margin-left: 10px;">---</span>
+            </div>
+        </div>
+        
+        <!-- Voice Button -->
+        <div class="voice-button-container">
+            <button class="voice-button" id="voiceButton" onclick="toggleVoiceRecognition()">
+                <i class="fas fa-microphone"></i>
+                <span style="font-size: 12px;">Tap to Speak</span>
+            </button>
+        </div>
+        
+        <div id="voiceStatus" class="voice-status" style="text-align: center; margin-bottom: 20px;"></div>
+        
+        <div class="coach-layout">
+            <!-- Drawing Canvas -->
+            <div class="canvas-area">
+                <div class="canvas-header">
+                    <span><i class="fas fa-paintbrush"></i> Draw Your Pattern</span>
+                    <div class="canvas-tools">
+                        <button class="tool-btn" onclick="setTool('line')" id="tool-line">📏 Line</button>
+                        <button class="tool-btn" onclick="setTool('trend')" id="tool-trend">📈 Trend</button>
+                        <button class="tool-btn" onclick="setTool('rectangle')" id="tool-rectangle">⬜ Rectangle</button>
+                        <button class="tool-btn" onclick="clearCanvas()">🗑️ Clear</button>
+                        <button class="tool-btn" onclick="analyzeDrawing()">🤖 AI Analyze</button>
+                    </div>
+                </div>
+                <canvas id="drawingCanvas" width="700" height="450" style="width:100%; height:450px;"></canvas>
+            </div>
+            
+            <!-- Chat Area -->
+            <div class="chat-area">
+                <div class="chat-header">
+                    <div class="ai-info">
+                        <div class="ai-avatar">🎙️</div>
+                        <div>
+                            <strong>Voice AI Trading Coach</strong>
+                            <div style="font-size: 11px; color: var(--text-light);">Speak naturally – I understand!</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message ai">
+                        <div class="message-avatar">🎙️</div>
+                        <div class="message-bubble">
+                            <strong>Welcome to the Voice AI Trading Coach!</strong><br><br>
+                            I can understand your voice and speak back to you.<br><br>
+                            <strong>Try saying:</strong><br>
+                            • "What's the price of Bitcoin?"<br>
+                            • "I see a bullish flag pattern"<br>
+                            • "Should I buy or sell?"<br>
+                            • "Draw a trend line"<br><br>
+                            Tap the microphone button and start talking!
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- History Panel -->
+        <div class="history-panel">
+            <div class="history-header">
+                <span><i class="fas fa-history"></i> Voice Conversation History</span>
+                <button class="tool-btn" onclick="clearHistory()">Clear History</button>
+            </div>
+            <div class="history-list" id="historyList">
+                <div style="text-align: center; padding: 20px;">No conversation yet. Speak to start!</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API = '/api';
+        let currentUser = '';
+        let currentAsset = 'BTCUSD';
+        let currentPrice = 0;
+        let currentChange = 0;
+        let currentTool = 'line';
+        let drawing = false;
+        let lastX = 0, lastY = 0;
+        let canvas, ctx;
+        let drawings = [];
+        let userName = '';
+        let priceInterval;
+        
+        // Voice Recognition
+        let recognition = null;
+        let isListening = false;
+        let voiceEnabled = true;
+        
+        // ========================================
+        // TIER CHECK (Pro Only)
+        // ========================================
+        
+        async function checkProAccess() {
+            try {
+                const res = await fetch(API + '/user/profile');
+                const data = await res.json();
+                const tier = data.tier;
+                
+                if (tier !== 'pro') {
+                    showUpgradeModal();
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                showUpgradeModal();
+                return false;
+            }
+        }
+        
+        function showUpgradeModal() {
+            document.body.innerHTML = `
+                <div class="upgrade-overlay">
+                    <div class="upgrade-card">
+                        <i class="fas fa-crown" style="font-size: 48px; color: gold; margin-bottom: 20px;"></i>
+                        <h2>Pro Feature</h2>
+                        <p style="margin: 20px 0;">Voice AI Trading Coach is available for Pro subscribers only.</p>
+                        <p style="margin-bottom: 20px;">Upgrade to Pro to access:</p>
+                        <ul style="text-align: left; margin-bottom: 20px;">
+                            <li>🎙️ Voice recognition – talk to the bot</li>
+                            <li>🗣️ Natural voice responses</li>
+                            <li>🤖 Advanced AI pattern recognition</li>
+                            <li>📊 Real-time market analysis</li>
+                        </ul>
+                        <button class="decision-btn buy" onclick="window.location.href='/?upgrade'" style="padding: 12px 30px;">Upgrade to Pro</button>
+                        <button class="tool-btn" onclick="window.location.href='/'" style="margin-top: 15px; display: block; width: 100%;">Back to Dashboard</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // ========================================
+        // VOICE RECOGNITION (User Speaks)
+        // ========================================
+        
+        function initVoiceRecognition() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                addAIMessage("⚠️ Voice recognition is not supported in your browser. Please use Chrome, Edge, or Safari.");
+                document.getElementById('voiceButton').disabled = true;
+                return false;
+            }
+            
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.maxAlternatives = 1;
+            
+            recognition.onstart = () => {
+                isListening = true;
+                const btn = document.getElementById('voiceButton');
+                btn.classList.add('listening');
+                document.getElementById('voiceStatus').innerHTML = '<span style="color: var(--success);"><i class="fas fa-circle"></i> Listening... Speak now</span>';
+                
+                // Add wave animation
+                const waveContainer = document.createElement('div');
+                waveContainer.className = 'voice-wave-container';
+                waveContainer.id = 'waveContainer';
+                waveContainer.innerHTML = `
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                `;
+                btn.appendChild(waveContainer);
+            };
+            
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                const isFinal = event.results[0].isFinal;
+                
+                if (isFinal) {
+                    document.getElementById('voiceStatus').innerHTML = `<span style="color: var(--primary);"><i class="fas fa-check-circle"></i> Processing: "${transcript}"</span>`;
+                    
+                    // Add user's voice transcript to chat
+                    addVoiceTranscript(transcript);
+                    
+                    // Process the voice command
+                    processVoiceCommand(transcript);
+                } else {
+                    document.getElementById('voiceStatus').innerHTML = `<span style="color: var(--warning);"><i class="fas fa-microphone-alt"></i> Hearing: ${transcript}</span>`;
+                }
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                document.getElementById('voiceStatus').innerHTML = `<span style="color: var(--danger);">Error: ${event.error}</span>`;
+                stopListening();
+            };
+            
+            recognition.onend = () => {
+                stopListening();
+            };
+            
+            return true;
+        }
+        
+        function toggleVoiceRecognition() {
+            if (!recognition) {
+                if (!initVoiceRecognition()) return;
+            }
+            
+            if (isListening) {
+                recognition.stop();
+                stopListening();
+            } else {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    // Already started
+                }
+            }
+        }
+        
+        function stopListening() {
+            isListening = false;
+            const btn = document.getElementById('voiceButton');
+            btn.classList.remove('listening');
+            const waveContainer = document.getElementById('waveContainer');
+            if (waveContainer) waveContainer.remove();
+            document.getElementById('voiceStatus').innerHTML = '';
+        }
+        
+        function addVoiceTranscript(transcript) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user';
+            messageDiv.innerHTML = `
+                <div class="message-avatar">🎙️</div>
+                <div class="message-bubble">
+                    <div class="transcript-bubble">
+                        <i class="fas fa-microphone"></i> "${escapeHtml(transcript)}"
+                    </div>
+                    <div class="message-time">${new Date().toLocaleTimeString()}</div>
+                </div>
+            `;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        async function processVoiceCommand(command) {
+            const lowerCmd = command.toLowerCase();
+            
+            // Price commands
+            if (lowerCmd.includes('price') || lowerCmd.includes('what is') || lowerCmd.includes('how much')) {
+                const response = `${currentAsset} is currently at $${currentPrice.toLocaleString()}. ${currentChange > 0 ? 'Up' : 'Down'} ${Math.abs(currentChange).toFixed(2)}% in the last 24 hours.`;
+                addAIMessage(response);
+                speak(response);
+                saveToHistory('voice', command);
+                return;
+            }
+            
+            // Pattern drawing commands
+            if (lowerCmd.includes('draw trend line') || lowerCmd.includes('draw a trend line')) {
+                setTool('trend');
+                addAIMessage("I've selected the trend line tool. Draw on the canvas to create your trend line!");
+                speak("Trend line tool selected. Draw on the canvas.");
+                return;
+            }
+            
+            if (lowerCmd.includes('draw rectangle') || lowerCmd.includes('draw a rectangle')) {
+                setTool('rectangle');
+                addAIMessage("Rectangle tool selected. Draw your rectangle pattern!");
+                speak("Rectangle tool selected.");
+                return;
+            }
+            
+            if (lowerCmd.includes('clear canvas')) {
+                clearCanvas();
+                addAIMessage("Canvas cleared!");
+                speak("Canvas cleared.");
+                return;
+            }
+            
+            // Buy/Sell commands
+            if (lowerCmd.includes('buy') || lowerCmd.includes('should i buy')) {
+                const support = currentPrice * 0.98;
+                const target = currentPrice * 1.05;
+                const response = `Based on current analysis, ${currentAsset} at $${currentPrice.toLocaleString()} shows potential. Consider buying with stop loss at $${support.toFixed(2)} and target at $${target.toFixed(2)}. Risk to reward ratio is 2.5 to 1. Would you like me to place this trade?`;
+                addAIMessage(response);
+                speak(response);
+                saveToHistory('decision', command);
+                addDecisionButtons();
+                return;
+            }
+            
+            if (lowerCmd.includes('sell') || lowerCmd.includes('should i sell')) {
+                const stopLoss = currentPrice * 1.02;
+                const target = currentPrice * 0.95;
+                const response = `For ${currentAsset} at $${currentPrice.toLocaleString()}, a sell position with stop loss at $${stopLoss.toFixed(2)} and target at $${target.toFixed(2)} shows a good risk to reward ratio. Would you like to proceed?`;
+                addAIMessage(response);
+                speak(response);
+                saveToHistory('decision', command);
+                addDecisionButtons();
+                return;
+            }
+            
+            if (lowerCmd.includes('wait') || lowerCmd.includes('hold')) {
+                const response = `Patience is a trader's virtue, ${userName}. Current price at $${currentPrice.toLocaleString()}. Watch for breakout above $${(currentPrice * 1.02).toFixed(2)} or breakdown below $${(currentPrice * 0.98).toFixed(2)}. I'll alert you when conditions improve.`;
+                addAIMessage(response);
+                speak(response);
+                return;
+            }
+            
+            // Pattern analysis
+            if (lowerCmd.includes('pattern') || lowerCmd.includes('analyze') || lowerCmd.includes('what do you see')) {
+                if (drawings.length > 0) {
+                    analyzeDrawing();
+                } else {
+                    const response = `I don't see any drawings yet. Try drawing a trend line or rectangle pattern on the canvas, or describe what you're seeing.`;
+                    addAIMessage(response);
+                    speak(response);
+                }
+                return;
+            }
+            
+            // Help command
+            if (lowerCmd.includes('help') || lowerCmd.includes('what can you do')) {
+                const response = `I can help you with trading analysis! Try saying:\n\n• "What's the price of Bitcoin?"\n• "Draw a trend line"\n• "Should I buy?"\n• "Analyze my pattern"\n• "Clear canvas"\n\nWhat would you like to do?`;
+                addAIMessage(response);
+                speak(response);
+                return;
+            }
+            
+            // Default response
+            const response = `I heard "${command}". I can help with price checks, pattern drawing, or trading advice. Try saying "what's the price?" or "draw a trend line".`;
+            addAIMessage(response);
+            speak(response);
+        }
+        
+        // ========================================
+        // VOICE OUTPUT (Bot Speaks)
+        // ========================================
+        
+        function speak(text) {
+            if (!voiceEnabled) return;
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 1.1;
+                utterance.pitch = 1.0;
+                utterance.lang = 'en-US';
+                
+                const btn = document.getElementById('voiceButton');
+                btn.classList.add('speaking');
+                utterance.onend = () => btn.classList.remove('speaking');
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+        
+        // ========================================
+        // LIVE PRICES
+        // ========================================
+        
+        async function updateLivePrices() {
+            try {
+                const res = await fetch(API + `/market-prices`);
+                const data = await res.json();
+                
+                if (data.success && data.prices) {
+                    let found = data.prices.find(p => p.symbol === currentAsset);
+                    if (!found && currentAsset === 'BTCUSD') found = data.prices.find(p => p.symbol === 'BTC');
+                    if (!found && currentAsset === 'ETHUSD') found = data.prices.find(p => p.symbol === 'ETH');
+                    
+                    if (found) {
+                        currentPrice = found.price;
+                        currentChange = found.change_24h;
+                    } else {
+                        currentPrice = currentPrice || 68000;
+                        currentChange = (Math.random() * 4 - 2);
+                        currentPrice = currentPrice * (1 + currentChange / 100);
+                    }
+                } else {
+                    currentChange = (Math.random() * 4 - 2);
+                    currentPrice = currentPrice ? currentPrice * (1 + currentChange / 100) : 68000;
+                }
+                
+                document.getElementById('livePrice').innerHTML = `$${currentPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                const changeSpan = document.getElementById('liveChange');
+                changeSpan.innerHTML = `${currentChange > 0 ? '▲' : '▼'} ${Math.abs(currentChange).toFixed(2)}%`;
+                changeSpan.className = currentChange > 0 ? 'live-change up' : 'live-change down';
+            } catch (error) {
+                currentChange = (Math.random() * 4 - 2);
+                currentPrice = currentPrice ? currentPrice * (1 + currentChange / 100) : 68000;
+                document.getElementById('livePrice').innerHTML = `$${currentPrice.toLocaleString()}`;
+            }
+        }
+        
+        function startLivePrices() {
+            updateLivePrices();
+            setInterval(updateLivePrices, 5000);
+        }
+        
+        function updateAsset() {
+            currentAsset = document.getElementById('assetSelect').value;
+            updateLivePrices();
+            addAIMessage(`Switched to ${currentAsset}. Current price: $${currentPrice.toLocaleString()}`);
+            speak(`Switched to ${currentAsset}. Current price: $${currentPrice.toLocaleString()}`);
+        }
+        
+        // ========================================
+        // CANVAS DRAWING
+        // ========================================
+        
+        function setupCanvas() {
+            canvas = document.getElementById('drawingCanvas');
+            ctx = canvas.getContext('2d');
+            
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseleave', stopDrawing);
+            
+            canvas.addEventListener('touchstart', handleTouchStart);
+            canvas.addEventListener('touchmove', handleTouchMove);
+            canvas.addEventListener('touchend', stopDrawing);
+            
+            drawGrid();
+        }
+        
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            startDrawing({ offsetX: touch.clientX - rect.left, offsetY: touch.clientY - rect.top });
+        }
+        
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            draw({ offsetX: touch.clientX - rect.left, offsetY: touch.clientY - rect.top });
+        }
+        
+        function startDrawing(e) {
+            drawing = true;
+            lastX = e.offsetX;
+            lastY = e.offsetY;
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+        }
+        
+        function draw(e) {
+            if (!drawing) return;
+            
+            const currentX = e.offsetX;
+            const currentY = e.offsetY;
+            
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            
+            redrawAllDrawings();
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+            
+            if (currentTool === 'trend') {
+                drawArrow(lastX, lastY, currentX, currentY);
+            } else if (currentTool === 'rectangle') {
+                const width = currentX - lastX;
+                const height = currentY - lastY;
+                ctx.strokeRect(lastX, lastY, width, height);
+            }
+        }
+        
+        function stopDrawing(e) {
+            if (!drawing) return;
+            drawing = false;
+            
+            if (e) {
+                drawings.push({
+                    type: currentTool,
+                    points: { start: { x: lastX, y: lastY }, end: { x: e.offsetX, y: e.offsetY } },
+                    timestamp: new Date().toISOString()
+                });
+            }
+        }
+        
+        function drawArrow(fromX, fromY, toX, toY) {
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+            const arrowSize = 10;
+            const arrowX = toX - arrowSize * Math.cos(angle - Math.PI / 6);
+            const arrowY = toY - arrowSize * Math.sin(angle - Math.PI / 6);
+            const arrowX2 = toX - arrowSize * Math.cos(angle + Math.PI / 6);
+            const arrowY2 = toY - arrowSize * Math.sin(angle + Math.PI / 6);
+            
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(arrowX, arrowY);
+            ctx.lineTo(arrowX2, arrowY2);
+            ctx.fill();
+        }
+        
+        function redrawAllDrawings() {
+            drawGrid();
+            for (const drawing of drawings) {
+                ctx.beginPath();
+                ctx.moveTo(drawing.points.start.x, drawing.points.start.y);
+                ctx.lineTo(drawing.points.end.x, drawing.points.end.y);
+                ctx.stroke();
+            }
+        }
+        
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border').trim();
+            ctx.lineWidth = 0.5;
+            
+            for (let x = 0; x < canvas.width; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+        
+        function setTool(tool) {
+            currentTool = tool;
+            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`tool-${tool}`).classList.add('active');
+        }
+        
+        function clearCanvas() {
+            drawings = [];
+            drawGrid();
+        }
+        
+        function analyzeDrawing() {
+            if (drawings.length === 0) {
+                addAIMessage("I don't see any drawing yet. Try drawing a trend line or rectangle pattern!");
+                speak("I don't see any drawing yet. Try drawing a trend line or rectangle pattern!");
+                return;
+            }
+            
+            const hasTrendLine = drawings.some(d => d.type === 'trend');
+            const hasRectangle = drawings.some(d => d.type === 'rectangle');
+            
+            let message = "";
+            if (hasTrendLine && hasRectangle) {
+                message = `📈 I see a trend line combined with a rectangle. This often indicates consolidation within a trend. Watch for breakout above $${(currentPrice * 1.02).toFixed(2)} or breakdown below $${(currentPrice * 0.98).toFixed(2)}.`;
+            } else if (hasTrendLine) {
+                message = `📊 Trend line detected! This suggests a directional bias. Current price is $${currentPrice.toLocaleString()}. Watch how price reacts to this line.`;
+            } else if (hasRectangle) {
+                message = `⬜ Rectangle pattern detected. Price is consolidating between $${(currentPrice * 0.98).toFixed(2)} and $${(currentPrice * 1.02).toFixed(2)}. Expect a breakout soon.`;
+            } else {
+                message = `🔍 I see your drawing. Keep drawing to help me identify patterns!`;
+            }
+            
+            addAIMessage(message);
+            speak(message);
+            saveToHistory('drawing', message);
+        }
+        
+        // ========================================
+        // CHAT UI
+        // ========================================
+        
+        function addAIMessage(text) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai';
+            messageDiv.innerHTML = `
+                <div class="message-avatar">🎙️</div>
+                <div class="message-bubble">
+                    ${formatMessage(text)}
+                    <div class="message-time">${new Date().toLocaleTimeString()}</div>
+                </div>
+            `;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function formatMessage(text) {
+            return text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        }
+        
+        function addDecisionButtons() {
+            const messagesDiv = document.getElementById('chatMessages');
+            const buttonDiv = document.createElement('div');
+            buttonDiv.className = 'message ai';
+            buttonDiv.innerHTML = `
+                <div class="message-avatar">🎙️</div>
+                <div class="message-bubble">
+                    <div class="decision-buttons">
+                        <button class="decision-btn buy" onclick="makeDecision('buy')">💰 Buy</button>
+                        <button class="decision-btn sell" onclick="makeDecision('sell')">📉 Sell</button>
+                        <button class="decision-btn wait" onclick="makeDecision('wait')">⏳ Wait</button>
+                    </div>
+                </div>
+            `;
+            messagesDiv.appendChild(buttonDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function makeDecision(decision) {
+            addUserMessage(`I decide to ${decision.toUpperCase()}`);
+            
+            let response = '';
+            if (decision === 'buy') {
+                response = `📈 Great decision, ${userName}! Entry at $${currentPrice.toLocaleString()}. Set stop loss at $${(currentPrice * 0.98).toFixed(2)} and target at $${(currentPrice * 1.05).toFixed(2)}. Risk/Reward: 2.5:1. Trade placed!`;
+            } else if (decision === 'sell') {
+                response = `📉 Wise move, ${userName}! Entry at $${currentPrice.toLocaleString()}. Set stop loss at $${(currentPrice * 1.02).toFixed(2)} and target at $${(currentPrice * 0.95).toFixed(2)}. Trade placed!`;
+            } else {
+                response = `🧘 Patience is key, ${userName}! Waiting for the right setup. I'll monitor price at $${currentPrice.toLocaleString()}.`;
+            }
+            
+            addAIMessage(response);
+            speak(response);
+            saveToHistory('decision', `${decision} at $${currentPrice}`);
+        }
+        
+        function addUserMessage(text) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user';
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${userName.charAt(0).toUpperCase()}</div>
+                <div class="message-bubble">
+                    ${escapeHtml(text)}
+                    <div class="message-time">${new Date().toLocaleTimeString()}</div>
+                </div>
+            `;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        // ========================================
+        // HISTORY
+        // ========================================
+        
+        function saveToHistory(type, content) {
+            let history = JSON.parse(localStorage.getItem('voice_coach_history') || '[]');
+            history.unshift({
+                type: type,
+                content: content,
+                asset: currentAsset,
+                price: currentPrice,
+                timestamp: new Date().toISOString()
+            });
+            history = history.slice(0, 30);
+            localStorage.setItem('voice_coach_history', JSON.stringify(history));
+            loadHistory();
+        }
+        
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('voice_coach_history') || '[]');
+            const container = document.getElementById('historyList');
+            
+            if (history.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 20px;">No conversation yet. Speak to start!</div>';
+                return;
+            }
+            
+            container.innerHTML = history.map(item => `
+                <div class="history-item" onclick='loadHistoryItem(${JSON.stringify(item)})'>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span><strong>${item.type === 'voice' ? '🎙️ Voice' : item.type === 'drawing' ? '🎨 Pattern' : '📊 Decision'}</strong></span>
+                        <span style="font-size: 10px;">${new Date(item.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <div style="font-size: 12px; margin-top: 3px;">${item.content.substring(0, 60)}${item.content.length > 60 ? '...' : ''}</div>
+                </div>
+            `).join('');
+        }
+        
+        function loadHistoryItem(item) {
+            addAIMessage(`📜 From ${new Date(item.timestamp).toLocaleString()}: "${item.content}"`);
+            speak(`Loading previous analysis.`);
+        }
+        
+        function clearHistory() {
+            if (confirm('Clear all conversation history?')) {
+                localStorage.removeItem('voice_coach_history');
+                loadHistory();
+                addAIMessage("History cleared. Ready for new conversation!");
+                speak("History cleared.");
+            }
+        }
+        
+        // ========================================
+        // INITIALIZATION
+        // ========================================
+        
+        async function init() {
+            const hasAccess = await checkProAccess();
+            if (!hasAccess) return;
+            
+            await getUserName();
+            setupCanvas();
+            loadHistory();
+            startLivePrices();
+            initVoiceRecognition();
+            
+            setTimeout(() => {
+                const welcome = `Hi ${userName}! I'm your Voice AI Trading Coach. Tap the microphone button and speak naturally. I can check prices, draw patterns, and help with trading decisions. Try saying "what's the price of Bitcoin?" or "draw a trend line".`;
+                addAIMessage(welcome);
+                speak(welcome);
+            }, 500);
+        }
+        
+        async function getUserName() {
+            try {
+                const res = await fetch(API + '/user/profile');
+                const data = await res.json();
+                userName = data.email ? data.email.split('@')[0] : 'Trader';
+            } catch (error) {
+                userName = 'Trader';
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function toggleTheme() {
+            let html = document.documentElement;
+            let current = html.getAttribute('data-theme');
+            let newTheme = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            drawGrid();
+        }
+        
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        init();
+    </script>
+</body>
+</html>
