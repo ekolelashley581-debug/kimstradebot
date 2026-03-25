@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Economic Calendar – Kim's Trade Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --text: #ffffff;
+            --text-light: #cbd5e1;
+            --border: #334155;
+            --card: #1e293b;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --text-light: #475569;
+            --border: #e2e8f0;
+            --card: #ffffff;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            color: var(--text);
+            cursor: pointer;
+        }
+        
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* Calendar Table */
+        .calendar-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .calendar-table th, .calendar-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .calendar-table th {
+            color: var(--text-light);
+            font-weight: 500;
+        }
+        
+        .impact-high {
+            color: var(--danger);
+            font-weight: 600;
+        }
+        
+        .impact-medium {
+            color: var(--warning);
+        }
+        
+        .impact-low {
+            color: var(--success);
+        }
+        
+        .event-row:hover {
+            background: var(--hover);
+            cursor: pointer;
+        }
+        
+        .back-btn {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .loading-spinner {
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Economic Calendar</h1>
+            <div>
+                <div class="theme-toggle" onclick="toggleTheme()" style="cursor: pointer; display: inline-block; margin-right: 15px;">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <a href="/" class="back-btn">← Dashboard</a>
+            </div>
+        </div>
+        
+        <!-- Filters -->
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterEvents('all')">All Events</button>
+            <button class="filter-btn" onclick="filterEvents('high')">🔴 High Impact</button>
+            <button class="filter-btn" onclick="filterEvents('medium')">🟡 Medium Impact</button>
+            <button class="filter-btn" onclick="filterEvents('low')">🟢 Low Impact</button>
+        </div>
+        
+        <!-- Calendar Table -->
+        <div id="calendarContent">
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+    
+    <script>
+        const API = '/api';
+        let allEvents = [];
+        let currentFilter = 'all';
+        
+        async function loadCalendar() {
+            try {
+                const res = await fetch(API + '/economic-calendar');
+                const data = await res.json();
+                
+                if (data.success) {
+                    allEvents = data.events;
+                    renderCalendar();
+                }
+            } catch (error) {
+                console.error('Error loading calendar:', error);
+                document.getElementById('calendarContent').innerHTML = '<p style="color: var(--danger);">Error loading economic calendar</p>';
+            }
+        }
+        
+        function renderCalendar() {
+            let filteredEvents = allEvents;
+            if (currentFilter !== 'all') {
+                filteredEvents = allEvents.filter(e => e.impact === currentFilter);
+            }
+            
+            if (filteredEvents.length === 0) {
+                document.getElementById('calendarContent').innerHTML = '<p style="text-align: center;">No events found</p>';
+                return;
+            }
+            
+            // Group by date
+            const grouped = {};
+            filteredEvents.forEach(event => {
+                const date = event.date.split('T')[0];
+                if (!grouped[date]) grouped[date] = [];
+                grouped[date].push(event);
+            });
+            
+            let html = '';
+            for (const [date, events] of Object.entries(grouped)) {
+                html += `
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="margin-bottom: 10px; color: var(--primary);">${new Date(date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</h3>
+                        <table class="calendar-table">
+                            <thead>
+                                <tr><th>Time</th><th>Country</th><th>Event</th><th>Impact</th><th>Previous</th><th>Forecast</th><th>Actual</th> </thead>
+                            <tbody>
+                                ${events.map(event => `
+                                    <tr class="event-row" onclick="showEventDetails('${event.title}', '${event.description || ''}')">
+                                        <td>${event.time || 'All day'}</td>
+                                        <td>${event.country || 'Global'}</td>
+                                        <td><strong>${event.title}</strong></td>
+                                        <td class="impact-${event.impact}">${event.impact === 'high' ? '🔴 High' : event.impact === 'medium' ? '🟡 Medium' : '🟢 Low'}</td>
+                                        <td>${event.previous || '—'}</td>
+                                        <td>${event.forecast || '—'}</td>
+                                        <td>${event.actual || '—'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('calendarContent').innerHTML = html;
+        }
+        
+        function filterEvents(impact) {
+            currentFilter = impact;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            renderCalendar();
+        }
+        
+        function showEventDetails(title, description) {
+            alert(`📊 ${title}\n\n${description || 'No additional details available.'}`);
+        }
+        
+        function toggleTheme() {
+            let html = document.documentElement;
+            let current = html.getAttribute('data-theme');
+            let newTheme = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+        
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        loadCalendar();
+    </script>
+</body>
+</html>
