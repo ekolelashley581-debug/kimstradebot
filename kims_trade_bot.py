@@ -1889,6 +1889,205 @@ def like_idea(idea_id):
     
     return jsonify({'success': True, 'likes_count': likes_count})
 
+# ============================================
+# JOURNAL ROUTES
+# ============================================
+
+@app.route('/api/journal/stats', methods=['GET'])
+@login_required
+def get_journal_stats():
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    
+    c.execute('''CREATE TABLE IF NOT EXISTS journal_entries
+                 (id INTEGER PRIMARY KEY,
+                  user_id INTEGER,
+                  pair TEXT,
+                  result TEXT,
+                  entry_price REAL,
+                  exit_price REAL,
+                  position_size REAL,
+                  profit_loss REAL,
+                  notes TEXT,
+                  date TEXT)''')
+    
+    c.execute("SELECT COUNT(*), SUM(CASE WHEN result='win' THEN 1 ELSE 0 END), SUM(profit_loss), MAX(profit_loss) FROM journal_entries WHERE user_id=?", (session['user_id'],))
+    row = c.fetchone()
+    conn.close()
+    
+    total = row[0] or 0
+    wins = row[1] or 0
+    total_pl = row[2] or 0
+    best = row[3] or 0
+    
+    win_rate = (wins / total * 100) if total > 0 else 0
+    profit_factor = (abs(total_pl) / total_pl) if total_pl > 0 else 0
+    
+    return jsonify({
+        'success': True,
+        'total_trades': total,
+        'win_rate': round(win_rate, 1),
+        'profit_factor': round(profit_factor, 2),
+        'best_trade': round(best, 2)
+    })
+
+@app.route('/api/journal/entries', methods=['GET'])
+@login_required
+def get_journal_entries():
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    c.execute('''SELECT id, pair, result, entry_price, exit_price, position_size, profit_loss, notes, date 
+                 FROM journal_entries WHERE user_id=? ORDER BY date DESC''', (session['user_id'],))
+    rows = c.fetchall()
+    conn.close()
+    
+    entries = []
+    for row in rows:
+        entries.append({
+            'id': row[0],
+            'pair': row[1],
+            'result': row[2],
+            'entry_price': row[3],
+            'exit_price': row[4],
+            'position_size': row[5],
+            'profit_loss': row[6],
+            'notes': row[7],
+            'date': row[8]
+        })
+    
+    return jsonify({'success': True, 'entries': entries})
+
+@app.route('/api/journal/add', methods=['POST'])
+@login_required
+def add_journal_entry():
+    from datetime import datetime
+    
+    data = request.json
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    
+    c.execute('''INSERT INTO journal_entries 
+                 (user_id, pair, result, entry_price, exit_price, position_size, profit_loss, notes, date)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+              (session['user_id'], data['pair'], data['result'], data['entry_price'],
+               data['exit_price'], data['position_size'], data['profit_loss'], data['notes'],
+               datetime.now().isoformat()))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True})
+
+@app.route('/api/journal/delete/<int:entry_id>', methods=['DELETE'])
+@login_required
+def delete_journal_entry(entry_id):
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    c.execute("DELETE FROM journal_entries WHERE id=? AND user_id=?", (entry_id, session['user_id']))
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True})
+
+# ============================================
+# MARKET ANALYSIS ROUTES
+# ============================================
+
+@app.route('/api/market-analysis', methods=['GET'])
+def get_market_analysis():
+    from datetime import datetime
+    import random
+    
+    # Simulate market data (replace with real API calls)
+    sectors = [
+        {'name': 'Cryptocurrency', 'sentiment': 'bullish' if random.random() > 0.5 else 'bearish', 'change_24h': round(random.uniform(-5, 5), 1)},
+        {'name': 'Forex', 'sentiment': 'neutral', 'change_24h': round(random.uniform(-1, 1), 2)},
+        {'name': 'Stocks', 'sentiment': 'bullish', 'change_24h': round(random.uniform(-2, 3), 1)},
+        {'name': 'Commodities', 'sentiment': 'bearish', 'change_24h': round(random.uniform(-3, 2), 1)}
+    ]
+    
+    overall_sentiment = random.randint(30, 70)
+    
+    top_movers = {
+        'gainers': [
+            {'symbol': 'BTC', 'change': round(random.uniform(2, 10), 1)},
+            {'symbol': 'ETH', 'change': round(random.uniform(1, 8), 1)},
+            {'symbol': 'SOL', 'change': round(random.uniform(3, 12), 1)}
+        ],
+        'losers': [
+            {'symbol': 'XRP', 'change': round(random.uniform(-8, -2), 1)},
+            {'symbol': 'ADA', 'change': round(random.uniform(-6, -1), 1)},
+            {'symbol': 'DOGE', 'change': round(random.uniform(-5, -1), 1)}
+        ]
+    }
+    
+    ai_summary = f"Overall market sentiment is {overall_sentiment}% bullish. Cryptocurrencies showing strength with Bitcoin leading the rally. Forex markets remain range-bound ahead of central bank decisions. Stocks continue to grind higher on AI optimism. Watch for key economic data this week that could trigger volatility."
+    
+    return jsonify({
+        'success': True,
+        'overall_sentiment': overall_sentiment,
+        'sectors': sectors,
+        'top_movers': top_movers,
+        'ai_summary': ai_summary,
+        'timestamp': datetime.now().isoformat()
+    })
+
+# ============================================
+# ECONOMIC CALENDAR ROUTES
+# ============================================
+
+@app.route('/api/economic-calendar', methods=['GET'])
+def get_economic_calendar():
+    from datetime import datetime, timedelta
+    
+    # Sample data (replace with real API)
+    events = [
+        {'date': (datetime.now() + timedelta(days=1)).isoformat(), 'time': '14:30', 'country': 'US', 'title': 'Federal Reserve Interest Rate Decision', 'impact': 'high', 'previous': '5.50%', 'forecast': '5.50%', 'actual': '', 'description': 'The Federal Reserve announces its decision on interest rates.'},
+        {'date': (datetime.now() + timedelta(days=2)).isoformat(), 'time': '08:30', 'country': 'US', 'title': 'Consumer Price Index (CPI)', 'impact': 'high', 'previous': '3.1%', 'forecast': '3.0%', 'actual': '', 'description': 'Measures inflation at the consumer level.'},
+        {'date': (datetime.now() + timedelta(days=3)).isoformat(), 'time': '10:00', 'country': 'EU', 'title': 'ECB Press Conference', 'impact': 'medium', 'previous': '', 'forecast': '', 'actual': '', 'description': 'European Central Bank press conference following monetary policy decision.'},
+        {'date': (datetime.now() + timedelta(days=4)).isoformat(), 'time': '13:30', 'country': 'CA', 'title': 'Canadian GDP', 'impact': 'medium', 'previous': '0.2%', 'forecast': '0.1%', 'actual': '', 'description': 'Measures the total economic output of Canada.'},
+        {'date': (datetime.now() + timedelta(days=5)).isoformat(), 'time': '02:00', 'country': 'CN', 'title': 'Chinese Manufacturing PMI', 'impact': 'low', 'previous': '49.5', 'forecast': '49.8', 'actual': '', 'description': 'Measures manufacturing activity in China.'}
+    ]
+    
+    return jsonify({'success': True, 'events': events})
+
+# ============================================
+# TECHNICAL ANALYSIS ROUTES
+# ============================================
+
+@app.route('/api/technical-analysis', methods=['POST'])
+@login_required
+def technical_analysis():
+    data = request.json
+    symbol = data.get('symbol', 'BTCUSD')
+    
+    import random
+    
+    # Simulate technical indicators (replace with real calculations)
+    rsi = random.randint(30, 70)
+    macd_value = round(random.uniform(-50, 50), 2)
+    macd_signal = 'Bullish' if macd_value > 0 else 'Bearish'
+    ma_50 = random.randint(64000, 68000)
+    ma_200 = random.randint(62000, 66000)
+    
+    rsi_signal = 'Overbought' if rsi > 70 else 'Oversold' if rsi < 30 else 'Neutral'
+    rsi_color = 'var(--danger)' if rsi > 70 else 'var(--success)' if rsi < 30 else 'var(--warning)'
+    
+    analysis = f"RSI at {rsi} indicates {rsi_signal.lower()} conditions. MACD is {macd_signal}. Price is {'above' if ma_50 > ma_200 else 'below'} the 50-day moving average."
+    
+    return jsonify({
+        'success': True,
+        'rsi': rsi,
+        'rsi_signal': rsi_signal,
+        'rsi_signal_color': rsi_color,
+        'macd_value': macd_value,
+        'macd_signal': macd_signal,
+        'macd_signal_color': 'var(--success)' if macd_signal == 'Bullish' else 'var(--danger)',
+        'ma_50': ma_50,
+        'ma_200': ma_200,
+        'ma_50_signal': 'Bullish' if ma_50 > ma_200 else 'Bearish',
+        'ma_200_signal': 'Support' if ma_50 > ma_200 else 'Resistance',
+        'analysis': analysis
+    })
+
 if __name__ == '__main__':
     # This code ONLY runs when you execute python directly (local development)
     os.makedirs(config.FRONTEND_DIR, exist_ok=True)
