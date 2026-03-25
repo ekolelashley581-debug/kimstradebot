@@ -2187,6 +2187,108 @@ def get_feed():
     conn.close()
     return jsonify({'success': True, 'posts': posts})
 
+# ============================================
+# NOTIFICATION ROUTES (ADD THIS)
+# ============================================
+
+@app.route('/api/notifications', methods=['GET'])
+@login_required
+def get_notifications():
+    """Get user's notifications"""
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    
+    # Create notifications table if not exists
+    c.execute('''CREATE TABLE IF NOT EXISTS notifications
+                 (id INTEGER PRIMARY KEY,
+                  user_id INTEGER,
+                  type TEXT,
+                  content TEXT,
+                  related_id INTEGER,
+                  is_read INTEGER DEFAULT 0,
+                  created_at TEXT)''')
+    
+    c.execute('''SELECT id, type, content, related_id, is_read, created_at 
+                 FROM notifications 
+                 WHERE user_id = ? 
+                 ORDER BY created_at DESC 
+                 LIMIT 50''', (session['user_id'],))
+    rows = c.fetchall()
+    conn.close()
+    
+    notifications = []
+    for row in rows:
+        notifications.append({
+            'id': row[0],
+            'type': row[1],
+            'content': row[2],
+            'related_id': row[3],
+            'is_read': bool(row[4]),
+            'created_at': row[5]
+        })
+    
+    return jsonify({'success': True, 'notifications': notifications})
+
+@app.route('/api/notifications/mark-read', methods=['POST'])
+@login_required
+def mark_notifications_read():
+    """Mark all notifications as read"""
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    c.execute("UPDATE notifications SET is_read = 1 WHERE user_id = ?", (session['user_id'],))
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True})
+
+@app.route('/api/users/count', methods=['GET'])
+def get_user_count():
+    """Get total number of users"""
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT COUNT(*) FROM users")
+    count = c.fetchone()[0]
+    conn.close()
+    return jsonify({'success': True, 'count': count})
+
+@app.route('/api/ideas/trending', methods=['GET'])
+def get_trending_ideas():
+    """Get trending ideas (most liked in last 24 hours)"""
+    from datetime import datetime, timedelta
+    
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    
+    # Create likes table if not exists
+    c.execute('''CREATE TABLE IF NOT EXISTS idea_likes
+                 (id INTEGER PRIMARY KEY,
+                  idea_id INTEGER,
+                  user_id INTEGER,
+                  created_at TEXT)''')
+    
+    # Get ideas with like counts
+    c.execute('''SELECT mi.id, mi.user_id, mi.user_email, mi.title, mi.description, mi.created_at,
+                        (SELECT COUNT(*) FROM idea_likes WHERE idea_id = mi.id) as like_count
+                 FROM market_ideas mi
+                 WHERE mi.created_at > datetime('now', '-7 days')
+                 ORDER BY like_count DESC, mi.created_at DESC
+                 LIMIT 20''')
+    rows = c.fetchall()
+    conn.close()
+    
+    ideas = []
+    for row in rows:
+        ideas.append({
+            'id': row[0],
+            'user_id': row[1],
+            'user_email': row[2],
+            'title': row[3],
+            'description': row[4],
+            'created_at': row[5],
+            'likes_count': row[6]
+        })
+    
+    return jsonify({'ideas': ideas})
+
 if __name__ == '__main__':
     # This code ONLY runs when you execute python directly (local development)
     os.makedirs(config.FRONTEND_DIR, exist_ok=True)
