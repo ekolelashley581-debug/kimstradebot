@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chart Pattern Library – Kim's Trade Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --text: #ffffff;
+            --text-light: #cbd5e1;
+            --border: #334155;
+            --card: #1e293b;
+            --hover: #2d3a4f;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --text-light: #475569;
+            --border: #e2e8f0;
+            --card: #ffffff;
+            --hover: #f1f5f9;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .premium-badge {
+            background: linear-gradient(135deg, gold, #ffd700);
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 10px 24px;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        /* Add Pattern Button */
+        .add-pattern-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Search Bar */
+        .search-bar {
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 12px 20px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            color: var(--text);
+        }
+        
+        /* Pattern Grid */
+        .pattern-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .pattern-card {
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .pattern-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .pattern-image {
+            height: 180px;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .pattern-svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .pattern-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .pattern-badge.bullish { background: rgba(16,185,129,0.2); color: var(--success); }
+        .pattern-badge.bearish { background: rgba(239,68,68,0.2); color: var(--danger); }
+        .pattern-badge.neutral { background: rgba(245,158,11,0.2); color: var(--warning); }
+        .pattern-badge.user { background: rgba(37,99,235,0.2); color: var(--primary); }
+        
+        .pattern-info {
+            padding: 20px;
+        }
+        
+        .pattern-name {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .pattern-desc {
+            font-size: 13px;
+            color: var(--text-light);
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+        
+        .pattern-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-light);
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+            margin-top: 8px;
+        }
+        
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .modal-content {
+            background: var(--card);
+            border-radius: 24px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: 25px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: var(--card);
+        }
+        
+        .modal-body {
+            padding: 25px;
+        }
+        
+        /* Form */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+        }
+        
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .drawing-canvas {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            width: 100%;
+            height: 200px;
+            cursor: crosshair;
+        }
+        
+        .canvas-tools {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .tool-btn {
+            padding: 6px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .back-btn {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        @media (max-width: 768px) {
+            .pattern-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Chart Pattern Library <span class="premium-badge">PREMIUM</span></h1>
+            <div>
+                <button class="add-pattern-btn" onclick="openAddPatternModal()">
+                    <i class="fas fa-plus"></i> Add Your Pattern
+                </button>
+                <div class="theme-toggle" onclick="toggleTheme()" style="cursor: pointer; display: inline-block; margin-left: 15px;">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <a href="/" class="back-btn" style="margin-left: 15px;">← Dashboard</a>
+            </div>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('all')">All Patterns</button>
+            <button class="tab-btn" onclick="switchTab('bullish')">📈 Bullish</button>
+            <button class="tab-btn" onclick="switchTab('bearish')">📉 Bearish</button>
+            <button class="tab-btn" onclick="switchTab('candlestick')">🕯️ Candlestick</button>
+            <button class="tab-btn" onclick="switchTab('my')">⭐ My Patterns</button>
+        </div>
+        
+        <!-- Search Bar -->
+        <div class="search-bar">
+            <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search patterns by name, description, or type...">
+        </div>
+        
+        <!-- Pattern Grid -->
+        <div class="pattern-grid" id="patternGrid">
+            <!-- Patterns will be populated by JavaScript -->
+        </div>
+    </div>
+    
+    <!-- Add Pattern Modal -->
+    <div id="addPatternModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✏️ Add Your Own Pattern</h2>
+                <span class="modal-close" onclick="closeAddPatternModal()" style="font-size: 28px; cursor: pointer;">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addPatternForm">
+                    <div class="form-group">
+                        <label>Pattern Name *</label>
+                        <input type="text" class="form-input" id="patternName" required placeholder="e.g., My Bullish Flag Pattern">
+                    </div>
+                    <div class="form-group">
+                        <label>Pattern Type *</label>
+                        <select class="form-select" id="patternType">
+                            <option value="bullish">📈 Bullish</option>
+                            <option value="bearish">📉 Bearish</option>
+                            <option value="neutral">➖ Neutral</option>
+                            <option value="candlestick">🕯️ Candlestick</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Description *</label>
+                        <textarea class="form-textarea" id="patternDesc" required placeholder="Describe the pattern, how to identify it, and what it signals..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Draw Your Pattern</label>
+                        <canvas id="patternCanvas" class="drawing-canvas" width="400" height="200" style="width:100%; height:200px;"></canvas>
+                        <div class="canvas-tools">
+                            <button type="button" class="tool-btn" onclick="setCanvasTool('line')">📏 Line</button>
+                            <button type="button" class="tool-btn" onclick="setCanvasTool('circle')">⚪ Circle</button>
+                            <button type="button" class="tool-btn" onclick="setCanvasTool('rectangle')">⬜ Rectangle</button>
+                            <button type="button" class="tool-btn" onclick="clearCanvas()">🗑️ Clear</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Trading Strategy</label>
+                        <textarea class="form-textarea" id="patternStrategy" placeholder="How to trade this pattern? Entry, stop loss, target suggestions..."></textarea>
+                    </div>
+                    <div style="display: flex; gap: 15px; justify-content: flex-end;">
+                        <button type="button" class="tool-btn" onclick="closeAddPatternModal()">Cancel</button>
+                        <button type="submit" class="add-pattern-btn" style="background: var(--success);">Save Pattern</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pattern Detail Modal -->
+    <div id="patternDetailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="detailTitle">Pattern Name</h2>
+                <span class="modal-close" onclick="closeDetailModal()" style="font-size: 28px; cursor: pointer;">&times;</span>
+            </div>
+            <div class="modal-body" id="detailBody">
+                <!-- Content will be populated -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ========================================
+        // PATTERN DATABASE
+        // ========================================
+        
+        let userPatterns = JSON.parse(localStorage.getItem('user_patterns') || '[]');
+        let currentTab = 'all';
+        let currentSearch = '';
+        
+        // Drawing variables
+        let canvas, ctx;
+        let drawing = false;
+        let lastX = 0, lastY = 0;
+        let currentTool = 'line';
+        
+        // Built-in patterns
+        const builtInPatterns = [
+            {
+                id: 'cup_handle',
+                name: 'Cup and Handle',
+                type: 'bullish',
+                category: 'chart',
+                description: 'A bullish continuation pattern that forms after an uptrend. The "cup" forms a U-shape, followed by a small "handle" that drifts downward. Breakout above the handle confirms the pattern.',
+                strategy: 'Entry: Buy on breakout above the handle\'s high. Stop Loss: Below the handle\'s low. Target: Measure the cup\'s depth and add to breakout point.',
+                svg: 'M50,150 Q100,50 150,150 L160,140 L170,145 L180,150',
+                trading: 'Typical target: cup depth added to breakout point. Success rate: ~70% in uptrends.'
+            },
+            {
+                id: 'head_shoulders',
+                name: 'Head and Shoulders',
+                type: 'bearish',
+                category: 'chart',
+                description: 'A reversal pattern signaling a trend change from bullish to bearish. Consists of a left shoulder, head, and right shoulder. The neckline connects the lows.',
+                strategy: 'Entry: Sell when price breaks below the neckline. Stop Loss: Above the right shoulder. Target: Distance from head to neckline projected downward.',
+                svg: 'M30,120 L70,80 L110,140 L150,90 L190,120',
+                trading: 'One of the most reliable reversal patterns. Volume should diminish during the right shoulder.'
+            },
+            {
+                id: 'double_top',
+                name: 'Double Top',
+                type: 'bearish',
+                category: 'chart',
+                description: 'A reversal pattern that forms after an uptrend. Two peaks at roughly the same level with a trough in between. Break below the trough confirms the reversal.',
+                strategy: 'Entry: Sell when price breaks below the trough (neckline). Stop Loss: Above the second peak. Target: Distance from peaks to trough projected downward.',
+                svg: 'M30,100 L80,70 L130,100 L180,70 L230,100',
+                trading: 'Often appears at market tops. Volume is typically higher on the second peak.'
+            },
+            {
+                id: 'double_bottom',
+                name: 'Double Bottom',
+                type: 'bullish',
+                category: 'chart',
+                description: 'A reversal pattern that forms after a downtrend. Two troughs at roughly the same level with a peak in between. Break above the peak confirms the reversal.',
+                strategy: 'Entry: Buy when price breaks above the peak (neckline). Stop Loss: Below the second bottom. Target: Distance from bottoms to peak projected upward.',
+                svg: 'M30,150 L80,180 L130,150 L180,180 L230,150',
+                trading: 'Often appears at market bottoms. Look for increased volume on the breakout.'
+            },
+            {
+                id: 'bull_flag',
+                name: 'Bull Flag',
+                type: 'bullish',
+                category: 'chart',
+                description: 'A continuation pattern that forms after a strong upward move. A rectangular consolidation (flag) slopes downward or sideways, followed by a breakout upward.',
+                strategy: 'Entry: Buy on breakout above the flag\'s upper trendline. Stop Loss: Below the flag\'s low. Target: Length of the flagpole added to breakout.',
+                svg: 'M30,100 L80,50 L130,100 L180,70 L230,100',
+                trading: 'Flag should be short (1-4 weeks). Volume should decrease during flag formation.'
+            },
+            {
+                id: 'bear_flag',
+                name: 'Bear Flag',
+                type: 'bearish',
+                category: 'chart',
+                description: 'A continuation pattern that forms after a strong downward move. A rectangular consolidation (flag) slopes upward or sideways, followed by a breakout downward.',
+                strategy: 'Entry: Sell on breakdown below the flag\'s lower trendline. Stop Loss: Above the flag\'s high. Target: Length of the flagpole added to breakdown.',
+                svg: 'M30,150 L80,200 L130,150 L180,200 L230,150',
+                trading: 'Flag should be short. Volume should decrease during flag formation.'
+            },
+            {
+                id: 'doji',
+                name: 'Doji',
+                type: 'neutral',
+                category: 'candlestick',
+                description: 'A candlestick with a very small body where the open and close are nearly equal. Indicates indecision in the market.',
+                strategy: 'Watch for confirmation. A doji after a long trend may signal reversal. Wait for next candle to confirm direction.',
+                svg: 'M40,100 L60,100 L50,80 L50,120 Z',
+                trading: 'Doji alone is not enough. Must be confirmed by the next candle.'
+            },
+            {
+                id: 'hammer',
+                name: 'Hammer',
+                type: 'bullish',
+                category: 'candlestick',
+                description: 'A single candlestick with a small body and a long lower wick. Forms at the bottom of a downtrend, signaling potential reversal.',
+                strategy: 'Buy on confirmation (next candle closes higher). Stop Loss: Below the hammer\'s low. Look for high volume.',
+                svg: 'M45,90 L55,90 L50,120 Z',
+                trading: 'The lower wick should be at least twice the body length. Confirmation is key.'
+            },
+            {
+                id: 'shooting_star',
+                name: 'Shooting Star',
+                type: 'bearish',
+                category: 'candlestick',
+                description: 'A single candlestick with a small body and a long upper wick. Forms at the top of an uptrend, signaling potential reversal.',
+                strategy: 'Sell on confirmation (next candle closes lower). Stop Loss: Above the shooting star\'s high. Look for high volume.',
+                svg: 'M45,110 L55,110 L50,80 Z',
+                trading: 'The upper wick should be at least twice the body length. Confirmation required.'
+            },
+            {
+                id: 'engulfing_bull',
+                name: 'Bullish Engulfing',
+                type: 'bullish',
+                category: 'candlestick',
+                description: 'A two-candle pattern where a large green candle completely engulfs the previous red candle. Signals potential reversal to the upside.',
+                strategy: 'Buy on confirmation. Stop Loss below the engulfing candle\'s low. Target previous resistance levels.',
+                svg: 'M30,100 L70,100 L50,70 L50,130 Z M35,95 L65,95 L50,80 L50,110 Z',
+                trading: 'More reliable at support levels. Volume should be higher on the engulfing candle.'
+            }
+        ];
+        
+        // ========================================
+        // RENDER PATTERNS
+        // ========================================
+        
+        function getAllPatterns() {
+            return [...builtInPatterns, ...userPatterns.map(p => ({ ...p, isUser: true }))];
+        }
+        
+        function renderPatterns() {
+            let patterns = getAllPatterns();
+            
+            // Filter by tab
+            if (currentTab !== 'all') {
+                if (currentTab === 'my') {
+                    patterns = patterns.filter(p => p.isUser);
+                } else if (currentTab === 'bullish') {
+                    patterns = patterns.filter(p => p.type === 'bullish');
+                } else if (currentTab === 'bearish') {
+                    patterns = patterns.filter(p => p.type === 'bearish');
+                } else if (currentTab === 'candlestick') {
+                    patterns = patterns.filter(p => p.category === 'candlestick');
+                }
+            }
+            
+            // Filter by search
+            if (currentSearch) {
+                const searchLower = currentSearch.toLowerCase();
+                patterns = patterns.filter(p => 
+                    p.name.toLowerCase().includes(searchLower) || 
+                    p.description.toLowerCase().includes(searchLower)
+                );
+            }
+            
+            const grid = document.getElementById('patternGrid');
+            
+            if (patterns.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; padding: 50px; color: var(--text-light);">No patterns found. Try a different search or add your own!</div>';
+                return;
+            }
+            
+            grid.innerHTML = patterns.map(pattern => `
+                <div class="pattern-card" onclick="showPatternDetail('${pattern.id}')">
+                    <div class="pattern-image">
+                        <svg class="pattern-svg" viewBox="0 0 260 200">
+                            <path d="${pattern.svg || 'M30,100 L230,100'}" stroke="var(--primary)" stroke-width="2" fill="none"/>
+                            ${pattern.svg2 || ''}
+                        </svg>
+                        <span class="pattern-badge ${pattern.type}">${pattern.type === 'bullish' ? '📈 BULLISH' : pattern.type === 'bearish' ? '📉 BEARISH' : pattern.type === 'candlestick' ? '🕯️ CANDLESTICK' : '➖ NEUTRAL'}${pattern.isUser ? ' • YOURS' : ''}</span>
+                    </div>
+                    <div class="pattern-info">
+                        <div class="pattern-name">${pattern.name}</div>
+                        <div class="pattern-desc">${pattern.description.substring(0, 100)}${pattern.description.length > 100 ? '...' : ''}</div>
+                        <div class="pattern-meta">
+                            <span><i class="fas fa-chart-line"></i> ${pattern.category === 'candlestick' ? 'Candlestick' : 'Chart Pattern'}</span>
+                            ${pattern.isUser ? '<span><i class="fas fa-user"></i> Your Pattern</span>' : '<span><i class="fas fa-book"></i> Library</span>'}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // ========================================
+        // PATTERN DETAIL
+        // ========================================
+        
+        function showPatternDetail(patternId) {
+            const allPatterns = getAllPatterns();
+            const pattern = allPatterns.find(p => p.id === patternId);
+            if (!pattern) return;
+            
+            document.getElementById('detailTitle').innerHTML = `${pattern.name} ${pattern.isUser ? '(Your Pattern)' : ''}`;
+            document.getElementById('detailBody').innerHTML = `
+                <div class="formula-section" style="background: var(--bg); border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+                    <div class="formula-title">📊 Pattern Overview</div>
+                    <div class="pattern-image" style="height: 200px; margin-bottom: 15px;">
+                        <svg viewBox="0 0 260 200" style="width: 100%; height: 100%;">
+                            <path d="${pattern.svg || 'M30,100 L230,100'}" stroke="var(--primary)" stroke-width="2" fill="none"/>
+                        </svg>
+                    </div>
+                    <p><strong>Type:</strong> ${pattern.type === 'bullish' ? '📈 Bullish' : pattern.type === 'bearish' ? '📉 Bearish' : pattern.type === 'candlestick' ? '🕯️ Candlestick' : '➖ Neutral'}</p>
+                    <p><strong>Category:</strong> ${pattern.category === 'candlestick' ? 'Candlestick Pattern' : 'Chart Pattern'}</p>
+                </div>
+                
+                <div class="formula-section" style="background: var(--bg); border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+                    <div class="formula-title">📖 Description</div>
+                    <p>${pattern.description}</p>
+                </div>
+                
+                <div class="formula-section" style="background: var(--bg); border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+                    <div class="formula-title">🎯 Trading Strategy</div>
+                    <p>${pattern.strategy || pattern.trading || 'Entry: Look for confirmation. Stop Loss: Below the pattern\'s low. Target: Measure pattern height and project.'}</p>
+                </div>
+                
+                ${pattern.isUser ? `
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button class="tool-btn" onclick="deleteUserPattern('${pattern.id}')" style="background: var(--danger); color: white;">Delete Pattern</button>
+                    </div>
+                ` : ''}
+            `;
+            document.getElementById('patternDetailModal').style.display = 'flex';
+        }
+        
+        // ========================================
+        // ADD USER PATTERN
+        // ========================================
+        
+        function initCanvas() {
+            canvas = document.getElementById('patternCanvas');
+            ctx = canvas.getContext('2d');
+            
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseleave', stopDrawing);
+            
+            drawGrid();
+        }
+        
+        function startDrawing(e) {
+            drawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            lastX = (e.clientX - rect.left) * scaleX;
+            lastY = (e.clientY - rect.top) * scaleY;
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+        }
+        
+        function draw(e) {
+            if (!drawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const currentX = (e.clientX - rect.left) * scaleX;
+            const currentY = (e.clientY - rect.top) * scaleY;
+            
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+            ctx.lineWidth = 2;
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(currentX, currentY);
+            ctx.stroke();
+            
+            lastX = currentX;
+            lastY = currentY;
+        }
+        
+        function stopDrawing() {
+            drawing = false;
+        }
+        
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--border').trim();
+            ctx.lineWidth = 0.5;
+            for (let x = 0; x < canvas.width; x += 30) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 30) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+        
+        function clearCanvas() {
+            drawGrid();
+        }
+        
+        function setCanvasTool(tool) {
+            currentTool = tool;
+        }
+        
+        function openAddPatternModal() {
+            document.getElementById('addPatternModal').style.display = 'flex';
+            setTimeout(initCanvas, 100);
+        }
+        
+        function closeAddPatternModal() {
+            document.getElementById('addPatternModal').style.display = 'none';
+        }
+        
+        // Save pattern
+        document.getElementById('addPatternForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('patternName').value;
+            const type = document.getElementById('patternType').value;
+            const description = document.getElementById('patternDesc').value;
+            const strategy = document.getElementById('patternStrategy').value;
+            
+            // Capture drawing as SVG path (simplified)
+            let svgPath = '';
+            // For now, use a simple line
+            svgPath = 'M30,100 L230,100';
+            
+            const newPattern = {
+                id: 'user_' + Date.now(),
+                name: name,
+                type: type,
+                category: type === 'candlestick' ? 'candlestick' : 'chart',
+                description: description,
+                strategy: strategy,
+                svg: svgPath,
+                isUser: true,
+                createdAt: new Date().toISOString()
+            };
+            
+            userPatterns.push(newPattern);
+            localStorage.setItem('user_patterns', JSON.stringify(userPatterns));
+            
+            closeAddPatternModal();
+            renderPatterns();
+            
+            // Reset form
+            document.getElementById('patternName').value = '';
+            document.getElementById('patternDesc').value = '';
+            document.getElementById('patternStrategy').value = '';
+        });
+        
+        function deleteUserPattern(patternId) {
+            if (confirm('Delete this pattern?')) {
+                userPatterns = userPatterns.filter(p => p.id !== patternId);
+                localStorage.setItem('user_patterns', JSON.stringify(userPatterns));
+                closeDetailModal();
+                renderPatterns();
+            }
+        }
+        
+        function closeDetailModal() {
+            document.getElementById('patternDetailModal').style.display = 'none';
+        }
+        
+        // ========================================
+        // UI FUNCTIONS
+        // ========================================
+        
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            renderPatterns();
+        }
+        
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            currentSearch = e.target.value;
+            renderPatterns();
+        });
+        
+        function toggleTheme() {
+            let html = document.documentElement;
+            let current = html.getAttribute('data-theme');
+            let newTheme = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+        
+        // Close modals on outside click
+        window.onclick = function(event) {
+            const addModal = document.getElementById('addPatternModal');
+            const detailModal = document.getElementById('patternDetailModal');
+            if (event.target === addModal) closeAddPatternModal();
+            if (event.target === detailModal) closeDetailModal();
+        };
+        
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        renderPatterns();
+    </script>
+</body>
+</html>
