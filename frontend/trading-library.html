@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Knowledge Library – Kim's Trade Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --text: #ffffff;
+            --text-light: #cbd5e1;
+            --border: #334155;
+            --card: #1e293b;
+            --hover: #2d3a4f;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --candle-up: #10b981;
+            --candle-down: #ef4444;
+        }
+        
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --text-light: #475569;
+            --border: #e2e8f0;
+            --card: #ffffff;
+            --hover: #f1f5f9;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --candle-up: #10b981;
+            --candle-down: #ef4444;
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .premium-badge, .pro-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .premium-badge { background: linear-gradient(135deg, gold, #ffd700); color: #000; }
+        .pro-badge { background: linear-gradient(135deg, var(--primary), #a78bfa); color: white; }
+        
+        /* Main Layout */
+        .library-layout {
+            display: flex;
+            gap: 30px;
+            min-height: 600px;
+        }
+        
+        /* Sidebar */
+        .library-sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+        }
+        
+        .sidebar-category {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .sidebar-category:hover {
+            background: var(--hover);
+        }
+        
+        .sidebar-category.active {
+            background: rgba(37,99,235,0.1);
+            border-left-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .sidebar-subcategory {
+            padding-left: 40px;
+            font-size: 13px;
+            color: var(--text-light);
+        }
+        
+        /* Content Area */
+        .library-content {
+            flex: 1;
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        
+        .content-header {
+            padding: 20px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .content-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .content-subtitle {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+        
+        .content-body {
+            padding: 25px;
+        }
+        
+        /* Candle Drawing */
+        .candle-container {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+            height: 150px;
+            margin: 20px 0;
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .candle {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 40px;
+        }
+        
+        .candle-wick {
+            width: 2px;
+            background: var(--text);
+            height: 80px;
+            margin-bottom: -2px;
+        }
+        
+        .candle-body {
+            width: 30px;
+            height: 40px;
+            background: var(--candle-up);
+        }
+        
+        .candle-body.down {
+            background: var(--candle-down);
+        }
+        
+        /* Math Tools */
+        .math-tool {
+            background: var(--bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .math-formula {
+            font-family: monospace;
+            background: var(--card);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border-left: 3px solid var(--primary);
+        }
+        
+        .calculator-input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+        }
+        
+        .calc-result {
+            margin-top: 15px;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .back-btn {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        @media (max-width: 768px) {
+            .library-layout {
+                flex-direction: column;
+            }
+            .library-sidebar {
+                width: 100%;
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Trading Knowledge Library <span class="pro-badge">PRO</span></h1>
+            <div>
+                <div class="theme-toggle" onclick="toggleTheme()" style="cursor: pointer; display: inline-block; margin-right: 15px;">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <a href="/" class="back-btn">← Dashboard</a>
+            </div>
+        </div>
+        
+        <div class="library-layout">
+            <!-- Sidebar Navigation -->
+            <div class="library-sidebar">
+                <div class="sidebar-header">📖 Trading Library</div>
+                <div class="sidebar-category" onclick="loadSection('trends')">
+                    📈 Chart Patterns & Trends
+                </div>
+                <div class="sidebar-category" onclick="loadSection('candlesticks')">
+                    🕯️ Candlestick Patterns
+                </div>
+                <div class="sidebar-category" onclick="loadSection('indicators')">
+                    📊 Technical Indicators
+                </div>
+                <div class="sidebar-category" onclick="loadSection('math')">
+                    🧮 Mathematical Tools
+                </div>
+                <div class="sidebar-category" onclick="loadSection('correlation')">
+                    🔗 Correlation Analysis
+                </div>
+                <div class="sidebar-category" onclick="loadSection('fibonacci')">
+                    🔢 Fibonacci Tools
+                </div>
+                <div class="sidebar-category" onclick="loadSection('elliot')">
+                    🌊 Elliot Wave Theory
+                </div>
+                <div class="sidebar-category" onclick="loadSection('volume')">
+                    📊 Volume Analysis
+                </div>
+                <div class="sidebar-category" onclick="loadSection('risk')">
+                    🛡️ Risk Management
+                </div>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="library-content" id="libraryContent">
+                <div class="content-header">
+                    <div class="content-title" id="contentTitle">Chart Patterns & Trends</div>
+                    <div class="content-subtitle" id="contentSubtitle">Learn to identify market patterns and trends</div>
+                </div>
+                <div class="content-body" id="contentBody">
+                    <div style="text-align: center; padding: 50px;">Loading library...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ========================================
+        // LIBRARY DATA
+        // ========================================
+        
+        const libraryData = {
+            trends: {
+                title: "📈 Chart Patterns & Trends",
+                subtitle: "Complete guide to identifying market patterns and trend structures",
+                content: `
+                    <div class="math-tool">
+                        <h3>📊 Major Trend Types</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 15px;">
+                            <div style="background: var(--bg); padding: 15px; border-radius: 12px;">
+                                <strong style="color: var(--success);">📈 Uptrend</strong>
+                                <p style="margin-top: 8px;">Higher highs and higher lows. Bullish sentiment dominates.</p>
+                                <svg width="100%" height="60" viewBox="0 0 200 60">
+                                    <path d="M10,50 L50,30 L90,40 L130,20 L170,25" stroke="var(--success)" fill="none" stroke-width="2"/>
+                                </svg>
+                            </div>
+                            <div style="background: var(--bg); padding: 15px; border-radius: 12px;">
+                                <strong style="color: var(--danger);">📉 Downtrend</strong>
+                                <p style="margin-top: 8px;">Lower highs and lower lows. Bearish sentiment dominates.</p>
+                                <svg width="100%" height="60" viewBox="0 0 200 60">
+                                    <path d="M10,25 L50,35 L90,25 L130,45 L170,50" stroke="var(--danger)" fill="none" stroke-width="2"/>
+                                </svg>
+                            </div>
+                            <div style="background: var(--bg); padding: 15px; border-radius: 12px;">
+                                <strong style="color: var(--warning);">➖ Sideways (Range)</strong>
+                                <p style="margin-top: 8px;">Consolidation. Price moves between support and resistance.</p>
+                                <svg width="100%" height="60" viewBox="0 0 200 60">
+                                    <path d="M10,35 L50,35 L90,38 L130,32 L170,35" stroke="var(--warning)" fill="none" stroke-width="2"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="math-tool">
+                        <h3>🔺 Major Chart Patterns</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                            <div>
+                                <strong>🏆 Bullish Patterns</strong>
+                                <ul style="margin-top: 10px; list-style: none;">
+                                    <li>• <strong>Cup and Handle</strong> - U-shaped consolidation followed by breakout</li>
+                                    <li>• <strong>Bull Flag</strong> - Sharp move up, then flag consolidation</li>
+                                    <li>• <strong>Ascending Triangle</strong> - Higher lows, flat resistance</li>
+                                    <li>• <strong>Double Bottom</strong> - "W" pattern, trend reversal</li>
+                                    <li>• <strong>Inverse Head & Shoulders</strong> - Reversal from downtrend</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <strong>⚠️ Bearish Patterns</strong>
+                                <ul style="margin-top: 10px; list-style: none;">
+                                    <li>• <strong>Head and Shoulders</strong> - Classic reversal pattern</li>
+                                    <li>• <strong>Bear Flag</strong> - Sharp drop, then flag consolidation</li>
+                                    <li>• <strong>Descending Triangle</strong> - Lower highs, flat support</li>
+                                    <li>• <strong>Double Top</strong> - "M" pattern, trend reversal</li>
+                                    <li>• <strong>Rising Wedge</strong> - Converging trendlines, bearish bias</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="math-tool">
+                        <h3>📐 Trendline Drawing Rules</h3>
+                        <p>1. Connect at least two swing highs or lows<br>
+                        2. The more touches, the stronger the trendline<br>
+                        3. Break of trendline = potential trend change<br>
+                        4. Valid trendline should not be too steep (>45°)</p>
+                        <div class="math-formula">
+                            Trendline Breakout Confirmation: Close beyond trendline + volume spike
+                        </div>
+                    </div>
+                `
+            },
+            
+            candlesticks: {
+                title: "🕯️ Candlestick Patterns",
+                subtitle: "Complete guide to Japanese candlestick patterns",
+                content: `
+                    <div class="math-tool">
+                        <h3>📊 Single Candlestick Patterns</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                            <div style="text-align: center;">
+                                <strong>Doji</strong>
+                                <div class="candle-container" style="height: 80px;">
+                                    <div class="candle"><div class="candle-wick" style="height: 60px;"></div><div class="candle-body" style="height: 10px; background: var(--text);"></div></div>
+                                </div>
+                                <small>Indecision. Potential reversal.</small>
+                            </div>
+                            <div style="text-align: center;">
+                                <strong>Hammer</strong>
+                                <div class="candle-container" style="height: 80px;">
+                                    <div class="candle"><div class="candle-wick" style="height: 60px; margin-top: 20px;"></div><div class="candle-body" style="height: 15px;"></div></div>
+                                </div>
+                                <small>Bullish reversal at bottom.</small>
+                            </div>
+                            <div style="text-align: center;">
+                                <strong>Shooting Star</strong>
+                                <div class="candle-container" style="height: 80px;">
+                                    <div class="candle"><div class="candle-wick" style="height: 60px;"></div><div class="candle-body" style="height: 15px; margin-top: 45px;"></div></div>
+                                </div>
+                                <small>Bearish reversal at top.</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="math-tool">
+                        <h3>🕯️ Two-Candle Patterns</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                            <div>
+                                <strong>Bullish Engulfing</strong>
+                                <div class="candle-container" style="height: 100px;">
+                                    <div class="candle"><div class="candle-body down" style="height: 30px;"></div></div>
+                                    <div class="candle"><div class="candle-body" style="height: 50px;"></div></div>
+                                </div>
+                                <small>Green candle completely engulfs previous red candle.</small>
+                            </div>
+                            <div>
+                                <strong>Bearish Engulfing</strong>
+                                <div class="candle-container" style="height: 100px;">
+                                    <div class="candle"><div class="candle-body" style="height: 30px;"></div></div>
+                                    <div class="candle"><div class="candle-body down" style="height: 50px;"></div></div>
+                                </div>
+                                <small>Red candle completely engulfs previous green candle.</small>
+                            </div>
+                            <div>
+                                <strong>Piercing Pattern</strong>
+                                <div class="candle-container" style="height: 100px;">
+                                    <div class="candle"><div class="candle-body down" style="height: 40px;"></div></div>
+                                    <div class="candle"><div class="candle-body" style="height: 50px; margin-top: -10px;"></div></div>
+                                </div>
+                                <small>Bullish reversal. Second candle closes above halfway of first.</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="math-tool">
+                        <h3>🕯️ Three-Candle Patterns</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                            <div>
+                                <strong>Morning Star</strong>
+                                <div class="candle-container" style="height: 100px;">
+                                    <div class="candle"><div class="candle-body down" style="height: 40px;"></div></div>
+                                    <div class="candle"><div class="candle-body" style="height: 15px;"></div></div>
+                                    <div class="candle"><div class="candle-body" style="height: 40px;"></div></div>
+                                </div>
+                                <small>Bullish reversal. Long red, small body, long green.</small>
+                            </div>
+                            <div>
+                                <strong>Evening Star</strong>
+                                <div class="candle-container" style="height: 100px;">
+                                    <div class="candle"><div class="candle-body" style="height: 40px;"></div></div>
+                                    <div class="candle"><div class="candle-body" style="height: 15px;"></div></div>
+                                    <div class="candle"><div class="candle-body down" style="height: 40px;"></div></div>
+                                </div>
+                                <small>Bearish reversal. Long green, small body, long red.</small>
+                            </div>
+                            <div>
+                                <strong>Three White Soldiers</strong>
+                                <div class="candle-container" style="height: 100px;">
+                                    <div class="candle"><div class="candle-body" style="height: 30px;"></div></div>
+                                    <div class="candle"><div class="candle-body" style="height: 35px;"></div></div>
+                                    <div class="candle"><div class="candle-body" style="height: 40px;"></div></div>
+                                </div>
+                                <small>Strong bullish continuation. Three consecutive long green candles.</small>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            
+            indicators: {
+                title: "📊 Technical Indicators",
+                subtitle: "Complete guide to technical indicators and their calculations",
+                content: `
+                    <div class="math-tool">
+                        <h3>📈 Moving Averages</h3>
+                        <p><strong>SMA (Simple Moving Average):</strong> Average price over N periods.</p>
+                        <div class="math-formula">SMA = (P1 + P2 + ... + Pn) / n</div>
+                        <p><strong>EMA (Exponential Moving Average):</strong> Gives more weight to recent prices.</p>
+                        <div class="math-formula">EMA = (Price × multiplier) + (Previous EMA × (1 - multiplier))<br>multiplier = 2 / (period + 1)</div>
+                        <p><strong>Golden Cross:</strong> 50 SMA crosses above 200 SMA (Bullish)<br>
+                        <strong>Death Cross:</strong> 50 SMA crosses below 200 SMA (Bearish)</p>
+                    </div>
+                    
+                    <div class="math-tool">
+                        <h3>📊 RSI (Relative Strength Index)</h3>
+                        <div class="math-formula">RSI = 100 - [100 / (1 + RS)]<br>RS = Average Gain / Average Loss over 14 periods</div>
+                        <p><strong>Interpretation:</strong><br>
+                        • RSI > 70 = Overbought (Potential sell)<br>
+                        • RSI < 30 = Oversold (Potential buy)<br>
+                        • Divergence = Trend weakening</p>
+                    </div>
+                    
+                    <div class="math-tool">
+                        <h3>📉 MACD (Moving Average Convergence Divergence)</h3>
+                        <div class="math-formula">MACD Line = EMA(12) - EMA(26)<br>Signal Line = EMA(9) of MACD Line<br>Histogram = MACD Line - Signal Line</div>
+                        <p><strong>Signals:</strong><br>
+                        • MACD crosses above Signal = Bullish<br>
+                        • MACD crosses below Signal = Bearish<br>
+                        • Histogram expanding = Increasing momentum</p>
+                    </div>
+                    
+                    <div class="math-tool">
+                        <h3>📊 Bollinger Bands</h3>
+                        <div class="math-formula">Middle Band = SMA(20)<br>Upper Band = Middle + (2 × Standard Deviation)<br>Lower Band = Middle - (2 × Standard Deviation)</div>
+                        <p><strong>Uses:</strong><br>
+                        • Price touching upper band = Overbought<br>
+                        • Price touching lower band = Oversold<br>
+                        • Squeeze = Low volatility (breakout coming)</p>
+                    </div>
+                `
+            },
+            
+            math: {
+                title: "🧮 Mathematical Tools",
+                subtitle: "Essential mathematical concepts for trading",
+                content: `
+                    <div class="math-tool">
+                        <h3>📈 Standard Deviation (Volatility)</h3>
+                        <div class="math-formula">σ = √[ Σ(x - μ)² / N ]</div>
+                        <p>Measures price dispersion. Higher σ = higher volatility.</p>
+                        <input type="text" id="stdPrices" class="calculator-input" placeholder="Enter prices (e.g., 10,12,14,16,18)">
+                        <button class="tool-btn" onclick="calculateStd()" style="margin-top: 10px;">Calculate</button>
+                        <div id="stdResult" class="calc-result" style="margin-top: 10px;">Standard Deviation: --</div>
+                    </div>
+                    
+                    <div class="math-tool">
+                        <h3>📊 Moving Average Calculation</h3>
+                        <input type="text" id="maPrices" class="calculator-input" placeholder="Enter prices (e.g., 10,12,14,16,18)">
+                        <input type="number" id="maPeriod" class="calculator-input" placeholder="Period (e.g., 5)" value="5">
+                        <button class="tool-btn" onclick="calculateMA()">Calculate SMA</button>
+                        <div id="maResult" class="calc-result">SMA: --</div>
+                    </div>
+                    
+                    <div class="math-tool">
+                        <h3>📈 Rate of Change (ROC)</h3>
+                        <div class="math-formula">ROC = [(Current Price - Price n periods ago) / Price n periods ago] × 100</div>
+                        <input type="number" id="rocCurrent" class="calculator-input" placeholder="Current Price">
+                        <input type="number" id="rocPrevious" class="calculator-input" placeholder="Price n periods ago">
+                        <button class="tool-btn" onclick="calculateROC()">Calculate ROC</button>
+                        <div id="rocResult" class="calc-result">ROC: --%</div>
+                    </div>
+                `
+            },
+            
+            correlation: {
+                title: "🔗 Correlation Analysis",
+                subtitle: "Understand relationships between assets",
+                content: `
+                    <div class="math-tool">
+                        <h3>📊 Pearson Correlation Coefficient</h3>
+                        <div class="math-formula">r = Σ[(x - x̄)(y - ȳ)] / √[Σ(x - x̄)² × Σ(y - ȳ)²]</div>
+                        <p><strong>Interpretation:</strong><br>
+                        • r = +1 = Perfect positive correlation (move together)<br>
+                        • r = 0 = No correlation<br>
+                        • r = -1 = Perfect negative correlation (move opposite)</p>
+                    </div>
+                    
+                    <div class="math-tool">
+                        <h3>📊 Asset Correlations</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <div><strong>BTC vs ETH:</strong> +0.85 (Strong positive)</div>
+                            <div><strong>BTC vs USD:</strong> -0.15 (Weak negative)</div>
+                            <div><strong>Gold vs USD:</strong> -0.65 (Moderate negative)</div>
+                            <div><strong>Oil vs USD:</strong> -0.40 (Weak negative)</div>
+                            <div><strong>S&P 500 vs BTC:</strong> +0.30 (Weak positive)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="math-tool">
+                        <h3>📈 Calculate Your Own Correlation</h3>
+                        <input type="text" id="corrX" class="calculator-input" placeholder="Asset 1 prices (comma separated)">
+                        <input type="text" id="corrY" class="calculator-input" placeholder="Asset 2 prices (comma separated)">
+                        <button class="tool-btn" onclick="calculateCorrelation()">Calculate Correlation</button>
+                        <div id="corrResult" class="calc-result">Correlation: --</div>
+                    </div>
+                `
+            },
+            
+            fibonacci: {
+                title: "🔢 Fibonacci Tools",
+                subtitle: "Fibonacci retracement, extension, and time zones",
+                content: `
+                    <div class="math-tool">
+                        <h3>📐 Fibonacci Retracement Levels</h3>
+                        <div class="math-formula">Level = High - (High - Low) × Ratio</div>
+                        <p><strong>Key Levels:</strong><br>
+                        • 23.6% - Minor retracement<br>
+                        • 38.2% - Common retracement<br>
+                        • 50% - Psychological level<br>
+                        • 61.8% - Golden Ratio (strongest level)<br>
+                        • 78.6% - Deep retracement</p>
+                        
+                        <div style="margin-top: 15px;">
+                            <input type="number" id="fibHigh" class="calculator-input" placeholder="Swing High Price">
+                            <input type="number" id="fibLow" class="calculator-input" placeholder="Swing Low Price">
+                            <button class="tool-btn" onclick="calculateFibonacci()">Calculate Levels</button>
+                            <div id="fibResult" class="calc-result" style="margin-top: 10px;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="math-tool">
+                        <h3>📈 Fibonacci Extension Levels</h3>
+                        <div class="math-formula">Extension = Swing Low + (Swing High - Swing Low) × Extension Ratio</div>
+                        <p><strong>Key Extension Levels:</strong> 127.2%, 161.8%, 200%, 261.8%</p>
+                    </div>
+                `
+            },
+            
+            elliot: {
+                title: "🌊 Elliot Wave Theory",
+                subtitle: "Understanding market cycles and wave patterns",
+                content: `
+                    <div class="math-tool">
+                        <h3>🌊 The 5-3 Wave Pattern</h3>
+                        <p><strong>Impulse Waves (5 waves):</strong> Move with the main trend<br>
+                        Wave 1: Initial move<br>
+                        Wave 2: Correction (usually 50-61.8% retracement)<br>
+                        Wave 3: Strongest, longest (never shortest)<br>
+                        Wave 4: Correction (should not overlap Wave 1)<br>
+                        Wave 5: Final push</p>
+                        <p><strong>Corrective Waves (3 waves):</strong> Move against the main trend<br>
+                        Wave A: First corrective move<br>
+                        Wave B: Retracement of A<br>
+                        Wave C: Final move, often equals A</p>
+                    </div>
+                    
+                    <div class="math-tool">
+                        <h3>📊 Wave Relationships</h3>
+                        <div class="math-formula">Wave 3 is often 1.618 × Wave 1<br>
+                        Wave 5 is often equal to Wave 1 or 1.618 × Wave 1<br>
+                        Wave C is often equal to Wave A</div>
+                    </div>
+                `
+            },
+            
+            volume: {
+                title: "📊 Volume Analysis",
+                subtitle: "Understanding volume and market participation",
+                content: `
+                    <div class="math-tool">
+                        <h3>📈 Volume Indicators</h3>
+                        <p><strong>OBV (On-Balance Volume):</strong> Cumulative volume based on price direction</p>
+                        <div class="math-formula">If Close > Previous Close: OBV = Previous OBV + Volume<br>
+                        If Close < Previous Close: OBV = Previous OBV - Volume</div>
+                        <p><strong>Volume-Weighted Average Price (VWAP):</strong> Average price weighted by volume</p>
+                        <div class="math-formula">VWAP = Σ(Price × Volume) / Σ(Volume)</div>
+                        <p><strong>Volume Interpretation:</strong><br>
+                        • Increasing volume = Confirms trend<br>
+                        • Decreasing volume = Trend weakening<br>
+                        • Volume spike = Potential reversal or breakout</p>
+                    </div>
+                `
+            },
+            
+            risk: {
+                title: "🛡️ Risk Management",
+                subtitle: "Protect your capital and maximize returns",
+                content: `
+                    <div class="math-tool">
+                        <h3>📊 Position Sizing</h3>
+                        <div class="math-formula">Position Size = Account Risk / (Stop Loss Distance × Contract Value)</div>
+                        <p><strong>2% Rule:</strong> Never risk more than 2% of account on any single trade.</p>
+                        <div style="margin-top: 15px;">
+                            <input type="number" id="riskAccount" class="calculator-input" placeholder="Account Size ($)">
+                            <input type="number" id="riskPercent" class="calculator-input" placeholder="Risk % (e.g., 2)" value="2">
+                            <button class="tool-btn" onclick="calculateRisk()">Calculate Max Risk</button>
+                            <div id="riskResult" class="calc-result">Max Risk: $--</div>
+                        </div>
+                    </div>
+                    
+                    <div class="math-tool">
+                        <h3>📈 Risk/Reward Ratio</h3>
+                        <div class="math-formula">Risk/Reward = (Entry - Stop Loss) / (Take Profit - Entry)</div>
+                        <p><strong>Ideal:</strong> Minimum 1:2 (risk $1 to make $2)<br>
+                        <strong>Professional:</strong> 1:3 or higher</p>
+                    </div>
+                    
+                    <div class="math-tool">
+                        <h3>📊 Sharpe Ratio (Risk-Adjusted Return)</h3>
+                        <div class="math-formula">Sharpe = (Portfolio Return - Risk-Free Rate) / Standard Deviation</div>
+                        <p>Higher Sharpe = Better risk-adjusted returns. >1 is good, >2 is excellent.</p>
+                    </div>
+                    
+                    <div class="math-tool">
+                        <h3>📉 Maximum Drawdown</h3>
+                        <div class="math-formula">Drawdown = (Peak Value - Trough Value) / Peak Value × 100%</div>
+                        <p>Measures worst peak-to-trough loss. Lower is better.</p>
+                    </div>
+                `
+            }
+        };
+        
+        let currentSection = 'trends';
+        
+        // ========================================
+        // LOAD SECTION
+        // ========================================
+        
+        function loadSection(section) {
+            currentSection = section;
+            const data = libraryData[section];
+            if (data) {
+                document.getElementById('contentTitle').innerHTML = data.title;
+                document.getElementById('contentSubtitle').innerHTML = data.subtitle;
+                document.getElementById('contentBody').innerHTML = data.content;
+                
+                // Highlight active sidebar
+                document.querySelectorAll('.sidebar-category').forEach(el => {
+                    el.classList.remove('active');
+                    if (el.textContent.includes(data.title.split(' ')[0]) || 
+                        (section === 'trends' && el.textContent.includes('Chart Patterns'))) {
+                        el.classList.add('active');
+                    }
+                });
+            }
+        }
+        
+        // ========================================
+        // CALCULATOR FUNCTIONS
+        // ========================================
+        
+        function calculateStd() {
+            const input = document.getElementById('stdPrices').value;
+            const prices = input.split(',').map(p => parseFloat(p.trim())).filter(v => !isNaN(v));
+            if (prices.length < 2) {
+                document.getElementById('stdResult').innerHTML = 'Enter at least 2 prices';
+                return;
+            }
+            const mean = prices.reduce((a, b) => a + b, 0) / prices.length;
+            const squaredDiffs = prices.map(p => Math.pow(p - mean, 2));
+            const variance = squaredDiffs.reduce((a, b) => a + b, 0) / prices.length;
+            const std = Math.sqrt(variance);
+            document.getElementById('stdResult').innerHTML = `Standard Deviation: ${std.toFixed(4)}<br>Mean: ${mean.toFixed(2)}`;
+        }
+        
+        function calculateMA() {
+            const input = document.getElementById('maPrices').value;
+            const period = parseInt(document.getElementById('maPeriod').value);
+            const prices = input.split(',').map(p => parseFloat(p.trim())).filter(v => !isNaN(v));
+            if (prices.length < period) {
+                document.getElementById('maResult').innerHTML = `Need at least ${period} prices`;
+                return;
+            }
+            const lastN = prices.slice(-period);
+            const sma = lastN.reduce((a, b) => a + b, 0) / period;
+            document.getElementById('maResult').innerHTML = `SMA (${period}): ${sma.toFixed(2)}`;
+        }
+        
+        function calculateROC() {
+            const current = parseFloat(document.getElementById('rocCurrent').value);
+            const previous = parseFloat(document.getElementById('rocPrevious').value);
+            if (isNaN(current) || isNaN(previous) || previous === 0) {
+                document.getElementById('rocResult').innerHTML = 'Invalid input';
+                return;
+            }
+            const roc = ((current - previous) / previous) * 100;
+            document.getElementById('rocResult').innerHTML = `ROC: ${roc.toFixed(2)}%`;
+        }
+        
+        function calculateCorrelation() {
+            const xInput = document.getElementById('corrX').value;
+            const yInput = document.getElementById('corrY').value;
+            const x = xInput.split(',').map(p => parseFloat(p.trim())).filter(v => !isNaN(v));
+            const y = yInput.split(',').map(p => parseFloat(p.trim())).filter(v => !isNaN(v));
+            if (x.length !== y.length || x.length < 2) {
+                document.getElementById('corrResult').innerHTML = 'Enter equal number of prices (min 2)';
+                return;
+            }
+            const n = x.length;
+            const sumX = x.reduce((a, b) => a + b, 0);
+            const sumY = y.reduce((a, b) => a + b, 0);
+            const sumXY = x.reduce((a, b, i) => a + b * y[i], 0);
+            const sumX2 = x.reduce((a, b) => a + b * b, 0);
+            const sumY2 = y.reduce((a, b) => a + b * b, 0);
+            const correlation = (n * sumXY - sumX * sumY) / Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+            let strength = '';
+            if (correlation > 0.7) strength = 'Strong positive';
+            else if (correlation > 0.3) strength = 'Weak positive';
+            else if (correlation > -0.3) strength = 'No correlation';
+            else if (correlation > -0.7) strength = 'Weak negative';
+            else strength = 'Strong negative';
+            document.getElementById('corrResult').innerHTML = `Correlation: ${correlation.toFixed(4)} (${strength})`;
+        }
+        
+        function calculateFibonacci() {
+            const high = parseFloat(document.getElementById('fibHigh').value);
+            const low = parseFloat(document.getElementById('fibLow').value);
+            if (isNaN(high) || isNaN(low) || high === low) {
+                document.getElementById('fibResult').innerHTML = 'Enter valid high and low prices';
+                return;
+            }
+            const diff = high - low;
+            const levels = {
+                '23.6%': low + diff * 0.236,
+                '38.2%': low + diff * 0.382,
+                '50.0%': low + diff * 0.5,
+                '61.8%': low + diff * 0.618,
+                '78.6%': low + diff * 0.786
+            };
+            let result = '<strong>Fibonacci Retracement Levels:</strong><br>';
+            for (const [key, value] of Object.entries(levels)) {
+                result += `${key}: ${value.toFixed(2)}<br>`;
+            }
+            document.getElementById('fibResult').innerHTML = result;
+        }
+        
+        function calculateRisk() {
+            const account = parseFloat(document.getElementById('riskAccount').value);
+            const percent = parseFloat(document.getElementById('riskPercent').value);
+            if (isNaN(account) || isNaN(percent)) {
+                document.getElementById('riskResult').innerHTML = 'Enter valid numbers';
+                return;
+            }
+            const maxRisk = account * (percent / 100);
+            document.getElementById('riskResult').innerHTML = `Max Risk: $${maxRisk.toFixed(2)} (${percent}% of $${account.toLocaleString()})`;
+        }
+        
+        // Expose functions to global
+        window.calculateStd = calculateStd;
+        window.calculateMA = calculateMA;
+        window.calculateROC = calculateROC;
+        window.calculateCorrelation = calculateCorrelation;
+        window.calculateFibonacci = calculateFibonacci;
+        window.calculateRisk = calculateRisk;
+        window.loadSection = loadSection;
+        
+        function toggleTheme() {
+            let html = document.documentElement;
+            let current = html.getAttribute('data-theme');
+            let newTheme = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+        
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        // Initialize
+        loadSection('trends');
+    </script>
+</body>
+</html>
