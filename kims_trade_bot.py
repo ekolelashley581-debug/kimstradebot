@@ -2289,6 +2289,40 @@ def get_trending_ideas():
     
     return jsonify({'ideas': ideas})
 
+# ============================================
+# AI COACH PRICE ENDPOINT
+# ============================================
+
+@app.route('/api/price/<symbol>', methods=['GET'])
+def get_price(symbol):
+    """Get current price for AI Coach"""
+    import random
+    
+    # Base prices (can be replaced with real API)
+    base_prices = {
+        'BTCUSD': 68000,
+        'ETHUSD': 3400,
+        'EURUSD': 1.09,
+        'GBPUSD': 1.26,
+        'XAUUSD': 2350,
+        'TSLA': 175,
+        'AAPL': 170
+    }
+    
+    # Get base price or default
+    base = base_prices.get(symbol, 100)
+    
+    # Add small random fluctuation
+    price = base + random.uniform(-base * 0.02, base * 0.02)
+    change = random.uniform(-2, 2)
+    
+    return jsonify({
+        'success': True,
+        'price': round(price, 2),
+        'change_24h': round(change, 1),
+        'symbol': symbol
+    })
+
 if __name__ == '__main__':
     # This code ONLY runs when you execute python directly (local development)
     os.makedirs(config.FRONTEND_DIR, exist_ok=True)
