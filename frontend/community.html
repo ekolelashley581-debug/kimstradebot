@@ -313,6 +313,100 @@
                 right: 10px;
             }
         }
+
+        /* Add these to your existing CSS */
+
+/* Follow Button */
+.follow-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.follow-btn.following {
+    background: var(--bg);
+    border: 1px solid var(--primary);
+    color: var(--primary);
+}
+
+/* Feed Tabs */
+.feed-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    padding: 8px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 30px;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.tab-btn.active {
+    background: var(--primary);
+    color: white;
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 400px;
+    width: 90%;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-light);
+}
+
+.profile-stats {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.post-author {
+    cursor: pointer;
+}
+
+.post-author:hover {
+    text-decoration: underline;
+}
     </style>
 </head>
 <body>
@@ -341,7 +435,20 @@
                 <div class="loading-spinner"></div>
             </div>
         </div>
-        
+
+           <!-- Add this after the header, before create post form -->
+<div class="feed-tabs">
+    <button class="tab-btn active" onclick="switchFeed('all')">🌍 All Posts</button>
+    <button class="tab-btn" onclick="switchFeed('following')">👥 Following</button>
+</div>
+
+<!-- Add this to show user profile when clicking on a username -->
+<div id="userProfileModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div id="profileContent"></div>
+    </div>
+</div>
         <!-- Create Post Form -->
         <div class="create-post">
             <input type="text" id="postTitle" placeholder="Post title (e.g., BTC Bullish Pattern)">
@@ -388,69 +495,31 @@
         // POSTS
         // ========================================
         
-        async function loadPosts() {
-            try {
-                const res = await fetch(API + '/ideas');
-                const data = await res.json();
-                const container = document.getElementById('postsFeed');
+      async function loadPosts() {
+    try {
+        const res = await fetch(API + '/ideas');
+        const data = await res.json();
+        const container = document.getElementById('postsFeed');
+        
+        if (data.ideas && data.ideas.length > 0) {
+            container.innerHTML = '';
+            
+            for (const post of data.ideas) {
+                const repliesRes = await fetch(API + `/ideas/${post.id}/replies`);
+                const repliesData = await repliesRes.json();
+                const replies = repliesData.replies || [];
                 
-                if (data.ideas && data.ideas.length > 0) {
-                    container.innerHTML = '';
-                    
-                    for (const post of data.ideas) {
-                        // Fetch replies for this post
-                        const repliesRes = await fetch(API + `/ideas/${post.id}/replies`);
-                        const repliesData = await repliesRes.json();
-                        const replies = repliesData.replies || [];
-                        
-                        const postDiv = document.createElement('div');
-                        postDiv.className = 'post-card';
-                        postDiv.innerHTML = `
-                            <div class="post-header">
-                                <span class="post-author">${escapeHtml(post.user_email)}</span>
-                                <span class="post-time">${new Date(post.created_at).toLocaleString()}</span>
-                            </div>
-                            <div class="post-title">${escapeHtml(post.title)}</div>
-                            <div class="post-content">${escapeHtml(post.description)}</div>
-                            
-                            <div class="post-actions">
-                                <button onclick="likePost(${post.id}, this)">
-                                    <i class="far fa-heart"></i> <span class="like-count">0</span>
-                                </button>
-                                <button onclick="toggleReplyForm(${post.id})">
-                                    <i class="far fa-comment"></i> <span class="reply-count">${replies.length}</span>
-                                </button>
-                                <button onclick="sharePost(${post.id}, '${escapeHtml(post.title).replace(/'/g, "\\'")}')">
-                                    <i class="fas fa-share-alt"></i> Share
-                                </button>
-                            </div>
-                            
-                            <div class="replies-section" id="replies-${post.id}">
-                                ${replies.map(reply => `
-                                    <div class="reply">
-                                        <div class="reply-author">${escapeHtml(reply.user_email)}</div>
-                                        <div class="reply-content">${highlightMentions(escapeHtml(reply.content))}</div>
-                                        <div style="font-size: 11px; color: var(--text-light); margin-top: 5px;">${new Date(reply.created_at).toLocaleString()}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                            
-                            <div class="reply-form" id="reply-form-${post.id}">
-                                <textarea id="reply-content-${post.id}" rows="2" placeholder="Write a reply... (Use @username to mention someone)"></textarea>
-                                <button class="btn-primary" onclick="submitReply(${post.id})">Post Reply</button>
-                                <button class="btn-secondary" onclick="toggleReplyForm(${post.id})">Cancel</button>
-                            </div>
-                        `;
-                        container.appendChild(postDiv);
-                    }
-                } else {
-                    container.innerHTML = '<p style="text-align: center; color: var(--text-light);">No posts yet. Be the first to share an idea!</p>';
-                }
-            } catch (error) {
-                console.error('Error loading posts:', error);
-                document.getElementById('postsFeed').innerHTML = '<p style="color: var(--danger);">Error loading posts</p>';
+                const postDiv = createPostElement(post, replies);
+                container.appendChild(postDiv);
             }
+        } else {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-light);">No posts yet. Be the first to share an idea!</p>';
         }
+    } catch (error) {
+        console.error('Error loading posts:', error);
+        document.getElementById('postsFeed').innerHTML = '<p style="color: var(--danger);">Error loading posts</p>';
+    }
+}
         
         async function createPost() {
             const title = document.getElementById('postTitle').value;
@@ -704,6 +773,161 @@
         document.documentElement.setAttribute('data-theme', savedTheme);
         
         init();
+
+        // ========================================
+// FOLLOW SYSTEM FUNCTIONS (ADD THIS ENTIRE BLOCK)
+// ========================================
+
+let currentFeed = 'all'; // 'all' or 'following'
+
+async function switchFeed(feed) {
+    currentFeed = feed;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    
+    if (feed === 'following') {
+        await loadFollowingFeed();
+    } else {
+        await loadPosts();
+    }
+}
+
+async function loadFollowingFeed() {
+    try {
+        const res = await fetch(API + '/feed');
+        const data = await res.json();
+        const container = document.getElementById('postsFeed');
+        
+        if (data.posts && data.posts.length > 0) {
+            container.innerHTML = '';
+            
+            for (const post of data.posts) {
+                const repliesRes = await fetch(API + `/ideas/${post.id}/replies`);
+                const repliesData = await repliesRes.json();
+                const replies = repliesData.replies || [];
+                
+                const postDiv = createPostElement(post, replies);
+                container.appendChild(postDiv);
+            }
+        } else {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-light);">No posts from people you follow. Follow some traders to see their ideas!</p>';
+        }
+    } catch (error) {
+        console.error('Error loading following feed:', error);
+    }
+}
+
+async function followUser(userId, button) {
+    try {
+        const res = await fetch(API + `/follow/${userId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+            if (data.action === 'followed') {
+                button.innerHTML = 'Following';
+                button.classList.add('following');
+            } else {
+                button.innerHTML = 'Follow';
+                button.classList.remove('following');
+            }
+        }
+    } catch (error) {
+        console.log('Follow error:', error);
+    }
+}
+
+async function showUserProfile(userId, userEmail) {
+    try {
+        const res = await fetch(API + `/followers/${userId}`);
+        const data = await res.json();
+        
+        const modal = document.getElementById('userProfileModal');
+        const profileContent = document.getElementById('profileContent');
+        
+        // Check if current user is following this user
+        const isFollowing = data.followers.some(f => f.email === currentUser);
+        
+        profileContent.innerHTML = `
+            <h3>${escapeHtml(userEmail)}</h3>
+            <div class="profile-stats">
+                <div>
+                    <div class="stat-number">${data.followers_count}</div>
+                    <div>Followers</div>
+                </div>
+                <div>
+                    <div class="stat-number">${data.following_count}</div>
+                    <div>Following</div>
+                </div>
+            </div>
+            <button class="follow-btn ${isFollowing ? 'following' : ''}" onclick="followUser(${userId}, this)">
+                ${isFollowing ? 'Following' : 'Follow'}
+            </button>
+        `;
+        
+        modal.style.display = 'flex';
+    } catch (error) {
+        console.log('Error loading profile:', error);
+    }
+}
+
+function closeModal() {
+    document.getElementById('userProfileModal').style.display = 'none';
+}
+
+// Update createPostElement to include clickable author name
+function createPostElement(post, replies) {
+    const postDiv = document.createElement('div');
+    postDiv.className = 'post-card';
+    postDiv.innerHTML = `
+        <div class="post-header">
+            <span class="post-author" onclick="showUserProfile(${post.user_id}, '${escapeHtml(post.user_email)}')">
+                ${escapeHtml(post.user_email)}
+            </span>
+            <span class="post-time">${new Date(post.created_at).toLocaleString()}</span>
+        </div>
+        <div class="post-title">${escapeHtml(post.title)}</div>
+        <div class="post-content">${escapeHtml(post.description)}</div>
+        
+        <div class="post-actions">
+            <button onclick="likePost(${post.id}, this)">
+                <i class="far fa-heart"></i> <span class="like-count">0</span>
+            </button>
+            <button onclick="toggleReplyForm(${post.id})">
+                <i class="far fa-comment"></i> <span class="reply-count">${replies.length}</span>
+            </button>
+            <button onclick="sharePost(${post.id}, '${escapeHtml(post.title).replace(/'/g, "\\'")}')">
+                <i class="fas fa-share-alt"></i> Share
+            </button>
+        </div>
+        
+        <div class="replies-section" id="replies-${post.id}">
+            ${replies.map(reply => `
+                <div class="reply">
+                    <div class="reply-author">${escapeHtml(reply.user_email)}</div>
+                    <div class="reply-content">${highlightMentions(escapeHtml(reply.content))}</div>
+                </div>
+            `).join('')}
+        </div>
+        
+        <div class="reply-form" id="reply-form-${post.id}">
+            <textarea id="reply-content-${post.id}" rows="2" placeholder="Write a reply... (Use @username to mention someone)"></textarea>
+            <button class="btn-primary" onclick="submitReply(${post.id})">Post Reply</button>
+            <button class="btn-secondary" onclick="toggleReplyForm(${post.id})">Cancel</button>
+        </div>
+    `;
+    return postDiv;
+}
     </script>
+    <!-- User Profile Modal (ADD THIS) -->
+<div id="userProfileModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div id="profileContent"></div>
+    </div>
+ </div>
 </body>
 </html>
