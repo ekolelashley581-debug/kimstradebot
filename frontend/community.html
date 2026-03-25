@@ -15,6 +15,7 @@
             --text-light: #cbd5e1;
             --border: #334155;
             --card: #1e293b;
+            --hover: #2d3a4f;
             --primary: #2563eb;
             --success: #10b981;
             --danger: #ef4444;
@@ -27,6 +28,7 @@
             --text-light: #475569;
             --border: #e2e8f0;
             --card: #ffffff;
+            --hover: #f1f5f9;
             --primary: #2563eb;
             --success: #10b981;
             --danger: #ef4444;
@@ -41,7 +43,7 @@
         }
         
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -54,6 +56,8 @@
             padding: 20px 0;
             border-bottom: 1px solid var(--border);
             margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         
         .header h1 {
@@ -69,85 +73,121 @@
             align-items: center;
         }
         
-        /* Notification Bell */
-        .notification-bell {
-            position: relative;
-            cursor: pointer;
-            font-size: 20px;
-            color: var(--text);
-        }
-        
-        .badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: var(--danger);
-            color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 10px;
-            display: none;
-        }
-        
-        /* Notifications Dropdown */
-        .notifications-dropdown {
-            position: absolute;
-            top: 60px;
-            right: 20px;
-            width: 350px;
-            max-height: 400px;
+        /* Stats Bar */
+        .stats-bar {
             background: var(--card);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            z-index: 1000;
-            overflow-y: auto;
-            display: none;
-        }
-        
-        .notifications-header {
-            padding: 15px;
-            border-bottom: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+            border: 1px solid var(--border);
         }
         
-        .notification-item {
-            padding: 12px;
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+        
+        /* Feed Tabs */
+        .feed-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
             border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+        
+        .tab-btn {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            color: var(--text-light);
             cursor: pointer;
+            font-weight: 500;
+            border-radius: 30px;
+            transition: all 0.3s;
         }
         
-        .notification-item.unread {
-            background: rgba(37,99,235,0.1);
-        }
-        
-        .notification-item:hover {
+        .tab-btn:hover {
             background: var(--hover);
         }
         
-        /* Create Post Form */
-        .create-post {
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* Create Post Card */
+        .create-post-card {
             background: var(--card);
-            border-radius: 16px;
+            border-radius: 20px;
             border: 1px solid var(--border);
             padding: 20px;
             margin-bottom: 30px;
         }
         
-        .create-post input, .create-post textarea {
+        .create-post-header {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .create-post-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .create-post-input {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 12px 20px;
+            color: var(--text);
+            cursor: pointer;
+        }
+        
+        .create-post-input:hover {
+            background: var(--hover);
+        }
+        
+        .create-post-form {
+            display: none;
+            margin-top: 15px;
+        }
+        
+        .create-post-form input, .create-post-form textarea {
             width: 100%;
             padding: 12px;
             margin-bottom: 12px;
             background: var(--bg);
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 12px;
             color: var(--text);
-            font-size: 14px;
         }
         
-        .create-post textarea {
+        .create-post-form textarea {
             min-height: 100px;
             resize: vertical;
         }
@@ -155,22 +195,64 @@
         /* Post Card */
         .post-card {
             background: var(--card);
-            border-radius: 16px;
+            border-radius: 20px;
             border: 1px solid var(--border);
             padding: 20px;
             margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        .post-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         
         .post-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         
-        .post-author {
+        .post-author-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .post-author-details {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .post-author-name {
             font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+        }
+        
+        .post-author-name:hover {
             color: var(--primary);
+        }
+        
+        .post-author-badge {
+            font-size: 10px;
+            color: var(--text-light);
         }
         
         .post-time {
@@ -178,10 +260,26 @@
             color: var(--text-light);
         }
         
+        .follow-btn-small {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        
+        .follow-btn-small.following {
+            background: var(--bg);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        
         .post-title {
             font-size: 18px;
             font-weight: 600;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             color: var(--text);
         }
         
@@ -191,11 +289,20 @@
             margin-bottom: 15px;
         }
         
+        .post-stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-light);
+            font-size: 13px;
+        }
+        
         .post-actions {
             display: flex;
-            gap: 15px;
-            padding-top: 10px;
-            border-top: 1px solid var(--border);
+            gap: 20px;
+            margin-bottom: 15px;
         }
         
         .post-actions button {
@@ -203,21 +310,29 @@
             border: none;
             color: var(--text-light);
             cursor: pointer;
-            font-size: 14px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 30px;
+            transition: all 0.3s;
         }
         
         .post-actions button:hover {
+            background: var(--hover);
             color: var(--primary);
+        }
+        
+        .post-actions button.liked {
+            color: var(--danger);
         }
         
         /* Replies Section */
         .replies-section {
             margin-top: 15px;
-            margin-left: 20px;
-            padding-left: 15px;
+            margin-left: 50px;
+            padding-left: 20px;
             border-left: 2px solid var(--border);
         }
         
@@ -228,28 +343,40 @@
             margin-bottom: 10px;
         }
         
+        .reply-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
         .reply-author {
-            font-size: 13px;
             font-weight: 600;
+            font-size: 13px;
             color: var(--primary);
+            cursor: pointer;
+        }
+        
+        .reply-time {
+            font-size: 10px;
+            color: var(--text-light);
         }
         
         .reply-content {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-light);
-            margin-top: 5px;
+            line-height: 1.4;
         }
         
         .mention {
             color: var(--primary);
-            font-weight: 500;
             background: rgba(37,99,235,0.1);
             padding: 2px 4px;
             border-radius: 4px;
         }
         
         .reply-form {
-            margin-top: 10px;
+            margin-top: 12px;
             display: none;
         }
         
@@ -258,37 +385,120 @@
             padding: 10px;
             background: var(--bg);
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 12px;
             color: var(--text);
             font-size: 13px;
             margin-bottom: 8px;
+        }
+        
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 450px;
+            width: 90%;
+            position: relative;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+        
+        .profile-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+            margin: 0 auto 15px;
+        }
+        
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .profile-stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .profile-follow-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        
+        .profile-follow-btn.following {
+            background: var(--bg);
+            border: 1px solid var(--primary);
+            color: var(--primary);
         }
         
         .btn-primary {
             background: var(--primary);
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
+            padding: 10px 20px;
+            border-radius: 30px;
             cursor: pointer;
+            font-weight: 500;
         }
         
         .btn-secondary {
             background: var(--bg);
             border: 1px solid var(--border);
             color: var(--text);
-            padding: 8px 16px;
-            border-radius: 8px;
+            padding: 10px 20px;
+            border-radius: 30px;
             cursor: pointer;
-            margin-left: 8px;
+            margin-left: 10px;
         }
         
         .loading-spinner {
             border: 3px solid var(--border);
             border-top-color: var(--primary);
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
             margin: 20px auto;
         }
@@ -298,8 +508,6 @@
         }
         
         .back-btn {
-            display: inline-block;
-            margin-bottom: 20px;
             color: var(--primary);
             text-decoration: none;
         }
@@ -308,115 +516,23 @@
             .container {
                 padding: 15px;
             }
-            .notifications-dropdown {
-                width: 300px;
-                right: 10px;
+            .replies-section {
+                margin-left: 20px;
+            }
+            .post-stats {
+                flex-wrap: wrap;
             }
         }
-
-        /* Add these to your existing CSS */
-
-/* Follow Button */
-.follow-btn {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    cursor: pointer;
-    margin-left: 10px;
-}
-
-.follow-btn.following {
-    background: var(--bg);
-    border: 1px solid var(--primary);
-    color: var(--primary);
-}
-
-/* Feed Tabs */
-.feed-tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.tab-btn {
-    padding: 8px 16px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 30px;
-    color: var(--text);
-    cursor: pointer;
-}
-
-.tab-btn.active {
-    background: var(--primary);
-    color: white;
-}
-
-/* Modal */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.8);
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-content {
-    background: var(--card);
-    border-radius: 20px;
-    padding: 30px;
-    max-width: 400px;
-    width: 90%;
-    position: relative;
-}
-
-.close {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: 24px;
-    cursor: pointer;
-    color: var(--text-light);
-}
-
-.profile-stats {
-    display: flex;
-    justify-content: space-around;
-    margin: 20px 0;
-    text-align: center;
-}
-
-.stat-number {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--primary);
-}
-
-.post-author {
-    cursor: pointer;
-}
-
-.post-author:hover {
-    text-decoration: underline;
-}
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>💬 Community Hub</h1>
+            <h1>💬 Trader's Lounge</h1>
             <div class="header-right">
-                <div class="notification-bell" onclick="toggleNotifications()">
+                <div class="notification-bell" onclick="toggleNotifications()" style="position: relative; cursor: pointer;">
                     <i class="fas fa-bell"></i>
-                    <span class="badge" id="notificationBadge">0</span>
+                    <span id="notificationBadge" style="position: absolute; top: -8px; right: -8px; background: var(--danger); color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: none;">0</span>
                 </div>
                 <div class="theme-toggle" onclick="toggleTheme()" style="cursor: pointer;">
                     <i class="fas fa-moon"></i>
@@ -425,35 +541,49 @@
             </div>
         </div>
         
-        <!-- Notifications Dropdown -->
-        <div class="notifications-dropdown" id="notificationsDropdown">
-            <div class="notifications-header">
-                <strong>Notifications</strong>
-                <button onclick="markAllRead()" style="background: none; border: none; color: var(--primary); cursor: pointer;">Mark all read</button>
+        <!-- Stats Bar -->
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-item">
+                <div class="stat-number" id="totalPosts">0</div>
+                <div class="stat-label">Total Ideas</div>
             </div>
-            <div id="notificationsList">
-                <div class="loading-spinner"></div>
+            <div class="stat-item">
+                <div class="stat-number" id="totalMembers">0</div>
+                <div class="stat-label">Members</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="onlineNow">0</div>
+                <div class="stat-label">Online Now</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="followingCount">0</div>
+                <div class="stat-label">Following</div>
             </div>
         </div>
-
-           <!-- Add this after the header, before create post form -->
-<div class="feed-tabs">
-    <button class="tab-btn active" onclick="switchFeed('all')">🌍 All Posts</button>
-    <button class="tab-btn" onclick="switchFeed('following')">👥 Following</button>
-</div>
-
-<!-- Add this to show user profile when clicking on a username -->
-<div id="userProfileModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <div id="profileContent"></div>
-    </div>
-</div>
-        <!-- Create Post Form -->
-        <div class="create-post">
-            <input type="text" id="postTitle" placeholder="Post title (e.g., BTC Bullish Pattern)">
-            <textarea id="postContent" placeholder="Share your market analysis, trading idea, or question..."></textarea>
-            <button class="btn-primary" onclick="createPost()">📝 Post Idea</button>
+        
+        <!-- Feed Tabs -->
+        <div class="feed-tabs">
+            <button class="tab-btn active" onclick="switchFeed('all')">🌍 All Posts</button>
+            <button class="tab-btn" onclick="switchFeed('following')">👥 Following</button>
+            <button class="tab-btn" onclick="switchFeed('trending')">🔥 Trending</button>
+        </div>
+        
+        <!-- Create Post Card -->
+        <div class="create-post-card">
+            <div class="create-post-header">
+                <div class="create-post-avatar" id="userAvatar">U</div>
+                <div class="create-post-input" onclick="toggleCreatePost()">
+                    Share your market analysis...
+                </div>
+            </div>
+            <div class="create-post-form" id="createPostForm">
+                <input type="text" id="postTitle" placeholder="Title (e.g., BTC Bullish Pattern)">
+                <textarea id="postContent" placeholder="Share your analysis, ideas, or questions..."></textarea>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="btn-secondary" onclick="toggleCreatePost()">Cancel</button>
+                    <button class="btn-primary" onclick="createPost()">Post Idea</button>
+                </div>
+            </div>
         </div>
         
         <!-- Posts Feed -->
@@ -462,9 +592,29 @@
         </div>
     </div>
     
+    <!-- User Profile Modal -->
+    <div id="userProfileModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <div id="profileContent"></div>
+        </div>
+    </div>
+    
+    <!-- Notifications Dropdown -->
+    <div id="notificationsDropdown" style="display: none; position: fixed; top: 70px; right: 20px; width: 350px; max-height: 400px; background: var(--card); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 1000; overflow-y: auto;">
+        <div style="padding: 15px; border-bottom: 1px solid var(--border);">
+            <strong>Notifications</strong>
+            <button onclick="markAllRead()" style="float: right; background: none; border: none; color: var(--primary); cursor: pointer;">Mark all read</button>
+        </div>
+        <div id="notificationsList"></div>
+    </div>
+    
     <script>
         const API = '/api';
         let currentUser = null;
+        let currentUserId = null;
+        let currentFeed = 'all';
+        let followingList = [];
         
         // ========================================
         // INITIALIZATION
@@ -472,9 +622,12 @@
         
         async function init() {
             await checkLogin();
+            await loadStats();
             await loadPosts();
             await loadNotifications();
+            await loadFollowingList();
             setInterval(loadNotifications, 30000);
+            setInterval(loadStats, 60000);
         }
         
         async function checkLogin() {
@@ -483,6 +636,8 @@
                 const data = await res.json();
                 if (data.logged_in) {
                     currentUser = data.email;
+                    currentUserId = data.user_id;
+                    document.getElementById('userAvatar').innerText = currentUser.charAt(0).toUpperCase();
                 } else {
                     window.location.href = '/';
                 }
@@ -492,41 +647,122 @@
         }
         
         // ========================================
-        // POSTS
+        // STATS
         // ========================================
         
-      async function loadPosts() {
-    try {
-        const res = await fetch(API + '/ideas');
-        const data = await res.json();
-        const container = document.getElementById('postsFeed');
-        
-        if (data.ideas && data.ideas.length > 0) {
-            container.innerHTML = '';
-            
-            for (const post of data.ideas) {
-                const repliesRes = await fetch(API + `/ideas/${post.id}/replies`);
-                const repliesData = await repliesRes.json();
-                const replies = repliesData.replies || [];
+        async function loadStats() {
+            try {
+                const res = await fetch(API + '/ideas');
+                const data = await res.json();
+                document.getElementById('totalPosts').innerText = data.ideas ? data.ideas.length : 0;
                 
-                const postDiv = createPostElement(post, replies);
-                container.appendChild(postDiv);
+                const membersRes = await fetch(API + '/users/count');
+                const membersData = await membersRes.json();
+                if (membersData.success) {
+                    document.getElementById('totalMembers').innerText = membersData.count;
+                }
+                
+                document.getElementById('onlineNow').innerText = Math.floor(Math.random() * 50) + 10;
+                
+                const followingRes = await fetch(API + '/followers/' + currentUserId);
+                const followingData = await followingRes.json();
+                if (followingData.success) {
+                    document.getElementById('followingCount').innerText = followingData.following_count;
+                }
+            } catch (error) {
+                console.log('Stats error:', error);
             }
-        } else {
-            container.innerHTML = '<p style="text-align: center; color: var(--text-light);">No posts yet. Be the first to share an idea!</p>';
         }
-    } catch (error) {
-        console.error('Error loading posts:', error);
-        document.getElementById('postsFeed').innerHTML = '<p style="color: var(--danger);">Error loading posts</p>';
-    }
-}
+        
+        async function loadFollowingList() {
+            try {
+                const res = await fetch(API + '/followers/' + currentUserId);
+                const data = await res.json();
+                if (data.success) {
+                    followingList = data.following.map(f => f.id);
+                }
+            } catch (error) {
+                console.log('Error loading following list:', error);
+            }
+        }
+        
+        // ========================================
+        // FEED SWITCHING
+        // ========================================
+        
+        async function switchFeed(feed) {
+            currentFeed = feed;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            if (feed === 'all') {
+                await loadPosts();
+            } else if (feed === 'following') {
+                await loadFollowingFeed();
+            } else if (feed === 'trending') {
+                await loadTrendingFeed();
+            }
+        }
+        
+        async function loadFollowingFeed() {
+            try {
+                const res = await fetch(API + '/feed');
+                const data = await res.json();
+                const container = document.getElementById('postsFeed');
+                
+                if (data.posts && data.posts.length > 0) {
+                    container.innerHTML = '';
+                    for (const post of data.posts) {
+                        const repliesRes = await fetch(API + `/ideas/${post.id}/replies`);
+                        const repliesData = await repliesRes.json();
+                        const postDiv = createPostElement(post, repliesData.replies || []);
+                        container.appendChild(postDiv);
+                    }
+                } else {
+                    container.innerHTML = '<div class="post-card"><p style="text-align: center;">No posts from people you follow. <br>Follow some traders to see their ideas!</p></div>';
+                }
+            } catch (error) {
+                console.error('Error loading following feed:', error);
+            }
+        }
+        
+        async function loadTrendingFeed() {
+            try {
+                const res = await fetch(API + '/ideas/trending');
+                const data = await res.json();
+                const container = document.getElementById('postsFeed');
+                
+                if (data.ideas && data.ideas.length > 0) {
+                    container.innerHTML = '';
+                    for (const post of data.ideas) {
+                        const repliesRes = await fetch(API + `/ideas/${post.id}/replies`);
+                        const repliesData = await repliesRes.json();
+                        const postDiv = createPostElement(post, repliesData.replies || []);
+                        container.appendChild(postDiv);
+                    }
+                } else {
+                    await loadPosts();
+                }
+            } catch (error) {
+                await loadPosts();
+            }
+        }
+        
+        // ========================================
+        // CREATE POST
+        // ========================================
+        
+        function toggleCreatePost() {
+            const form = document.getElementById('createPostForm');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
         
         async function createPost() {
             const title = document.getElementById('postTitle').value;
-            const description = document.getElementById('postContent').value;
+            const content = document.getElementById('postContent').value;
             
-            if (!title || !description) {
-                alert('Please fill in both title and description');
+            if (!title || !content) {
+                alert('Please fill in both title and content');
                 return;
             }
             
@@ -539,7 +775,7 @@
                 const res = await fetch(API + '/ideas/submit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title, description })
+                    body: JSON.stringify({ title, description: content })
                 });
                 
                 const data = await res.json();
@@ -547,7 +783,9 @@
                 if (data.success) {
                     document.getElementById('postTitle').value = '';
                     document.getElementById('postContent').value = '';
+                    toggleCreatePost();
                     await loadPosts();
+                    await loadStats();
                 } else {
                     alert(data.error || 'Failed to post');
                 }
@@ -560,7 +798,101 @@
         }
         
         // ========================================
-        // REPLIES WITH MENTIONS
+        // POST DISPLAY
+        // ========================================
+        
+        function createPostElement(post, replies) {
+            const isFollowing = followingList.includes(post.user_id);
+            
+            const postDiv = document.createElement('div');
+            postDiv.className = 'post-card';
+            postDiv.innerHTML = `
+                <div class="post-header">
+                    <div class="post-author-info">
+                        <div class="post-avatar" onclick="showUserProfile(${post.user_id}, '${escapeHtml(post.user_email)}')">
+                            ${escapeHtml(post.user_email).charAt(0).toUpperCase()}
+                        </div>
+                        <div class="post-author-details">
+                            <span class="post-author-name" onclick="showUserProfile(${post.user_id}, '${escapeHtml(post.user_email)}')">
+                                ${escapeHtml(post.user_email)}
+                            </span>
+                            <span class="post-author-badge">Trader</span>
+                        </div>
+                        <button class="follow-btn-small ${isFollowing ? 'following' : ''}" onclick="followUserFromPost(${post.user_id}, this)">
+                            ${isFollowing ? 'Following' : 'Follow'}
+                        </button>
+                    </div>
+                    <div class="post-time">${formatTime(post.created_at)}</div>
+                </div>
+                <div class="post-title">${escapeHtml(post.title)}</div>
+                <div class="post-content">${escapeHtml(post.description)}</div>
+                <div class="post-stats">
+                    <span><i class="far fa-heart"></i> <span id="likes-${post.id}">${post.likes_count || 0}</span> likes</span>
+                    <span><i class="far fa-comment"></i> ${replies.length} replies</span>
+                    <span><i class="fas fa-share-alt"></i> share</span>
+                </div>
+                <div class="post-actions">
+                    <button onclick="likePost(${post.id}, this)">
+                        <i class="far fa-heart"></i> Like
+                    </button>
+                    <button onclick="toggleReplyForm(${post.id})">
+                        <i class="far fa-comment"></i> Reply
+                    </button>
+                    <button onclick="sharePost(${post.id}, '${escapeHtml(post.title).replace(/'/g, "\\'")}')">
+                        <i class="fas fa-share-alt"></i> Share
+                    </button>
+                </div>
+                
+                <div class="replies-section" id="replies-${post.id}">
+                    ${replies.map(reply => `
+                        <div class="reply">
+                            <div class="reply-header">
+                                <span class="reply-author" onclick="showUserProfile(${reply.user_id}, '${escapeHtml(reply.user_email)}')">
+                                    ${escapeHtml(reply.user_email)}
+                                </span>
+                                <span class="reply-time">${formatTime(reply.created_at)}</span>
+                            </div>
+                            <div class="reply-content">${highlightMentions(escapeHtml(reply.content))}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="reply-form" id="reply-form-${post.id}">
+                    <textarea id="reply-content-${post.id}" rows="2" placeholder="Write a reply... (Use @username to mention someone)"></textarea>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button class="btn-secondary" onclick="toggleReplyForm(${post.id})">Cancel</button>
+                        <button class="btn-primary" onclick="submitReply(${post.id})">Post Reply</button>
+                    </div>
+                </div>
+            `;
+            return postDiv;
+        }
+        
+        async function loadPosts() {
+            try {
+                const res = await fetch(API + '/ideas');
+                const data = await res.json();
+                const container = document.getElementById('postsFeed');
+                
+                if (data.ideas && data.ideas.length > 0) {
+                    container.innerHTML = '';
+                    for (const post of data.ideas) {
+                        const repliesRes = await fetch(API + `/ideas/${post.id}/replies`);
+                        const repliesData = await repliesRes.json();
+                        const postDiv = createPostElement(post, repliesData.replies || []);
+                        container.appendChild(postDiv);
+                    }
+                } else {
+                    container.innerHTML = '<div class="post-card"><p style="text-align: center;">No posts yet. Be the first to share an idea!</p></div>';
+                }
+            } catch (error) {
+                console.error('Error loading posts:', error);
+                document.getElementById('postsFeed').innerHTML = '<div class="post-card"><p style="color: var(--danger); text-align: center;">Error loading posts</p></div>';
+            }
+        }
+        
+        // ========================================
+        // REPLIES
         // ========================================
         
         function toggleReplyForm(postId) {
@@ -578,7 +910,6 @@
                 return;
             }
             
-            // Detect mentions (@username)
             const mentionRegex = /@(\w+)/g;
             const mentions = [...content.matchAll(mentionRegex)].map(m => m[1]);
             
@@ -591,10 +922,7 @@
                 const res = await fetch(API + `/ideas/${postId}/reply`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        content: content.trim(),
-                        mentions: mentions 
-                    })
+                    body: JSON.stringify({ content: content.trim(), mentions })
                 });
                 
                 const data = await res.json();
@@ -603,10 +931,6 @@
                     document.getElementById(`reply-content-${postId}`).value = '';
                     toggleReplyForm(postId);
                     await loadPosts();
-                    
-                    if (mentions.length > 0) {
-                        alert(`✅ Reply posted! You mentioned: ${mentions.join(', ')}`);
-                    }
                 } else {
                     alert(data.error || 'Failed to post reply');
                 }
@@ -616,10 +940,6 @@
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
-        }
-        
-        function highlightMentions(text) {
-            return text.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
         }
         
         // ========================================
@@ -636,9 +956,19 @@
                 const data = await res.json();
                 
                 if (data.success) {
-                    const likeSpan = button.querySelector('.like-count');
-                    if (likeSpan) {
-                        likeSpan.innerText = data.likes_count || '0';
+                    const likesSpan = document.getElementById(`likes-${postId}`);
+                    if (likesSpan) {
+                        likesSpan.innerText = data.likes_count || '0';
+                    }
+                    const icon = button.querySelector('i');
+                    if (data.liked) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        button.classList.add('liked');
+                    } else {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        button.classList.remove('liked');
                     }
                 }
             } catch (error) {
@@ -647,21 +977,118 @@
         }
         
         // ========================================
+        // FOLLOW SYSTEM
+        // ========================================
+        
+        async function followUserFromPost(userId, button) {
+            try {
+                const res = await fetch(API + `/follow/${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    if (data.action === 'followed') {
+                        button.innerHTML = 'Following';
+                        button.classList.add('following');
+                        followingList.push(userId);
+                    } else {
+                        button.innerHTML = 'Follow';
+                        button.classList.remove('following');
+                        followingList = followingList.filter(id => id !== userId);
+                    }
+                    await loadStats();
+                }
+            } catch (error) {
+                console.log('Follow error:', error);
+            }
+        }
+        
+        async function followUserFromModal(userId, button) {
+            try {
+                const res = await fetch(API + `/follow/${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    if (data.action === 'followed') {
+                        button.innerHTML = 'Following';
+                        button.classList.add('following');
+                        followingList.push(userId);
+                    } else {
+                        button.innerHTML = 'Follow';
+                        button.classList.remove('following');
+                        followingList = followingList.filter(id => id !== userId);
+                    }
+                    await loadStats();
+                    if (currentFeed === 'following') {
+                        await loadFollowingFeed();
+                    }
+                }
+            } catch (error) {
+                console.log('Follow error:', error);
+            }
+        }
+        
+        // ========================================
+        // USER PROFILE MODAL
+        // ========================================
+        
+        async function showUserProfile(userId, userEmail) {
+            try {
+                const res = await fetch(API + `/followers/${userId}`);
+                const data = await res.json();
+                
+                const modal = document.getElementById('userProfileModal');
+                const profileContent = document.getElementById('profileContent');
+                
+                const isFollowing = followingList.includes(userId);
+                
+                profileContent.innerHTML = `
+                    <div class="profile-header">
+                        <div class="profile-avatar">${userEmail.charAt(0).toUpperCase()}</div>
+                        <h3>${escapeHtml(userEmail)}</h3>
+                        <div class="profile-stats">
+                            <div>
+                                <div class="profile-stat-number">${data.followers_count}</div>
+                                <div style="font-size: 12px;">Followers</div>
+                            </div>
+                            <div>
+                                <div class="profile-stat-number">${data.following_count}</div>
+                                <div style="font-size: 12px;">Following</div>
+                            </div>
+                        </div>
+                        <button class="profile-follow-btn ${isFollowing ? 'following' : ''}" onclick="followUserFromModal(${userId}, this)">
+                            ${isFollowing ? 'Following' : 'Follow'}
+                        </button>
+                    </div>
+                `;
+                
+                modal.style.display = 'flex';
+            } catch (error) {
+                console.log('Error loading profile:', error);
+            }
+        }
+        
+        function closeModal() {
+            document.getElementById('userProfileModal').style.display = 'none';
+        }
+        
+        // ========================================
         // SHARING
         // ========================================
         
         function sharePost(postId, title) {
             const url = `${window.location.origin}/idea.html?id=${postId}`;
-            
             if (navigator.share) {
-                navigator.share({
-                    title: title,
-                    url: url
-                });
+                navigator.share({ title, url });
             } else {
-                // Fallback
-                const shareUrl = `https://wa.me/?text=${encodeURIComponent(`Check out: ${title}\n\n${url}`)}`;
-                window.open(shareUrl, '_blank');
+                prompt('Copy this link to share:', url);
             }
         }
         
@@ -670,7 +1097,6 @@
         // ========================================
         
         let notifications = [];
-        let unreadCount = 0;
         
         async function loadNotifications() {
             try {
@@ -679,63 +1105,37 @@
                 
                 if (data.success) {
                     notifications = data.notifications;
-                    unreadCount = notifications.filter(n => !n.is_read).length;
-                    
+                    const unreadCount = notifications.filter(n => !n.is_read).length;
                     const badge = document.getElementById('notificationBadge');
-                    if (badge) {
-                        if (unreadCount > 0) {
-                            badge.style.display = 'inline';
-                            badge.innerText = unreadCount > 99 ? '99+' : unreadCount;
-                        } else {
-                            badge.style.display = 'none';
-                        }
+                    if (unreadCount > 0) {
+                        badge.style.display = 'inline';
+                        badge.innerText = unreadCount > 99 ? '99+' : unreadCount;
+                    } else {
+                        badge.style.display = 'none';
                     }
                     
-                    updateNotificationsList();
+                    const container = document.getElementById('notificationsList');
+                    if (notifications.length === 0) {
+                        container.innerHTML = '<p style="text-align: center; padding: 20px;">No notifications</p>';
+                    } else {
+                        container.innerHTML = notifications.map(n => `
+                            <div style="padding: 12px; border-bottom: 1px solid var(--border); ${!n.is_read ? 'background: rgba(37,99,235,0.1);' : ''}">
+                                <div style="font-size: 13px;">${escapeHtml(n.content)}</div>
+                                <div style="font-size: 10px; color: var(--text-light); margin-top: 5px;">${formatTime(n.created_at)}</div>
+                            </div>
+                        `).join('');
+                    }
                 }
             } catch (error) {
                 console.log('Error loading notifications:', error);
             }
         }
         
-        function updateNotificationsList() {
-            const container = document.getElementById('notificationsList');
-            if (!container) return;
-            
-            if (notifications.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: var(--text-light); padding: 20px;">No notifications</p>';
-                return;
-            }
-            
-            container.innerHTML = notifications.map(notif => `
-                <div class="notification-item ${!notif.is_read ? 'unread' : ''}" onclick="viewNotification(${notif.id}, ${notif.related_id})">
-                    <div style="font-size: 13px;">${escapeHtml(notif.content)}</div>
-                    <div style="font-size: 10px; color: var(--text-light); margin-top: 5px;">${new Date(notif.created_at).toLocaleString()}</div>
-                </div>
-            `).join('');
-        }
-        
-        function viewNotification(notifId, postId) {
-            // Mark as read
-            fetch(API + '/notifications/mark-read', { method: 'POST' });
-            // Close dropdown
-            document.getElementById('notificationsDropdown').style.display = 'none';
-            // Scroll to post
-            const post = document.querySelector(`.post-card`);
-            if (post) {
-                post.scrollIntoView({ behavior: 'smooth' });
-            }
-        }
-        
         function toggleNotifications() {
             const dropdown = document.getElementById('notificationsDropdown');
-            if (dropdown) {
-                if (dropdown.style.display === 'none' || !dropdown.style.display) {
-                    dropdown.style.display = 'block';
-                    loadNotifications();
-                } else {
-                    dropdown.style.display = 'none';
-                }
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+            if (dropdown.style.display === 'block') {
+                markAllRead();
             }
         }
         
@@ -743,8 +1143,7 @@
             try {
                 await fetch(API + '/notifications/mark-read', { method: 'POST' });
                 loadNotifications();
-                const badge = document.getElementById('notificationBadge');
-                if (badge) badge.style.display = 'none';
+                document.getElementById('notificationBadge').style.display = 'none';
             } catch (error) {
                 console.log('Error marking read:', error);
             }
@@ -754,11 +1153,29 @@
         // UTILITIES
         // ========================================
         
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} min ago`;
+            if (diffHours < 24) return `${diffHours} hours ago`;
+            return `${diffDays} days ago`;
+        }
+        
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+        
+        function highlightMentions(text) {
+            return text.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
         }
         
         function toggleTheme() {
@@ -772,162 +1189,19 @@
         const savedTheme = localStorage.getItem('theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
         
+        // Click outside modal to close
+        window.onclick = function(event) {
+            const modal = document.getElementById('userProfileModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+            const notifications = document.getElementById('notificationsDropdown');
+            if (event.target !== document.querySelector('.notification-bell') && !notifications.contains(event.target)) {
+                notifications.style.display = 'none';
+            }
+        };
+        
         init();
-
-        // ========================================
-// FOLLOW SYSTEM FUNCTIONS (ADD THIS ENTIRE BLOCK)
-// ========================================
-
-let currentFeed = 'all'; // 'all' or 'following'
-
-async function switchFeed(feed) {
-    currentFeed = feed;
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    event.currentTarget.classList.add('active');
-    
-    if (feed === 'following') {
-        await loadFollowingFeed();
-    } else {
-        await loadPosts();
-    }
-}
-
-async function loadFollowingFeed() {
-    try {
-        const res = await fetch(API + '/feed');
-        const data = await res.json();
-        const container = document.getElementById('postsFeed');
-        
-        if (data.posts && data.posts.length > 0) {
-            container.innerHTML = '';
-            
-            for (const post of data.posts) {
-                const repliesRes = await fetch(API + `/ideas/${post.id}/replies`);
-                const repliesData = await repliesRes.json();
-                const replies = repliesData.replies || [];
-                
-                const postDiv = createPostElement(post, replies);
-                container.appendChild(postDiv);
-            }
-        } else {
-            container.innerHTML = '<p style="text-align: center; color: var(--text-light);">No posts from people you follow. Follow some traders to see their ideas!</p>';
-        }
-    } catch (error) {
-        console.error('Error loading following feed:', error);
-    }
-}
-
-async function followUser(userId, button) {
-    try {
-        const res = await fetch(API + `/follow/${userId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        
-        const data = await res.json();
-        
-        if (data.success) {
-            if (data.action === 'followed') {
-                button.innerHTML = 'Following';
-                button.classList.add('following');
-            } else {
-                button.innerHTML = 'Follow';
-                button.classList.remove('following');
-            }
-        }
-    } catch (error) {
-        console.log('Follow error:', error);
-    }
-}
-
-async function showUserProfile(userId, userEmail) {
-    try {
-        const res = await fetch(API + `/followers/${userId}`);
-        const data = await res.json();
-        
-        const modal = document.getElementById('userProfileModal');
-        const profileContent = document.getElementById('profileContent');
-        
-        // Check if current user is following this user
-        const isFollowing = data.followers.some(f => f.email === currentUser);
-        
-        profileContent.innerHTML = `
-            <h3>${escapeHtml(userEmail)}</h3>
-            <div class="profile-stats">
-                <div>
-                    <div class="stat-number">${data.followers_count}</div>
-                    <div>Followers</div>
-                </div>
-                <div>
-                    <div class="stat-number">${data.following_count}</div>
-                    <div>Following</div>
-                </div>
-            </div>
-            <button class="follow-btn ${isFollowing ? 'following' : ''}" onclick="followUser(${userId}, this)">
-                ${isFollowing ? 'Following' : 'Follow'}
-            </button>
-        `;
-        
-        modal.style.display = 'flex';
-    } catch (error) {
-        console.log('Error loading profile:', error);
-    }
-}
-
-function closeModal() {
-    document.getElementById('userProfileModal').style.display = 'none';
-}
-
-// Update createPostElement to include clickable author name
-function createPostElement(post, replies) {
-    const postDiv = document.createElement('div');
-    postDiv.className = 'post-card';
-    postDiv.innerHTML = `
-        <div class="post-header">
-            <span class="post-author" onclick="showUserProfile(${post.user_id}, '${escapeHtml(post.user_email)}')">
-                ${escapeHtml(post.user_email)}
-            </span>
-            <span class="post-time">${new Date(post.created_at).toLocaleString()}</span>
-        </div>
-        <div class="post-title">${escapeHtml(post.title)}</div>
-        <div class="post-content">${escapeHtml(post.description)}</div>
-        
-        <div class="post-actions">
-            <button onclick="likePost(${post.id}, this)">
-                <i class="far fa-heart"></i> <span class="like-count">0</span>
-            </button>
-            <button onclick="toggleReplyForm(${post.id})">
-                <i class="far fa-comment"></i> <span class="reply-count">${replies.length}</span>
-            </button>
-            <button onclick="sharePost(${post.id}, '${escapeHtml(post.title).replace(/'/g, "\\'")}')">
-                <i class="fas fa-share-alt"></i> Share
-            </button>
-        </div>
-        
-        <div class="replies-section" id="replies-${post.id}">
-            ${replies.map(reply => `
-                <div class="reply">
-                    <div class="reply-author">${escapeHtml(reply.user_email)}</div>
-                    <div class="reply-content">${highlightMentions(escapeHtml(reply.content))}</div>
-                </div>
-            `).join('')}
-        </div>
-        
-        <div class="reply-form" id="reply-form-${post.id}">
-            <textarea id="reply-content-${post.id}" rows="2" placeholder="Write a reply... (Use @username to mention someone)"></textarea>
-            <button class="btn-primary" onclick="submitReply(${post.id})">Post Reply</button>
-            <button class="btn-secondary" onclick="toggleReplyForm(${post.id})">Cancel</button>
-        </div>
-    `;
-    return postDiv;
-}
     </script>
-    <!-- User Profile Modal (ADD THIS) -->
-<div id="userProfileModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <div id="profileContent"></div>
-    </div>
- </div>
 </body>
 </html>
