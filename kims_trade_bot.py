@@ -202,6 +202,13 @@ def init_db():
                   description TEXT,
                   created_at TEXT)''')
     
+    c.execute('''CREATE TABLE IF NOT EXISTS followers
+                 (id INTEGER PRIMARY KEY,
+                  follower_id INTEGER,
+                  following_id INTEGER,
+                  created_at TEXT,
+                  UNIQUE(follower_id, following_id))''')
+    
     conn.commit()
     conn.close()
 
@@ -2087,6 +2094,98 @@ def technical_analysis():
         'ma_200_signal': 'Support' if ma_50 > ma_200 else 'Resistance',
         'analysis': analysis
     })
+
+# ============================================
+# FOLLOW SYSTEM ROUTES (ADD THIS ENTIRE BLOCK)
+# ============================================
+
+@app.route('/api/follow/<int:user_id>', methods=['POST'])
+@login_required
+def follow_user(user_id):
+    """Follow a user"""
+    from datetime import datetime
+    
+    if user_id == session['user_id']:
+        return jsonify({'error': 'You cannot follow yourself'}), 400
+    
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    
+    try:
+        c.execute("INSERT INTO followers (follower_id, following_id, created_at) VALUES (?, ?, ?)",
+                  (session['user_id'], user_id, datetime.now().isoformat()))
+        conn.commit()
+        return jsonify({'success': True, 'action': 'followed'})
+    except sqlite3.IntegrityError:
+        # Already following, so unfollow
+        c.execute("DELETE FROM followers WHERE follower_id=? AND following_id=?",
+                  (session['user_id'], user_id))
+        conn.commit()
+        return jsonify({'success': True, 'action': 'unfollowed'})
+    finally:
+        conn.close()
+
+@app.route('/api/followers/<int:user_id>', methods=['GET'])
+def get_followers(user_id):
+    """Get followers of a user"""
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    
+    c.execute('''SELECT u.id, u.email FROM followers f
+                 JOIN users u ON f.follower_id = u.id
+                 WHERE f.following_id = ?''', (user_id,))
+    followers = [{'id': row[0], 'email': row[1]} for row in c.fetchall()]
+    
+    c.execute('''SELECT u.id, u.email FROM followers f
+                 JOIN users u ON f.following_id = u.id
+                 WHERE f.follower_id = ?''', (user_id,))
+    following = [{'id': row[0], 'email': row[1]} for row in c.fetchall()]
+    
+    conn.close()
+    
+    return jsonify({
+        'success': True,
+        'followers': followers,
+        'following': following,
+        'followers_count': len(followers),
+        'following_count': len(following)
+    })
+
+@app.route('/api/feed', methods=['GET'])
+@login_required
+def get_feed():
+    """Get posts from users you follow"""
+    conn = sqlite3.connect(config.DB_PATH)
+    c = conn.cursor()
+    
+    # Get users you follow
+    c.execute("SELECT following_id FROM followers WHERE follower_id = ?", (session['user_id'],))
+    following_ids = [row[0] for row in c.fetchall()]
+    
+    if not following_ids:
+        conn.close()
+        return jsonify({'success': True, 'posts': [], 'message': 'Follow some users to see their posts'})
+    
+    # Get posts from followed users
+    placeholders = ','.join('?' * len(following_ids))
+    c.execute(f'''SELECT id, user_id, user_email, title, description, created_at 
+                  FROM market_ideas 
+                  WHERE user_id IN ({placeholders})
+                  ORDER BY created_at DESC''', following_ids)
+    
+    posts = []
+    for row in c.fetchall():
+        posts.append({
+            'id': row[0],
+            'user_id': row[1],
+            'user_email': row[2],
+            'title': row[3],
+            'description': row[4],
+            'created_at': row[5]
+        })
+    
+    conn.close()
+    return jsonify({'success': True, 'posts': posts})
 
 if __name__ == '__main__':
     # This code ONLY runs when you execute python directly (local development)
