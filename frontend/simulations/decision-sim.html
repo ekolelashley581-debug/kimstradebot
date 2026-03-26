@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Decision Simulator – Kim's Trade Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --text: #ffffff;
+            --text-light: #cbd5e1;
+            --border: #334155;
+            --card: #1e293b;
+            --hover: #2d3a4f;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --text-light: #475569;
+            --border: #e2e8f0;
+            --card: #ffffff;
+            --hover: #f1f5f9;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .sim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+        
+        .score-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 15px 25px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border);
+        }
+        
+        .scenario-card {
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-placeholder {
+            height: 200px;
+            background: var(--bg);
+            border-radius: 12px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .candles {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+            height: 150px;
+            justify-content: center;
+        }
+        
+        .candle {
+            width: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .wick {
+            width: 2px;
+            background: var(--text);
+            height: 60px;
+        }
+        
+        .body {
+            width: 20px;
+            height: 40px;
+            margin-top: -20px;
+        }
+        
+        .body.up { background: var(--success); }
+        .body.down { background: var(--danger); }
+        
+        .indicators {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .indicator {
+            background: var(--bg);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+        
+        .option-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 25px 0;
+        }
+        
+        .option-btn {
+            padding: 12px 24px;
+            border-radius: 40px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .option-btn.buy { background: var(--success); color: white; }
+        .option-btn.sell { background: var(--danger); color: white; }
+        .option-btn.wait { background: var(--warning); color: white; }
+        
+        .feedback {
+            background: var(--bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .next-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+        
+        .back-btn {
+            color: var(--primary);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sim-header">
+            <h1>🤔 Trading Decision Simulator</h1>
+            <div>
+                <a href="/simulations/" class="back-btn">← Exit</a>
+            </div>
+        </div>
+        
+        <div class="score-card">
+            <div><i class="fas fa-star"></i> Score: <span id="score">0</span></div>
+            <div><i class="fas fa-chart-line"></i> Accuracy: <span id="accuracy">0</span>%</div>
+            <div><i class="fas fa-trophy"></i> Streak: <span id="streak">0</span></div>
+        </div>
+        
+        <div id="scenarioContainer"></div>
+    </div>
+    
+    <script>
+        // ========================================
+        // DECISION SCENARIO GENERATOR
+        // ========================================
+        
+        let score = 0;
+        let correctCount = 0;
+        let streak = 0;
+        let scenarioIndex = 0;
+        let totalScenarios = 10;
+        let currentScenario = null;
+        let userResponses = [];
+        
+        // Technical indicator combinations
+        const indicatorCombos = [
+            { rsi: 72, macd: 'bullish', ma: 'above', volume: 'high', signal: 'sell', reason: 'RSI overbought (72) suggests potential reversal. High volume confirms selling pressure.' },
+            { rsi: 28, macd: 'bearish', ma: 'below', volume: 'high', signal: 'buy', reason: 'RSI oversold (28) suggests potential bounce. High volume confirms capitulation.' },
+            { rsi: 52, macd: 'bullish', ma: 'above', volume: 'normal', signal: 'buy', reason: 'MACD bullish crossover with price above MA50. Momentum building.' },
+            { rsi: 48, macd: 'bearish', ma: 'below', volume: 'normal', signal: 'sell', reason: 'MACD bearish crossover with price below MA50. Downside momentum.' },
+            { rsi: 65, macd: 'bullish', ma: 'above', volume: 'declining', signal: 'wait', reason: 'Bullish divergence but volume declining. Wait for confirmation.' },
+            { rsi: 35, macd: 'bearish', ma: 'below', volume: 'declining', signal: 'wait', reason: 'Bearish but volume declining. Selling pressure weakening. Wait.' },
+            { rsi: 55, macd: 'bullish', ma: 'above', volume: 'spike', signal: 'buy', reason: 'Volume spike confirms bullish breakout. Strong momentum.' },
+            { rsi: 45, macd: 'bearish', ma: 'below', volume: 'spike', signal: 'sell', reason: 'Volume spike confirms bearish breakdown. Strong selling.' }
+        ];
+        
+        function generateScenario() {
+            const combo = indicatorCombos[Math.floor(Math.random() * indicatorCombos.length)];
+            const price = 66800 + (Math.random() - 0.5) * 2000;
+            
+            // Generate random candlestick pattern visualization
+            const candles = [];
+            for (let i = 0; i < 10; i++) {
+                const isUp = Math.random() > 0.5;
+                candles.push({ up: isUp, height: 30 + Math.random() * 50 });
+            }
+            
+            return {
+                price: price,
+                rsi: combo.rsi,
+                macd: combo.macd,
+                ma: combo.ma,
+                volume: combo.volume,
+                correctSignal: combo.signal,
+                reason: combo.reason,
+                candles: candles
+            };
+        }
+        
+        function renderCandles(candles) {
+            const maxHeight = 100;
+            return candles.map(candle => `
+                <div class="candle">
+                    <div class="wick" style="height: ${candle.height}px;"></div>
+                    <div class="body ${candle.up ? 'up' : 'down'}" style="height: ${candle.height * 0.6}px; margin-top: -${candle.height * 0.3}px;"></div>
+                </div>
+            `).join('');
+        }
+        
+        function loadScenario() {
+            currentScenario = generateScenario();
+            renderScenario();
+        }
+        
+        function renderScenario() {
+            const container = document.getElementById('scenarioContainer');
+            container.innerHTML = `
+                <div class="scenario-card">
+                    <h3>${currentScenario.price > 66800 ? '📈 Bullish Setup' : '📉 Bearish Setup'}</h3>
+                    <div class="chart-placeholder">
+                        <div class="candles">
+                            ${renderCandles(currentScenario.candles)}
+                        </div>
+                    </div>
+                    <div class="indicators">
+                        <span class="indicator"><i class="fas fa-chart-line"></i> RSI: ${currentScenario.rsi}</span>
+                        <span class="indicator"><i class="fas fa-waveform"></i> MACD: ${currentScenario.macd === 'bullish' ? '📈 Bullish' : '📉 Bearish'}</span>
+                        <span class="indicator"><i class="fas fa-chart-simple"></i> Price vs MA50: ${currentScenario.ma === 'above' ? '📈 Above' : '📉 Below'}</span>
+                        <span class="indicator"><i class="fas fa-chart-column"></i> Volume: ${currentScenario.volume === 'high' ? '🔊 High' : currentScenario.volume === 'spike' ? '⚡ Spike' : '🔇 Normal'}</span>
+                    </div>
+                    <div class="option-buttons" id="optionButtons">
+                        <button class="option-btn buy" onclick="makeDecision('buy')">💰 Buy</button>
+                        <button class="option-btn sell" onclick="makeDecision('sell')">📉 Sell</button>
+                        <button class="option-btn wait" onclick="makeDecision('wait')">⏳ Wait</button>
+                    </div>
+                    <div id="feedback"></div>
+                </div>
+            `;
+        }
+        
+        function makeDecision(choice) {
+            const isCorrect = choice === currentScenario.correctSignal;
+            const feedbackDiv = document.getElementById('feedback');
+            const optionButtons = document.getElementById('optionButtons');
+            
+            if (isCorrect) {
+                score += 10;
+                correctCount++;
+                streak++;
+                feedbackDiv.innerHTML = `
+                    <div class="feedback">
+                        <strong>✅ Correct!</strong> ${currentScenario.reason}<br><br>
+                        <strong>📊 Your analysis was spot on.</strong> The indicators aligned with your decision.
+                    </div>
+                    <button class="next-btn" onclick="nextScenario()">Next Scenario →</button>
+                `;
+            } else {
+                score -= 5;
+                streak = 0;
+                let correctAdvice = currentScenario.correctSignal === 'buy' ? 'BUY' : currentScenario.correctSignal === 'sell' ? 'SELL' : 'WAIT';
+                feedbackDiv.innerHTML = `
+                    <div class="feedback">
+                        <strong>❌ Not quite.</strong> ${currentScenario.reason}<br><br>
+                        <strong>📊 The correct decision would have been ${correctAdvice}.</strong><br>
+                        ${getLearningTip(currentScenario)}
+                    </div>
+                    <button class="next-btn" onclick="nextScenario()">Next Scenario →</button>
+                `;
+            }
+            
+            const accuracy = Math.round((correctCount / (scenarioIndex + 1)) * 100);
+            document.getElementById('score').innerText = score;
+            document.getElementById('accuracy').innerText = accuracy;
+            document.getElementById('streak').innerText = streak;
+            
+            optionButtons.style.display = 'none';
+            
+            userResponses.push({
+                scenario: currentScenario,
+                choice: choice,
+                correct: isCorrect
+            });
+        }
+        
+        function getLearningTip(scenario) {
+            if (scenario.correctSignal === 'buy') {
+                return "💡 Tip: Look for RSI below 30, MACD bullish crossover, and price above MA50 for buy signals.";
+            } else if (scenario.correctSignal === 'sell') {
+                return "💡 Tip: Look for RSI above 70, MACD bearish crossover, and price below MA50 for sell signals.";
+            } else {
+                return "💡 Tip: When indicators are mixed, waiting for confirmation is often the best strategy.";
+            }
+        }
+        
+        function nextScenario() {
+            scenarioIndex++;
+            if (scenarioIndex >= totalScenarios) {
+                endSimulation();
+            } else {
+                loadScenario();
+            }
+        }
+        
+        function endSimulation() {
+            const accuracy = Math.round((correctCount / totalScenarios) * 100);
+            let rating = '';
+            if (accuracy >= 80) rating = '🏆 Expert Trader!';
+            else if (accuracy >= 60) rating = '📈 Skilled Trader';
+            else if (accuracy >= 40) rating = '📊 Developing Trader';
+            else rating = '📚 Learning Phase – Keep Practicing!';
+            
+            document.getElementById('scenarioContainer').innerHTML = `
+                <div class="scenario-card" style="text-align: center;">
+                    <i class="fas fa-chart-line" style="font-size: 64px; color: var(--primary); margin-bottom: 20px;"></i>
+                    <h2>Simulation Complete!</h2>
+                    <p style="margin: 20px 0;">Your Score: ${score}</p>
+                    <p style="margin: 20px 0; font-size: 24px; font-weight: bold;">${rating}</p>
+                    <p>Accuracy: ${accuracy}%</p>
+                    <div class="feedback" style="margin: 20px 0;">
+                        <strong>📊 Your Performance:</strong><br>
+                        ✅ Correct decisions: ${correctCount}<br>
+                        ❌ Incorrect decisions: ${totalScenarios - correctCount}<br>
+                        🔥 Best streak: ${Math.max(...userResponses.map((r, i) => {
+                            let streak = 0;
+                            for (let j = i; j < userResponses.length && userResponses[j].correct; j++) streak++;
+                            return streak;
+                        }))}
+                    </div>
+                    <div class="option-buttons">
+                        <button class="option-btn buy" onclick="restartSimulation()">🔄 Restart</button>
+                        <button class="option-btn wait" onclick="window.location.href='/simulations/'">🏠 Back to Hub</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function restartSimulation() {
+            score = 0;
+            correctCount = 0;
+            streak = 0;
+            scenarioIndex = 0;
+            userResponses = [];
+            document.getElementById('score').innerText = '0';
+            document.getElementById('accuracy').innerText = '0';
+            document.getElementById('streak').innerText = '0';
+            loadScenario();
+        }
+        
+        loadScenario();
+    </script>
+</body>
+</html>

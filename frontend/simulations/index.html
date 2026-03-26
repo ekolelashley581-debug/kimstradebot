@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation Chamber – Kim's Trade Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --text: #ffffff;
+            --text-light: #cbd5e1;
+            --border: #334155;
+            --card: #1e293b;
+            --hover: #2d3a4f;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --text-light: #475569;
+            --border: #e2e8f0;
+            --card: #ffffff;
+            --hover: #f1f5f9;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .pro-badge {
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        /* Simulation Grid */
+        .sim-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .sim-card {
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .sim-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        .sim-icon {
+            height: 120px;
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: white;
+        }
+        
+        .sim-info {
+            padding: 20px;
+        }
+        
+        .sim-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .sim-desc {
+            color: var(--text-light);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+        
+        .sim-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-light);
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+        }
+        
+        .back-btn {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: var(--card);
+            border-radius: 24px;
+            max-width: 500px;
+            width: 90%;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .btn-secondary {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Simulation Chamber <span class="pro-badge">PRO</span></h1>
+            <div>
+                <div class="theme-toggle" onclick="toggleTheme()" style="cursor: pointer; display: inline-block; margin-right: 15px;">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <a href="/" class="back-btn">← Dashboard</a>
+            </div>
+        </div>
+        
+        <div class="sim-grid" id="simGrid"></div>
+    </div>
+    
+    <!-- Objective Modal -->
+    <div id="objectiveModal" class="modal">
+        <div class="modal-content">
+            <i class="fas fa-brain" style="font-size: 48px; color: var(--primary); margin-bottom: 20px;"></i>
+            <h2 id="modalTitle">Simulation Title</h2>
+            <p id="modalDesc" style="margin: 20px 0; line-height: 1.6;">Simulation objective description...</p>
+            <div class="modal-buttons">
+                <button class="btn-primary" onclick="enterSimulation()">🎮 Enter Simulation</button>
+                <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const simulations = [
+            {
+                id: 'emotional',
+                name: '🧠 Emotional Trading Simulator',
+                icon: '🧠',
+                description: 'Train your emotional control. Face high-pressure scenarios where fear and greed test your discipline. Learn to make rational decisions when it matters most.',
+                objective: 'Learn to control fear and greed. Make rational decisions under pressure. Build emotional resilience for real trading.',
+                scenarios: 1000,
+                difficulty: 'Intermediate'
+            },
+            {
+                id: 'decision',
+                name: '🤔 Trading Decision Simulator',
+                icon: '🤔',
+                description: 'Test your market judgment. AI presents real market scenarios, you make the call. See immediate consequences and learn from every decision.',
+                objective: 'Improve market judgment. Learn from mistakes without real money. Build confidence in your trading decisions.',
+                scenarios: 'Infinite',
+                difficulty: 'Beginner'
+            },
+            {
+                id: 'backtest',
+                name: '⚙️ Strategy Backtester',
+                icon: '⚙️',
+                description: 'Build and test your own trading strategies. See how they would have performed historically. Optimize for better returns.',
+                objective: 'Learn strategy development. Understand what works and what doesn\'t. Build confidence in your trading system.',
+                scenarios: 5000,
+                difficulty: 'Advanced'
+            },
+            {
+                id: 'risk',
+                name: '📊 Risk/Reward Simulator',
+                icon: '📊',
+                description: 'Master risk management. Calculate optimal stop losses and take profits. Understand probability and expected value.',
+                objective: 'Master risk management. Understand probability. Calculate optimal risk/reward ratios.',
+                scenarios: 10000,
+                difficulty: 'Intermediate'
+            },
+            {
+                id: 'crash',
+                name: '💥 Market Crash Simulator',
+                icon: '💥',
+                description: 'Test your portfolio against extreme market conditions. See how you would handle the worst crashes in history.',
+                objective: 'Prepare for worst-case scenarios. Learn portfolio diversification. Build resilience for market crashes.',
+                scenarios: 50,
+                difficulty: 'Advanced'
+            },
+            {
+                id: 'fundamental',
+                name: '📰 Fundamental Analysis Simulator',
+                icon: '📰',
+                description: 'Learn how news and economic data move markets. Practice predicting market reactions to real events.',
+                objective: 'Understand market reactions to news. Learn fundamental analysis. Predict economic data impact.',
+                scenarios: 500,
+                difficulty: 'Intermediate'
+            }
+        ];
+        
+        let currentSim = null;
+        
+        function renderSimulations() {
+            const grid = document.getElementById('simGrid');
+            grid.innerHTML = simulations.map(sim => `
+                <div class="sim-card" onclick="showObjective('${sim.id}')">
+                    <div class="sim-icon">${sim.icon}</div>
+                    <div class="sim-info">
+                        <div class="sim-title">${sim.name}</div>
+                        <div class="sim-desc">${sim.description}</div>
+                        <div class="sim-meta">
+                            <span><i class="fas fa-infinity"></i> ${sim.scenarios}+ scenarios</span>
+                            <span><i class="fas fa-chart-line"></i> ${sim.difficulty}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function showObjective(simId) {
+            currentSim = simulations.find(s => s.id === simId);
+            if (currentSim) {
+                document.getElementById('modalTitle').innerHTML = currentSim.name;
+                document.getElementById('modalDesc').innerHTML = `
+                    <strong>🎯 Objective:</strong> ${currentSim.objective}<br><br>
+                    <strong>⚡ Features:</strong><br>
+                    • ${currentSim.scenarios}+ unique scenarios<br>
+                    • Real-time market data integration<br>
+                    • AI-generated dynamic scenarios<br>
+                    • Performance tracking<br>
+                    • Detailed feedback after each scenario<br><br>
+                    <strong>⏱️ Estimated time:</strong> 10-15 minutes per session<br>
+                    <strong>🏆 Rewards:</strong> Experience points, badges, and trading insights
+                `;
+                document.getElementById('objectiveModal').style.display = 'flex';
+            }
+        }
+        
+        function enterSimulation() {
+            closeModal();
+            if (currentSim) {
+                window.location.href = `/simulations/${currentSim.id}-sim.html`;
+            }
+        }
+        
+        function closeModal() {
+            document.getElementById('objectiveModal').style.display = 'none';
+        }
+        
+        function toggleTheme() {
+            let html = document.documentElement;
+            let current = html.getAttribute('data-theme');
+            let newTheme = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+        
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        renderSimulations();
+    </script>
+</body>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Crash Simulator – Kim's Trade Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --text: #ffffff;
+            --text-light: #cbd5e1;
+            --border: #334155;
+            --card: #1e293b;
+            --hover: #2d3a4f;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --text-light: #475569;
+            --border: #e2e8f0;
+            --card: #ffffff;
+            --hover: #f1f5f9;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .sim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+        
+        .portfolio-card {
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .allocation-sliders {
+            margin: 20px 0;
+        }
+        
+        .slider-item {
+            margin-bottom: 15px;
+        }
+        
+        .slider-item label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            background: var(--bg);
+        }
+        
+        .crash-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .crash-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .crash-btn.crash2008 { background: var(--danger); color: white; }
+        .crash-btn.crash2020 { background: var(--warning); color: white; }
+        .crash-btn.crash2022 { background: var(--primary); color: white; }
+        .crash-btn.custom { background: var(--bg); border: 1px solid var(--border); color: var(--text); }
+        
+        .result-card {
+            background: var(--bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .back-btn {
+            color: var(--primary);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sim-header">
+            <h1>💥 Market Crash Simulator</h1>
+            <div>
+                <a href="/simulations/" class="back-btn">← Exit</a>
+            </div>
+        </div>
+        
+        <div class="portfolio-card">
+            <h3>📊 Your Portfolio Allocation</h3>
+            <div class="allocation-sliders">
+                <div class="slider-item">
+                    <label>Bitcoin (BTC) <span id="btcPct">40</span>%</label>
+                    <input type="range" id="btcAlloc" min="0" max="100" value="40" oninput="updateAllocation()">
+                </div>
+                <div class="slider-item">
+                    <label>Ethereum (ETH) <span id="ethPct">30</span>%</label>
+                    <input type="range" id="ethAlloc" min="0" max="100" value="30" oninput="updateAllocation()">
+                </div>
+                <div class="slider-item">
+                    <label>Stocks (S&P 500) <span id="stocksPct">20</span>%</label>
+                    <input type="range" id="stocksAlloc" min="0" max="100" value="20" oninput="updateAllocation()">
+                </div>
+                <div class="slider-item">
+                    <label>Gold <span id="goldPct">5</span>%</label>
+                    <input type="range" id="goldAlloc" min="0" max="100" value="5" oninput="updateAllocation()">
+                </div>
+                <div class="slider-item">
+                    <label>Cash <span id="cashPct">5</span>%</label>
+                    <input type="range" id="cashAlloc" min="0" max="100" value="5" oninput="updateAllocation()">
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 15px;">Total: <span id="totalPct">100</span>%</div>
+        </div>
+        
+        <div class="portfolio-card">
+            <h3>💥 Choose Crash Scenario</h3>
+            <div class="crash-buttons">
+                <button class="crash-btn crash2008" onclick="runCrash('2008')">📉 2008 Financial Crisis</button>
+                <button class="crash-btn crash2020" onclick="runCrash('2020')">🦠 COVID-19 Crash (2020)</button>
+                <button class="crash-btn crash2022" onclick="runCrash('2022')">📉 2022 Bear Market</button>
+                <button class="crash-btn custom" onclick="runCrash('custom')">⚙️ Custom: -50% across all</button>
+            </div>
+            <div id="crashResult"></div>
+        </div>
+        
+        <div id="history"></div>
+    </div>
+    
+    <script>
+        let crashHistory = [];
+        
+        function updateAllocation() {
+            const btc = parseInt(document.getElementById('btcAlloc').value);
+            const eth = parseInt(document.getElementById('ethAlloc').value);
+            const stocks = parseInt(document.getElementById('stocksAlloc').value);
+            const gold = parseInt(document.getElementById('goldAlloc').value);
+            const cash = parseInt(document.getElementById('cashAlloc').value);
+            
+            document.getElementById('btcPct').innerText = btc;
+            document.getElementById('ethPct').innerText = eth;
+            document.getElementById('stocksPct').innerText = stocks;
+            document.getElementById('goldPct').innerText = gold;
+            document.getElementById('cashPct').innerText = cash;
+            
+            const total = btc + eth + stocks + gold + cash;
+            document.getElementById('totalPct').innerText = total;
+        }
+        
+        function runCrash(scenario) {
+            const btc = parseInt(document.getElementById('btcAlloc').value);
+            const eth = parseInt(document.getElementById('ethAlloc').value);
+            const stocks = parseInt(document.getElementById('stocksAlloc').value);
+            const gold = parseInt(document.getElementById('goldAlloc').value);
+            const cash = parseInt(document.getElementById('cashAlloc').value);
+            
+            let drops = {};
+            let description = '';
+            
+            if (scenario === '2008') {
+                drops = { btc: -75, eth: -80, stocks: -55, gold: +25, cash: 0 };
+                description = '2008 Financial Crisis: Lehman Brothers collapse, global banking crisis';
+            } else if (scenario === '2020') {
+                drops = { btc: -50, eth: -55, stocks: -35, gold: -5, cash: 0 };
+                description = 'COVID-19 Crash: Global lockdowns, panic selling';
+            } else if (scenario === '2022') {
+                drops = { btc: -65, eth: -70, stocks: -25, gold: -10, cash: 0 };
+                description = '2022 Bear Market: Inflation, rate hikes, crypto winter';
+            } else {
+                drops = { btc: -50, eth: -50, stocks: -50, gold: -50, cash: 0 };
+                description = 'Custom Scenario: 50% across all assets';
+            }
+            
+            const initialValue = 10000;
+            const btcValue = initialValue * (btc / 100);
+            const ethValue = initialValue * (eth / 100);
+            const stocksValue = initialValue * (stocks / 100);
+            const goldValue = initialValue * (gold / 100);
+            const cashValue = initialValue * (cash / 100);
+            
+            const newBtc = btcValue * (1 + drops.btc / 100);
+            const newEth = ethValue * (1 + drops.eth / 100);
+            const newStocks = stocksValue * (1 + drops.stocks / 100);
+            const newGold = goldValue * (1 + drops.gold / 100);
+            const newCash = cashValue;
+            
+            const newTotal = newBtc + newEth + newStocks + newGold + newCash;
+            const loss = ((initialValue - newTotal) / initialValue) * 100;
+            
+            const result = {
+                scenario: description,
+                loss: loss,
+                newValue: newTotal,
+                recoveryTime: getRecoveryTime(scenario),
+                advice: getAdvice(loss, scenario)
+            };
+            
+            crashHistory.unshift(result);
+            displayResult(result);
+            updateHistory();
+        }
+        
+        function getRecoveryTime(scenario) {
+            if (scenario === '2008') return '24 months';
+            if (scenario === '2020') return '6 months';
+            if (scenario === '2022') return '12 months';
+            return 'Unknown';
+        }
+        
+        function getAdvice(loss, scenario) {
+            if (loss < 20) return "✅ Your portfolio is well-diversified! Consider adding more gold or cash for further protection.";
+            if (loss < 40) return "⚠️ Your portfolio took a hit. Consider increasing cash allocation for crash protection.";
+            return "🔴 Heavy losses! Diversify more. Add gold, bonds, or increase cash position for future crashes.";
+        }
+        
+        function displayResult(result) {
+            const resultDiv = document.getElementById('crashResult');
+            resultDiv.innerHTML = `
+                <div class="result-card">
+                    <strong>📉 ${result.scenario}</strong><br><br>
+                    <div style="font-size: 24px; font-weight: 700; color: var(--danger);">-${result.loss.toFixed(1)}%</div>
+                    <div>Portfolio drops from $10,000 to $${result.newValue.toFixed(2)}</div>
+                    <div>Estimated recovery time: ${result.recoveryTime}</div>
+                    <div style="margin-top: 15px;">💡 ${result.advice}</div>
+                </div>
+            `;
+        }
+        
+        function updateHistory() {
+            const historyDiv = document.getElementById('history');
+            if (crashHistory.length === 0) {
+                historyDiv.innerHTML = '';
+                return;
+            }
+            
+            historyDiv.innerHTML = `
+                <div style="margin-top: 20px;">
+                    <h3>📜 Crash History</h3>
+                    ${crashHistory.map(c => `
+                        <div style="background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border);">
+                            <div>${c.scenario}</div>
+                            <div style="color: var(--danger);">Loss: -${c.loss.toFixed(1)}%</div>
+                            <div style="font-size: 11px; color: var(--text-light);">Recovery: ${c.recoveryTime}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        updateAllocation();
+    </script>
+</body>
+</html>

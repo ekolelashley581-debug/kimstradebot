@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotional Trading Simulator – Kim's Trade Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --text: #ffffff;
+            --text-light: #cbd5e1;
+            --border: #334155;
+            --card: #1e293b;
+            --hover: #2d3a4f;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --text-light: #475569;
+            --border: #e2e8f0;
+            --card: #ffffff;
+            --hover: #f1f5f9;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .sim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+        
+        .score-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 15px 25px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border);
+        }
+        
+        .scenario-card {
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .price-movement {
+            font-size: 36px;
+            font-weight: 700;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .price-movement.up { color: var(--success); }
+        .price-movement.down { color: var(--danger); }
+        
+        .option-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 25px 0;
+        }
+        
+        .option-btn {
+            padding: 12px 24px;
+            border-radius: 40px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .option-btn.buy { background: var(--success); color: white; }
+        .option-btn.sell { background: var(--danger); color: white; }
+        .option-btn.wait { background: var(--warning); color: white; }
+        .option-btn.panic { background: var(--danger); color: white; animation: pulse 1s infinite; }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .feedback {
+            background: var(--bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .next-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+        
+        .back-btn {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .timer {
+            font-size: 14px;
+            color: var(--warning);
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sim-header">
+            <h1>🧠 Emotional Trading Simulator</h1>
+            <div>
+                <a href="/simulations/" class="back-btn">← Exit</a>
+            </div>
+        </div>
+        
+        <div class="score-card">
+            <div><i class="fas fa-star"></i> Score: <span id="score">0</span></div>
+            <div><i class="fas fa-chart-line"></i> Scenarios: <span id="scenarioNum">1</span>/<span id="totalScenarios">10</span></div>
+            <div><i class="fas fa-heart"></i> Calmness: <span id="calmness">100</span>%</div>
+        </div>
+        
+        <div id="scenarioContainer"></div>
+    </div>
+    
+    <script>
+        // ========================================
+        // EMOTIONAL SCENARIO GENERATOR
+        // ========================================
+        
+        let currentScenario = null;
+        let score = 0;
+        let calmness = 100;
+        let scenarioIndex = 0;
+        let totalScenarios = 10;
+        let userResponses = [];
+        
+        // Real market data (fetch from API)
+        let currentPrice = 66800;
+        let currentAsset = 'BTC';
+        
+        // Dynamic scenario templates
+        const scenarioTemplates = [
+            {
+                type: 'fear',
+                template: (price) => `You bought ${currentAsset} at $${price}. It just dropped ${Math.floor(Math.random() * 10) + 5}% in 5 minutes! News is negative. Everyone is panicking.`,
+                options: ['Hold', 'Sell', 'Buy More', 'Panic Sell']
+            },
+            {
+                type: 'greed',
+                template: (price) => `Your ${currentAsset} position is up ${Math.floor(Math.random() * 20) + 10}%! Social media is hyping it. Everyone says it's going to the moon.`,
+                options: ['Take Profits', 'Hold', 'Add More', 'YOLO All In']
+            },
+            {
+                type: 'fomo',
+                template: (price) => `${currentAsset} just broke out to $${price + Math.floor(Math.random() * 2000)}! Your friends are all buying. You're still on the sidelines.`,
+                options: ['Buy Now', 'Wait for Pullback', 'FOMO Buy Full Port', 'Ignore']
+            },
+            {
+                type: 'regret',
+                template: (price) => `You sold ${currentAsset} yesterday at $${price - 1000}. Today it's up 8%. You're kicking yourself.`,
+                options: ['Buy Back', 'Wait for Dip', 'Chase Higher', 'Accept Loss']
+            },
+            {
+                type: 'pressure',
+                template: (price) => `You have a margin call! Your position is down 15%. You need to add funds or close position.`,
+                options: ['Add Funds', 'Close Position', 'Hold and Hope', 'Panic']
+            },
+            {
+                type: 'news',
+                template: (price) => `Breaking News: ${Math.random() > 0.5 ? 'Positive' : 'Negative'} news about ${currentAsset} just dropped. Market is reacting.`,
+                options: ['React Immediately', 'Wait for Clarity', 'Hedge Position', 'Ignore News']
+            }
+        ];
+        
+        function generateScenario() {
+            const template = scenarioTemplates[Math.floor(Math.random() * scenarioTemplates.length)];
+            const price = currentPrice + (Math.random() - 0.5) * 2000;
+            const description = template.template(price);
+            
+            // Randomize options based on scenario type
+            let options = [...template.options];
+            options = options.sort(() => Math.random() - 0.5);
+            
+            // Determine correct answer (based on trading psychology principles)
+            let correctAnswer = '';
+            if (template.type === 'fear') correctAnswer = 'Hold';
+            else if (template.type === 'greed') correctAnswer = 'Take Profits';
+            else if (template.type === 'fomo') correctAnswer = 'Wait for Pullback';
+            else if (template.type === 'regret') correctAnswer = 'Accept Loss';
+            else if (template.type === 'pressure') correctAnswer = 'Close Position';
+            else if (template.type === 'news') correctAnswer = 'Wait for Clarity';
+            
+            return {
+                description: description,
+                options: options,
+                correctAnswer: correctAnswer,
+                type: template.type,
+                price: price
+            };
+        }
+        
+        function loadScenario() {
+            currentScenario = generateScenario();
+            renderScenario();
+        }
+        
+        function renderScenario() {
+            const container = document.getElementById('scenarioContainer');
+            container.innerHTML = `
+                <div class="scenario-card">
+                    <div class="price-movement ${currentScenario.price > currentPrice ? 'up' : 'down'}">
+                        ${currentAsset}: $${currentScenario.price.toLocaleString()}
+                    </div>
+                    <p style="font-size: 18px; line-height: 1.6; margin: 20px 0;">${currentScenario.description}</p>
+                    <div class="option-buttons" id="optionButtons">
+                        ${currentScenario.options.map(opt => `
+                            <button class="option-btn ${opt.toLowerCase().includes('buy') ? 'buy' : opt.toLowerCase().includes('sell') ? 'sell' : opt.toLowerCase().includes('panic') ? 'panic' : 'wait'}" onclick="makeDecision('${opt}')">
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div id="feedback"></div>
+                    <div class="timer" id="timer"></div>
+                </div>
+            `;
+            
+            // Add countdown timer for pressure
+            if (currentScenario.type === 'pressure') {
+                let timeLeft = 10;
+                const timerEl = document.getElementById('timer');
+                const interval = setInterval(() => {
+                    timeLeft--;
+                    timerEl.innerHTML = `⏰ Decision needed in ${timeLeft} seconds...`;
+                    if (timeLeft <= 0) {
+                        clearInterval(interval);
+                        makeDecision('Panic');
+                    }
+                }, 1000);
+            }
+        }
+        
+        function makeDecision(choice) {
+            const isCorrect = choice === currentScenario.correctAnswer;
+            const feedbackDiv = document.getElementById('feedback');
+            const optionButtons = document.getElementById('optionButtons');
+            
+            let points = 0;
+            let calmnessChange = 0;
+            let feedback = '';
+            
+            if (isCorrect) {
+                points = 10;
+                calmnessChange = 5;
+                feedback = `✅ Correct! ${getFeedbackForChoice(currentScenario.type, true)}`;
+            } else {
+                points = -5;
+                calmnessChange = -10;
+                feedback = `❌ ${choice} was not the best choice. ${getFeedbackForChoice(currentScenario.type, false)}`;
+            }
+            
+            score += points;
+            calmness += calmnessChange;
+            calmness = Math.max(0, Math.min(100, calmness));
+            
+            document.getElementById('score').innerText = score;
+            document.getElementById('calmness').innerText = calmness;
+            
+            feedbackDiv.innerHTML = `
+                <div class="feedback">
+                    <strong>📊 Result:</strong> ${feedback}<br><br>
+                    <strong>💡 Trading Psychology Lesson:</strong> ${getPsychologyLesson(currentScenario.type)}
+                </div>
+                <button class="next-btn" onclick="nextScenario()">Next Scenario →</button>
+            `;
+            
+            optionButtons.style.display = 'none';
+            
+            userResponses.push({
+                scenario: currentScenario.type,
+                choice: choice,
+                correct: isCorrect,
+                points: points
+            });
+        }
+        
+        function getFeedbackForChoice(type, correct) {
+            const feedbacks = {
+                fear: { true: "Panic selling is the #1 mistake traders make. Markets often recover. Stay calm.", false: "Selling in panic usually locks in losses that would have recovered." },
+                greed: { true: "Taking profits is smart. Nobody went broke taking profits.", false: "Greed often turns winners into losers. Markets reverse when everyone is greedy." },
+                fomo: { true: "Waiting for pullbacks is disciplined. Chasing breakouts often leads to buying the top.", false: "FOMO buying at peaks is how beginners lose money." },
+                regret: { true: "Accepting missed opportunities is mature. Chasing after a move is dangerous.", false: "Chasing after you missed a move often leads to buying the top." },
+                pressure: { true: "Closing losing positions to protect capital is wise. Hope is not a strategy.", false: "Holding and hoping in margin calls leads to total loss." },
+                news: { true: "Waiting for clarity avoids overreaction. First reactions are often wrong.", false: "Trading on news without confirmation often leads to whipsaws." }
+            };
+            return feedbacks[type][correct];
+        }
+        
+        function getPsychologyLesson(type) {
+            const lessons = {
+                fear: "Fear causes panic selling at the worst possible time. Have a plan before you trade.",
+                greed: "Greed makes you hold too long. Take profits systematically.",
+                fomo: "Fear of missing out makes you buy at peaks. Wait for your setup.",
+                regret: "Regret leads to revenge trading. Accept losses and move on.",
+                pressure: "Pressure causes bad decisions. Use stop losses to remove emotion.",
+                news: "News causes overreaction. Wait for price to confirm."
+            };
+            return lessons[type];
+        }
+        
+        function nextScenario() {
+            scenarioIndex++;
+            if (scenarioIndex >= totalScenarios) {
+                endSimulation();
+            } else {
+                document.getElementById('scenarioNum').innerText = scenarioIndex + 1;
+                loadScenario();
+            }
+        }
+        
+        function endSimulation() {
+            const totalPossible = totalScenarios * 10;
+            const percentage = (score / totalPossible) * 100;
+            let rating = '';
+            if (percentage >= 80) rating = '🏆 Elite Trader!';
+            else if (percentage >= 60) rating = '📈 Disciplined Trader';
+            else if (percentage >= 40) rating = '📊 Learning Trader';
+            else rating = '🧠 Needs Work – Keep Practicing!';
+            
+            document.getElementById('scenarioContainer').innerHTML = `
+                <div class="scenario-card" style="text-align: center;">
+                    <i class="fas fa-chart-line" style="font-size: 64px; color: var(--primary); margin-bottom: 20px;"></i>
+                    <h2>Simulation Complete!</h2>
+                    <p style="margin: 20px 0;">Your Score: ${score}/${totalPossible}</p>
+                    <p style="margin: 20px 0; font-size: 24px; font-weight: bold;">${rating}</p>
+                    <p>Calmness Score: ${calmness}%</p>
+                    <div class="feedback" style="margin: 20px 0;">
+                        <strong>📊 Your Performance:</strong><br>
+                        ✅ Correct decisions: ${userResponses.filter(r => r.correct).length}<br>
+                        ❌ Emotional decisions: ${userResponses.filter(r => !r.correct).length}<br>
+                        🔥 Most improved: ${userResponses.slice(-3).filter(r => r.correct).length > 2 ? 'Great finish!' : 'Keep practicing!'}
+                    </div>
+                    <div class="option-buttons">
+                        <button class="option-btn buy" onclick="restartSimulation()">🔄 Restart</button>
+                        <button class="option-btn wait" onclick="window.location.href='/simulations/'">🏠 Back to Hub</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function restartSimulation() {
+            score = 0;
+            calmness = 100;
+            scenarioIndex = 0;
+            userResponses = [];
+            document.getElementById('score').innerText = '0';
+            document.getElementById('calmness').innerText = '100';
+            document.getElementById('scenarioNum').innerText = '1';
+            loadScenario();
+        }
+        
+        // Fetch real price data
+        async function fetchRealPrice() {
+            try {
+                const res = await fetch('/api/market-prices');
+                const data = await res.json();
+                if (data.success && data.prices) {
+                    const btc = data.prices.find(p => p.symbol === 'BTC');
+                    if (btc) currentPrice = btc.price;
+                }
+            } catch (e) {
+                console.log('Using simulated price');
+            }
+        }
+        
+        fetchRealPrice();
+        loadScenario();
+    </script>
+</body>
+</html>

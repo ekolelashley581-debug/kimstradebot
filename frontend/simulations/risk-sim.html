@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risk/Reward Simulator – Kim's Trade Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --text: #ffffff;
+            --text-light: #cbd5e1;
+            --border: #334155;
+            --card: #1e293b;
+            --hover: #2d3a4f;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --text-light: #475569;
+            --border: #e2e8f0;
+            --card: #ffffff;
+            --hover: #f1f5f9;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .sim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+        
+        .score-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 15px 25px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border);
+        }
+        
+        .trade-setup {
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 16px;
+        }
+        
+        .ratio-display {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 20px 0;
+        }
+        
+        .ratio-good { color: var(--success); }
+        .ratio-bad { color: var(--danger); }
+        .ratio-ok { color: var(--warning); }
+        
+        .simulate-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .results {
+            background: var(--bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .probability-bar {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .probability-fill {
+            height: 100%;
+            background: var(--success);
+            width: 0%;
+        }
+        
+        .back-btn {
+            color: var(--primary);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sim-header">
+            <h1>📊 Risk/Reward Simulator</h1>
+            <div>
+                <a href="/simulations/" class="back-btn">← Exit</a>
+            </div>
+        </div>
+        
+        <div class="score-card">
+            <div><i class="fas fa-chart-line"></i> Trades: <span id="tradeCount">0</span></div>
+            <div><i class="fas fa-percent"></i> Win Rate: <span id="winRate">0</span>%</div>
+            <div><i class="fas fa-dollar-sign"></i> Profit Factor: <span id="profitFactor">0</span></div>
+        </div>
+        
+        <div class="trade-setup">
+            <h3>⚙️ Trade Setup</h3>
+            <div class="input-group">
+                <label>Entry Price ($)</label>
+                <input type="number" id="entryPrice" placeholder="e.g., 66800" value="66800">
+            </div>
+            <div class="input-group">
+                <label>Stop Loss ($)</label>
+                <input type="number" id="stopLoss" placeholder="e.g., 66000" value="66000">
+            </div>
+            <div class="input-group">
+                <label>Take Profit ($)</label>
+                <input type="number" id="takeProfit" placeholder="e.g., 68000" value="68000">
+            </div>
+            <div class="ratio-display" id="ratioDisplay"></div>
+            <button class="simulate-btn" onclick="runSimulation()">🎲 Run Simulation (1000 scenarios)</button>
+            <div id="results"></div>
+        </div>
+        
+        <div id="history"></div>
+    </div>
+    
+    <script>
+        let tradeHistory = [];
+        let winCount = 0;
+        let totalProfit = 0;
+        let totalLoss = 0;
+        
+        function calculateRiskReward() {
+            const entry = parseFloat(document.getElementById('entryPrice').value);
+            const stop = parseFloat(document.getElementById('stopLoss').value);
+            const target = parseFloat(document.getElementById('takeProfit').value);
+            
+            if (isNaN(entry) || isNaN(stop) || isNaN(target)) return null;
+            
+            const risk = Math.abs(entry - stop);
+            const reward = Math.abs(target - entry);
+            const ratio = reward / risk;
+            
+            return { risk, reward, ratio };
+        }
+        
+        function updateRatioDisplay() {
+            const rr = calculateRiskReward();
+            if (!rr) return;
+            
+            const display = document.getElementById('ratioDisplay');
+            let className = '';
+            let text = '';
+            
+            if (rr.ratio >= 2) {
+                className = 'ratio-good';
+                text = `✅ Excellent! Risk/Reward = 1:${rr.ratio.toFixed(2)} (Target ${rr.reward.toFixed(2)}x risk)`;
+            } else if (rr.ratio >= 1) {
+                className = 'ratio-ok';
+                text = `⚠️ Acceptable. Risk/Reward = 1:${rr.ratio.toFixed(2)} (Target ${rr.reward.toFixed(2)}x risk)`;
+            } else {
+                className = 'ratio-bad';
+                text = `❌ Poor. Risk/Reward = 1:${rr.ratio.toFixed(2)} (You risk more than you can gain)`;
+            }
+            
+            display.innerHTML = `<span class="${className}">${text}</span>`;
+        }
+        
+        function runSimulation() {
+            const entry = parseFloat(document.getElementById('entryPrice').value);
+            const stop = parseFloat(document.getElementById('stopLoss').value);
+            const target = parseFloat(document.getElementById('takeProfit').value);
+            const rr = calculateRiskReward();
+            
+            if (!rr || entry === stop || entry === target) {
+                alert('Please enter valid prices');
+                return;
+            }
+            
+            const riskAmount = Math.abs(entry - stop);
+            const rewardAmount = Math.abs(target - entry);
+            
+            // Simulate 1000 scenarios with varying probabilities
+            let wins = 0;
+            let losses = 0;
+            let totalPL = 0;
+            const outcomes = [];
+            
+            // Base win probability depends on risk/reward ratio
+            let baseWinRate = 0.5;
+            if (rr.ratio >= 2) baseWinRate = 0.45;
+            else if (rr.ratio >= 1.5) baseWinRate = 0.5;
+            else if (rr.ratio >= 1) baseWinRate = 0.55;
+            else baseWinRate = 0.6;
+            
+            for (let i = 0; i < 1000; i++) {
+                const isWin = Math.random() < baseWinRate;
+                if (isWin) {
+                    wins++;
+                    totalPL += rewardAmount;
+                    outcomes.push({ win: true, pl: rewardAmount });
+                } else {
+                    losses++;
+                    totalPL -= riskAmount;
+                    outcomes.push({ win: false, pl: -riskAmount });
+                }
+            }
+            
+            const winRate = (wins / 1000) * 100;
+            const profitFactor = totalPL > 0 ? (wins * rewardAmount) / (losses * riskAmount) : 0;
+            const expectancy = totalPL / 1000;
+            
+            // Add to history
+            tradeHistory.push({
+                entry, stop, target,
+                winRate: winRate,
+                profitFactor: profitFactor,
+                expectancy: expectancy,
+                timestamp: new Date()
+            });
+            
+            winCount += wins;
+            totalProfit += wins * rewardAmount;
+            totalLoss += losses * riskAmount;
+            
+            updateStats();
+            displayResults(winRate, profitFactor, expectancy, wins, losses, totalPL);
+            updateHistory();
+        }
+        
+        function displayResults(winRate, profitFactor, expectancy, wins, losses, totalPL) {
+            const resultsDiv = document.getElementById('results');
+            let rating = '';
+            if (profitFactor >= 2) rating = '🏆 Excellent trading edge!';
+            else if (profitFactor >= 1.5) rating = '📈 Good trading edge';
+            else if (profitFactor >= 1) rating = '📊 Break-even strategy';
+            else rating = '⚠️ Negative edge – needs improvement';
+            
+            resultsDiv.innerHTML = `
+                <div class="results">
+                    <strong>📊 Simulation Results (1000 scenarios)</strong><br><br>
+                    <div>Wins: ${wins} (${winRate.toFixed(1)}%)</div>
+                    <div>Losses: ${losses} (${(100 - winRate).toFixed(1)}%)</div>
+                    <div>Total P/L: $${totalPL.toFixed(2)}</div>
+                    <div>Profit Factor: ${profitFactor.toFixed(2)}</div>
+                    <div>Expectancy per trade: $${expectancy.toFixed(2)}</div>
+                    <div class="probability-bar">
+                        <div class="probability-fill" style="width: ${winRate}%"></div>
+                    </div>
+                    <div style="margin-top: 15px;"><strong>${rating}</strong></div>
+                    <div style="margin-top: 15px; font-size: 13px;">
+                        💡 ${getAdvice(profitFactor, winRate, rr.ratio)}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function getAdvice(profitFactor, winRate, ratio) {
+            if (profitFactor >= 1.5) {
+                return "Excellent! This trade setup has a positive edge. Consider taking this trade with proper position sizing.";
+            } else if (profitFactor >= 1) {
+                return "This setup breaks even. Look for better risk/reward (1:2 or higher) to improve profitability.";
+            } else {
+                return "Negative edge. Avoid this setup. Either improve your win rate or seek better risk/reward ratio (1:2 or higher).";
+            }
+        }
+        
+        function updateStats() {
+            const totalTrades = tradeHistory.length * 1000;
+            const overallWinRate = (winCount / totalTrades) * 100;
+            const profitFactorValue = totalProfit / (totalLoss || 1);
+            
+            document.getElementById('tradeCount').innerText = totalTrades;
+            document.getElementById('winRate').innerText = overallWinRate.toFixed(1);
+            document.getElementById('profitFactor').innerText = profitFactorValue.toFixed(2);
+        }
+        
+        function updateHistory() {
+            const historyDiv = document.getElementById('history');
+            if (tradeHistory.length === 0) {
+                historyDiv.innerHTML = '';
+                return;
+            }
+            
+            historyDiv.innerHTML = `
+                <div style="margin-top: 20px;">
+                    <h3>📜 Simulation History</h3>
+                    ${tradeHistory.slice(-5).reverse().map(t => `
+                        <div style="background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border);">
+                            <div>Entry: $${t.entry} | Stop: $${t.stop} | Target: $${t.target}</div>
+                            <div>Win Rate: ${t.winRate.toFixed(1)}% | Profit Factor: ${t.profitFactor.toFixed(2)}</div>
+                            <div style="font-size: 11px; color: var(--text-light);">${new Date(t.timestamp).toLocaleTimeString()}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        // Live update ratio as user types
+        document.getElementById('entryPrice').addEventListener('input', updateRatioDisplay);
+        document.getElementById('stopLoss').addEventListener('input', updateRatioDisplay);
+        document.getElementById('takeProfit').addEventListener('input', updateRatioDisplay);
+        
+        updateRatioDisplay();
+    </script>
+</body>
+</html>

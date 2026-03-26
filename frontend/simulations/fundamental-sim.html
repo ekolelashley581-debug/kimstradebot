@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundamental Analysis Simulator – Kim's Trade Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --text: #ffffff;
+            --text-light: #cbd5e1;
+            --border: #334155;
+            --card: #1e293b;
+            --hover: #2d3a4f;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --text-light: #475569;
+            --border: #e2e8f0;
+            --card: #ffffff;
+            --hover: #f1f5f9;
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .sim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+        
+        .score-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 15px 25px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border);
+        }
+        
+        .news-card {
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .news-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+        
+        .news-date {
+            color: var(--text-light);
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .news-content {
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        
+        .option-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .option-btn {
+            padding: 12px 24px;
+            border-radius: 40px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .option-btn.bullish { background: var(--success); color: white; }
+        .option-btn.bearish { background: var(--danger); color: white; }
+        .option-btn.neutral { background: var(--warning); color: white; }
+        
+        .feedback {
+            background: var(--bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .next-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+        
+        .back-btn {
+            color: var(--primary);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sim-header">
+            <h1>📰 Fundamental Analysis Simulator</h1>
+            <div>
+                <a href="/simulations/" class="back-btn">← Exit</a>
+            </div>
+        </div>
+        
+        <div class="score-card">
+            <div><i class="fas fa-star"></i> Score: <span id="score">0</span></div>
+            <div><i class="fas fa-chart-line"></i> Accuracy: <span id="accuracy">0</span>%</div>
+            <div><i class="fas fa-trophy"></i> Streak: <span id="streak">0</span></div>
+        </div>
+        
+        <div id="newsContainer"></div>
+    </div>
+    
+    <script>
+        // ========================================
+        // NEWS SCENARIO GENERATOR
+        // ========================================
+        
+        let score = 0;
+        let correctCount = 0;
+        let streak = 0;
+        let scenarioIndex = 0;
+        let totalScenarios = 10;
+        let currentNews = null;
+        let userResponses = [];
+        
+        // Real economic events database
+        const newsEvents = [
+            { title: "Federal Reserve Interest Rate Decision", impact: "high", effect: "bullish", reason: "Rate cuts are bullish for risk assets. Lowers borrowing costs, encourages investment." },
+            { title: "US Inflation Data (CPI) Surges", impact: "high", effect: "bearish", reason: "High inflation leads to rate hikes, which are bearish for stocks and crypto." },
+            { title: "China Announces Economic Stimulus", impact: "medium", effect: "bullish", reason: "Stimulus increases liquidity and demand for commodities and risk assets." },
+            { title: "Oil Prices Crash", impact: "medium", effect: "bullish", reason: "Lower oil prices reduce inflation pressure and boost consumer spending." },
+            { title: "US Employment Report Misses Expectations", impact: "medium", effect: "bearish", reason: "Weak employment signals economic slowdown, negative for risk assets." },
+            { title: "Bitcoin ETF Approved", impact: "high", effect: "bullish", reason: "ETF approval opens Bitcoin to institutional investors, massive inflows expected." },
+            { title: "Major Exchange Hack", impact: "high", effect: "bearish", reason: "Security concerns cause panic selling across crypto markets." },
+            { title: "Fed Chair Powell Speaks Hawkish", impact: "high", effect: "bearish", reason: "Hawkish comments signal more rate hikes, negative for risk assets." },
+            { title: "US GDP Growth Beats Expectations", impact: "medium", effect: "bullish", reason: "Strong economy supports corporate earnings and risk assets." },
+            { title: "Geopolitical Tensions Escalate", impact: "high", effect: "bearish", reason: "Uncertainty drives investors to safe havens, away from risk assets." }
+        ];
+        
+        function generateNews() {
+            const event = newsEvents[Math.floor(Math.random() * newsEvents.length)];
+            const currentPrice = 66800;
+            const priceChange = event.effect === 'bullish' ? Math.random() * 5 + 2 : -(Math.random() * 5 + 2);
+            
+            return {
+                ...event,
+                priceBefore: currentPrice,
+                priceAfter: currentPrice * (1 + priceChange / 100),
+                priceChange: priceChange
+            };
+        }
+        
+        function loadScenario() {
+            currentNews = generateNews();
+            renderNews();
+        }
+        
+        function renderNews() {
+            const container = document.getElementById('newsContainer');
+            container.innerHTML = `
+                <div class="news-card">
+                    <div class="news-title">📰 ${currentNews.title}</div>
+                    <div class="news-date">Impact: ${currentNews.impact === 'high' ? '🔴 HIGH' : '🟡 MEDIUM'} • ${new Date().toLocaleDateString()}</div>
+                    <div class="news-content">
+                        ${getNewsDescription(currentNews)}
+                    </div>
+                    <div class="price-movement" style="text-align: center; font-size: 24px; margin: 20px 0;">
+                        ${currentNews.asset || 'BTC'}: $${currentNews.priceBefore.toLocaleString()}
+                    </div>
+                    <div class="option-buttons" id="optionButtons">
+                        <button class="option-btn bullish" onclick="makeDecision('bullish')">📈 BULLISH (Price will go UP)</button>
+                        <button class="option-btn bearish" onclick="makeDecision('bearish')">📉 BEARISH (Price will go DOWN)</button>
+                        <button class="option-btn neutral" onclick="makeDecision('neutral')">➖ NEUTRAL (Little impact)</button>
+                    </div>
+                    <div id="feedback"></div>
+                </div>
+            `;
+        }
+        
+        function getNewsDescription(news) {
+            if (news.title.includes("Rate")) {
+                return `The Federal Reserve announced its decision on interest rates. Markets are watching closely as this will determine the cost of capital for businesses and consumers.`;
+            } else if (news.title.includes("Inflation")) {
+                return `The latest Consumer Price Index (CPI) data shows inflation running hotter than expected at ${(Math.random() * 2 + 3).toFixed(1)}%. This could force the Fed to act.`;
+            } else if (news.title.includes("Stimulus")) {
+                return `China announced a massive economic stimulus package worth $140 billion, aimed at boosting infrastructure and consumer spending.`;
+            } else if (news.title.includes("Oil")) {
+                return `Oil prices plunged ${Math.floor(Math.random() * 15 + 5)}% after major producers failed to reach agreement on supply cuts.`;
+            } else if (news.title.includes("Employment")) {
+                return `The latest jobs report shows only ${Math.floor(Math.random() * 50 + 50)}k jobs added, missing expectations of 180k.`;
+            } else if (news.title.includes("ETF")) {
+                return `The SEC has approved the first Bitcoin ETF! This marks a historic moment for crypto adoption.`;
+            } else if (news.title.includes("Hack")) {
+                return `A major cryptocurrency exchange reported a security breach affecting over $200M in user funds.`;
+            } else if (news.title.includes("Powell")) {
+                return `Fed Chair Powell: "We remain committed to bringing inflation down to 2%." Markets interpreting as hawkish.`;
+            } else {
+                return `Breaking economic news that could impact global markets. Analysts are divided on the implications.`;
+            }
+        }
+        
+        function makeDecision(choice) {
+            const isCorrect = choice === currentNews.effect;
+            const feedbackDiv = document.getElementById('feedback');
+            const optionButtons = document.getElementById('optionButtons');
+            
+            if (isCorrect) {
+                score += 10;
+                correctCount++;
+                streak++;
+                feedbackDiv.innerHTML = `
+                    <div class="feedback">
+                        <strong>✅ Correct!</strong> ${currentNews.reason}<br><br>
+                        <strong>📊 Market moved ${currentNews.effect === 'bullish' ? 'UP' : 'DOWN'} ${Math.abs(currentNews.priceChange).toFixed(1)}% after the news.</strong><br>
+                        ${getHistoricalContext(currentNews)}
+                    </div>
+                    <button class="next-btn" onclick="nextScenario()">Next Scenario →</button>
+                `;
+            } else {
+                score -= 5;
+                streak = 0;
+                const correctDirection = currentNews.effect === 'bullish' ? 'UP' : 'DOWN';
+                feedbackDiv.innerHTML = `
+                    <div class="feedback">
+                        <strong>❌ Not quite.</strong> ${currentNews.reason}<br><br>
+                        <strong>📊 The market actually moved ${correctDirection} ${Math.abs(currentNews.priceChange).toFixed(1)}%.</strong><br>
+                        ${getLearningTip(currentNews)}
+                    </div>
+                    <button class="next-btn" onclick="nextScenario()">Next Scenario →</button>
+                `;
+            }
+            
+            const accuracy = Math.round((correctCount / (scenarioIndex + 1)) * 100);
+            document.getElementById('score').innerText = score;
+            document.getElementById('accuracy').innerText = accuracy;
+            document.getElementById('streak').innerText = streak;
+            
+            optionButtons.style.display = 'none';
+            
+            userResponses.push({
+                news: currentNews,
+                choice: choice,
+                correct: isCorrect
+            });
+        }
+        
+        function getHistoricalContext(news) {
+            if (news.title.includes("Rate")) {
+                return "📈 Historically, rate cuts lead to 80% of markets rallying within 3 months.";
+            } else if (news.title.includes("Inflation")) {
+                return "📉 High inflation readings have preceded market declines in 70% of cases over the past 20 years.";
+            } else if (news.title.includes("ETF")) {
+                return "🚀 Gold ETF approval led to 300% rally over 5 years. Bitcoin could see similar institutional inflows.";
+            }
+            return "";
+        }
+        
+        function getLearningTip(news) {
+            if (news.title.includes("Rate")) {
+                return "💡 Tip: Rate cuts are bullish, rate hikes are bearish. Watch the Fed's language for clues.";
+            } else if (news.title.includes("Inflation")) {
+                return "💡 Tip: High inflation = rate hikes = bearish. Low inflation = rate cuts = bullish.";
+            } else if (news.title.includes("ETF")) {
+                return "💡 Tip: Regulatory approval opens doors to institutional money. Usually bullish long-term.";
+            } else if (news.title.includes("Hack")) {
+                return "💡 Tip: Security breaches cause short-term panic. Often buying opportunities after the dust settles.";
+            }
+            return "💡 Tip: Consider the economic cycle – good news may already be priced in.";
+        }
+        
+        function nextScenario() {
+            scenarioIndex++;
+            if (scenarioIndex >= totalScenarios) {
+                endSimulation();
+            } else {
+                loadScenario();
+            }
+        }
+        
+        function endSimulation() {
+            const accuracy = Math.round((correctCount / totalScenarios) * 100);
+            let rating = '';
+            if (accuracy >= 80) rating = '🏆 Macro Analyst!';
+            else if (accuracy >= 60) rating = '📈 Informed Trader';
+            else if (accuracy >= 40) rating = '📊 Learning Trader';
+            else rating = '📚 Study More – Keep Practicing!';
+            
+            document.getElementById('newsContainer').innerHTML = `
+                <div class="news-card" style="text-align: center;">
+                    <i class="fas fa-chart-line" style="font-size: 64px; color: var(--primary); margin-bottom: 20px;"></i>
+                    <h2>Simulation Complete!</h2>
+                    <p style="margin: 20px 0;">Your Score: ${score}</p>
+                    <p style="margin: 20px 0; font-size: 24px; font-weight: bold;">${rating}</p>
+                    <p>Accuracy: ${accuracy}%</p>
+                    <div class="feedback" style="margin: 20px 0;">
+                        <strong>📊 Your Performance:</strong><br>
+                        ✅ Correct predictions: ${correctCount}<br>
+                        ❌ Incorrect predictions: ${totalScenarios - correctCount}<br>
+                        🔥 Best streak: ${Math.max(...userResponses.map((r, i) => {
+                            let streak = 0;
+                            for (let j = i; j < userResponses.length && userResponses[j].correct; j++) streak++;
+                            return streak;
+                        }))}
+                    </div>
+                    <div class="option-buttons">
+                        <button class="option-btn bullish" onclick="restartSimulation()">🔄 Restart</button>
+                        <button class="option-btn neutral" onclick="window.location.href='/simulations/'">🏠 Back to Hub</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function restartSimulation() {
+            score = 0;
+            correctCount = 0;
+            streak = 0;
+            scenarioIndex = 0;
+            userResponses = [];
+            document.getElementById('score').innerText = '0';
+            document.getElementById('accuracy').innerText = '0';
+            document.getElementById('streak').innerText = '0';
+            loadScenario();
+        }
+        
+        loadScenario();
+    </script>
+</body>
+</html>
